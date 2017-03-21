@@ -1,5 +1,90 @@
 SELECT soft.New_Language(_Language := 'monkey');
 
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VARIABLE');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PLUS',         _Literal         := '+');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MINUS',        _Literal         := '-');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BANG',         _Literal         := '!');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASTERISK',     _Literal         := '*');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SLASH',        _Literal         := '/');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LT',           _Literal         := '<');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GT',           _Literal         := '>');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQ',           _Literal         := '=');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQ_EQ',        _Literal         := '==');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BANG_EQ',      _Literal         := '!=');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'COMMA',        _Literal         := ',');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SEMICOLON',    _Literal         := ';');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'COLON',        _Literal         := ':');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LPAREN',       _Literal         := '(');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RPAREN',       _Literal         := ')');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACE',       _Literal         := '{');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACE',       _Literal         := '}');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACKET',     _Literal         := '[');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACKET',     _Literal         := ']');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION',     _Literal         := 'fn');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET',          _Literal         := 'let');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF',           _Literal         := 'if');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ELSE',         _Literal         := 'else');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RETURN',       _Literal         := 'return');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BOOLEAN',      _LiteralPattern  := '(true|false)',              _ValueType := 'boolean'::regtype);
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NUMERIC',      _LiteralPattern  := '([0-9]+\.[0-9]+)',          _ValueType := 'numeric'::regtype);
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'INTEGER',      _LiteralPattern  := '([0-9]+)',                  _ValueType := 'integer'::regtype);
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'TEXT',         _LiteralPattern  := '"((?:[^"\\]|\\.)*)"',       _ValueType := 'text'::regtype);
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IDENTIFIER',   _LiteralPattern  := '([a-zA-Z_]+)',              _ValueType := 'name'::regtype);
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?:(?! (?:EQ|LPAREN|RPAREN|COMMA)\d+) [A-Z_]+\d+|$)', _PreVisitFunction := 'GET_VARIABLE_NODE');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?: EQ\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VALUE',                                                                    _NodePattern     := '(?:^| )(BOOLEAN\d+|NUMERIC\d+|INTEGER\d+|TEXT\d+|GET_VARIABLE\d+|SUB_EXPRESSION\d+|IF_EXPRESSION\d+|FUNCTION_DECLARATION\d+|FUNCTION_CALL\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SUB_EXPRESSION',                    _Input := 'VALUE',                     _NodePattern     := '(?:^|(?:^| )(?!IDENTIFIER\d+ )[A-Z_]+\d+ )(LPAREN\d+(?: (?:VALUE\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|BANG\d+|LT\d+|GT\d+))+ RPAREN\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION',                        _Input := 'VALUE',                     _NodePattern     := '(?:^| )((?:VALUE\d+|GROUP\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|BANG\d+|LT\d+|GT\d+)(?: (?:VALUE\d+|GROUP\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|BANG\d+|LT\d+|GT\d+))*)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GROUP',                             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+ VALUE\d+ RPAREN\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'UNARY_MINUS',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(MINUS\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MULTIPLY',                          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ ASTERISK\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'DIVIDE',                            _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ SLASH\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SUBTRACT',                          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ MINUS\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ADD',                               _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PLUS\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LESS_THAN',                         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GREATER_THAN',                      _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQUAL',                             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ EQ_EQ\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NOT_EQUAL',                         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ BANG_EQ\d+ VALUE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FREE_STATEMENT');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',                     _PostVisitFunction := 'NEW_VARIABLE_NODE',       _NodePattern     := '(?:^| )(LET\d+ SET_VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                                                   _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION',                                                               _NodePattern     := '(?:^| )(FUNCTION\d+ LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_CALL',                                                                      _NodePattern     := '(?:^| )(IDENTIFIER\d+ LPAREN\d+(?: EXPRESSION\d+(?: COMMA\d+ EXPRESSION\d+)*)? RPAREN\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION',                                                                      _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ BLOCK_EXPRESSION\d+ ELSE\d+ BLOCK_EXPRESSION\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',                                                                            _NodePattern     := '(?:^| )(STATEMENTS\d+)');
+
+SELECT soft.New_Program(
+    _Language := 'monkey',
+    _Program := 'test',
+    _NodeID := soft.New_Node(
+        _NodeTypeID := soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
+        _Literal    :=
+$$
+let add = fn(a, b) {
+    let x = a + b;
+    let y = 2*x;
+};
+
+let z = add(2,3);
+$$,
+        _ValueType := 'text'::regtype
+    )
+);
+
+
+
+
+
+
+
+
+
+
 CREATE OR REPLACE FUNCTION soft.Find_Variable_Node(_NodeID integer, _CreatorNodeType text, _NameValue name DEFAULT NULL) RETURNS integer
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
@@ -622,137 +707,3 @@ CREATE OR REPLACE FUNCTION soft."BITWISE_NOT"              (anyelement)         
 CREATE OR REPLACE FUNCTION soft."ARRAY_INDEX"              (anyarray, integer)                  RETURNS anyelement LANGUAGE sql AS $$ SELECT $1[$2]                           $$;
 CREATE OR REPLACE FUNCTION soft."INCREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + 1                           $$;
 CREATE OR REPLACE FUNCTION soft."DECREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - 1                           $$;
-
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VARIABLE');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PLUS_EQ',                                                                  _Literal         := '+=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MINUS_EQ',                                                                 _Literal         := '-=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASTERISK_EQ',                                                              _Literal         := '*=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SLASH_EQ',                                                                 _Literal         := '/=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PERCENT_EQ',                                                               _Literal         := '%=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LT_LT_EQ',                                                                 _Literal         := '<<=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GT_GT_EQ',                                                                 _Literal         := '>>=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'AMPERSAND_EQ',                                                             _Literal         := '&=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'CIRCUMFLEX_EQ',                                                            _Literal         := '^=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PIPE_EQ',                                                                  _Literal         := '|=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PLUS',                                                                     _Literal         := '+');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MINUS',                                                                    _Literal         := '-');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BANG',                                                                     _Literal         := '!');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'TILDE',                                                                    _Literal         := '~');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PIPE',                                                                     _Literal         := '|');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PIPE_PIPE',                                                                _Literal         := '||');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PERCENT',                                                                  _Literal         := '%');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'AMPERSAND',                                                                _Literal         := '&');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'AMPERSAND_AMPERSAND',                                                      _Literal         := '&&');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASTERISK',                                                                 _Literal         := '*');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SLASH',                                                                    _Literal         := '/');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GT',                                                                       _Literal         := '>');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GT_GT',                                                                    _Literal         := '>>');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GT_EQ',                                                                    _Literal         := '>=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LT',                                                                       _Literal         := '<');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LT_LT',                                                                    _Literal         := '<<');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LT_EQ',                                                                    _Literal         := '<=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQ_EQ',                                                                    _Literal         := '==');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BANG_EQ',                                                                  _Literal         := '!=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'COMMA',                                                                    _Literal         := ',');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SEMICOLON',                                                                _Literal         := ';');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'COLON',                                                                    _Literal         := ':');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'QUESTION_MARK',                                                            _Literal         := '?');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'CIRCUMFLEX',                                                               _Literal         := '^');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LPAREN',                                                                   _Literal         := '(');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RPAREN',                                                                   _Literal         := ')');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACE',                                                                   _Literal         := '{');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACE',                                                                   _Literal         := '}');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACKET',                                                                 _Literal         := '[');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACKET',                                                                 _Literal         := ']');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION',                                                                 _Literal         := 'fn');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET',                                                                      _Literal         := 'let');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF',                                                                       _Literal         := 'if');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'THEN',                                                                     _Literal         := 'then');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ELSE',                                                                     _Literal         := 'else');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FREE',                                                                     _Literal         := 'free');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LOOP',                                                                     _Literal         := 'loop');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BREAK',                                                                    _Literal         := 'break');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'CONTINUE',                                                                 _Literal         := 'continue');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RETURN',                                                                   _Literal         := 'return');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQ',                                                                       _LiteralPattern  := '(=)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BOOLEAN',                                                                  _LiteralPattern  := '(true|false)',              _ValueType := 'boolean'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NUMERIC',                                                                  _LiteralPattern  := '([0-9]+\.[0-9]+)',          _ValueType := 'numeric'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'INTEGER',                                                                  _LiteralPattern  := '([0-9]+)',                  _ValueType := 'integer'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'TEXT',                                                                     _LiteralPattern  := '"((?:[^"\\]|\\.)*)"',       _ValueType := 'text'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',          _PreVisitFunction := 'GET_VARIABLE_NODE', _LiteralPattern  := '([a-zA-Z_]+)(?! =(?: |$))', _ValueType := 'name'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',                                                             _LiteralPattern  := '([a-zA-Z_]+)(?= =(?: |$))', _ValueType := 'name'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VALUE',                                                                    _NodePattern     := '(?:^| )(BOOLEAN\d+|NUMERIC\d+|INTEGER\d+|TEXT\d+|GET_VARIABLE\d+|SUB_EXPRESSION\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SUB_EXPRESSION',                    _Input := 'VALUE',                     _NodePattern     := '(?:^| )(LPAREN\d+(?: (?:VALUE\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|CIRCUMFLEX\d+|QUESTION_MARK\d+|COLON\d+|BANG\d+|TILDE\d+|PIPE\d+|PIPE_PIPE\d+|PERCENT\d+|AMPERSAND\d+|AMPERSAND_AMPERSAND\d+|PLUS_EQ\d+|MINUS_EQ\d+|ASTERISK_EQ\d+|SLASH_EQ\d+|PERCENT_EQ\d+|LT_LT_EQ\d+|GT_GT_EQ\d+|AMPERSAND_EQ\d+|CIRCUMFLEX_EQ\d+|PIPE_EQ\d+|LT\d+|LT_EQ\d+|GT\d+|GT_EQ\d+|LT_LT\d+|GT_GT\d+))+ RPAREN\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION',                        _Input := 'VALUE',                     _NodePattern     := '(?:^| )((?:VALUE\d+|GROUP\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|CIRCUMFLEX\d+|QUESTION_MARK\d+|COLON\d+|BANG\d+|TILDE\d+|PIPE\d+|PIPE_PIPE\d+|PERCENT\d+|AMPERSAND\d+|AMPERSAND_AMPERSAND\d+|PLUS_EQ\d+|MINUS_EQ\d+|ASTERISK_EQ\d+|SLASH_EQ\d+|PERCENT_EQ\d+|LT_LT_EQ\d+|GT_GT_EQ\d+|AMPERSAND_EQ\d+|CIRCUMFLEX_EQ\d+|PIPE_EQ\d+|LT\d+|LT_EQ\d+|GT\d+|GT_EQ\d+|LT_LT\d+|GT_GT\d+)(?: (?:VALUE\d+|GROUP\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|CIRCUMFLEX\d+|QUESTION_MARK\d+|COLON\d+|BANG\d+|TILDE\d+|PIPE\d+|PIPE_PIPE\d+|PERCENT\d+|AMPERSAND\d+|AMPERSAND_AMPERSAND\d+|PLUS_EQ\d+|MINUS_EQ\d+|ASTERISK_EQ\d+|SLASH_EQ\d+|PERCENT_EQ\d+|LT_LT_EQ\d+|GT_GT_EQ\d+|AMPERSAND_EQ\d+|CIRCUMFLEX_EQ\d+|PIPE_EQ\d+|LT\d+|LT_EQ\d+|GT\d+|GT_EQ\d+|LT_LT\d+|GT_GT\d+))*)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GROUP',                             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+ VALUE\d+ RPAREN\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'POSTFIX_INCREMENT',                 _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PLUS\d+ PLUS\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'POSTFIX_DECREMENT',                 _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ MINUS\d+ MINUS\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PREFIX_INCREMENT',                  _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(PLUS\d+ PLUS\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PREFIX_DECREMENT',                  _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(MINUS\d+ MINUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'UNARY_PLUS',                        _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(PLUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'UNARY_MINUS',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(MINUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LOGICAL_NOT',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(BANG\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BITWISE_NOT',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(TILDE\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPONENT',                          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ CIRCUMFLEX\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MULTIPLY',                          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ ASTERISK\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'DIVIDE',                            _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ SLASH\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MODULO',                            _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PERCENT\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SUBTRACT',                          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ MINUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ADD',                               _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PLUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BITWISE_SHIFT_LEFT',                _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT_LT\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BITWISE_SHIFT_RIGHT',               _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT_GT\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LESS_THAN',                         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LESS_THAN_OR_EQUAL_TO',             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT_EQ\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GREATER_THAN',                      _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GREATER_THAN_OR_EQUAL_TO',          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT_EQ\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQUAL',                             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ EQ_EQ\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NOT_EQUAL',                         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ BANG_EQ\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BITWISE_AND',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ AMPERSAND\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BITWISE_XOR',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ CIRCUMFLEX\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BITWISE_OR',                        _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PIPE\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LOGICAL_AND',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ AMPERSAND_AMPERSAND\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LOGICAL_OR',                        _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PIPE_PIPE\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'TERNARY',                           _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ QUESTION_MARK\d+ VALUE\d+ COLON\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT',                        _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_SUM',                 _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PLUS_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_DIFFERENCE',          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ MINUS_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_PRODUCT',             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ ASTERISK_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_QUOTIENT',            _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ SLASH_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_REMAINDER',           _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PERCENT_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_BITWISE_SHIFT_LEFT',  _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT_LT_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_BITWISE_SHIFT_RIGHT', _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT_GT_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_BITWISE_AND',         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ AMPERSAND_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_BITWISE_XOR',         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ CIRCUMFLEX_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_BY_BITWISE_OR',          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PIPE_EQ\d+ VALUE\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION',                     _Input := 'VALUE', _Output := 'VALUE',           _NodePattern     := '(?:^| )(IF\d+ VALUE\d+ THEN\d+ VALUE\d+ ELSE\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FREE_STATEMENT');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'END_IF');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',                     _PostVisitFunction := 'NEW_VARIABLE_NODE',         _NodePattern     := '(?:^| )(LET\d+ SET_VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASSIGNMENT_STATEMENT',              _PreVisitFunction  := 'SET_VARIABLE_NODE', _NodePattern     := '(?:^| )(SET_VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LOOP_STATEMENT',                    _PreVisitFunction := 'INIT_LOOP_STATEMENT',      _NodePattern     := '(?:^| )(LOOP\d+ BLOCK_STATEMENT\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BREAK_STATEMENT',                   _PreVisitFunction := 'INIT_BREAK_STATEMENT',     _NodePattern     := '(?:^| )(BREAK\d+ SEMICOLON\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'CONTINUE_STATEMENT',                _PreVisitFunction := 'INIT_CONTINUE_STATEMENT',  _NodePattern     := '(?:^| )(CONTINUE\d+ SEMICOLON\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',                                                                            _NodePattern     := '(?:^| )(STATEMENTS\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RETURN_STATEMENT',             _Returns := 'STATEMENT', _NodePattern     := '(RETURN\d+(?: VALUE\d+)? SEMICOLON\d+)');
--- SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                 _Returns := 'STATEMENT', _NodePattern     := 'IF_EXPRESSION SEMICOLON');
-SELECT soft.New_Program(
-    _Language := 'monkey',
-    _Program := 'test',
-    _NodeID := soft.New_Node(
-        _NodeTypeID := soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
-        _Literal    :=
-$$
-let x = 1+2*3;
-let y = 4*5-6;
-let z = x*y;
-$$,
-        _ValueType := 'text'::regtype
-    )
-);
-
-

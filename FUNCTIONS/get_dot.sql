@@ -12,7 +12,7 @@ SELECT format(E'"%s" [label="%s\n%s\n%s\n%s"%s];',
     NodeTypes.NodeType,
     Nodes.ValueType::text,
     Nodes.Visited,
-    'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.ValueType::text,'NAN') || ' ' || COALESCE(CASE Nodes.BooleanValue WHEN TRUE THEN 'TRUE' WHEN FALSE THEN 'FALSE' ELSE COALESCE(Nodes.BooleanValue::text, Nodes.IntegerValue::text, Nodes.TextValue, Nodes.NameValue, NodeTypes.Literal, 'NULL') END),
+    'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.ValueType::text,'NAN') || ' ' || COALESCE(CASE Nodes.BooleanValue WHEN TRUE THEN 'TRUE' WHEN FALSE THEN 'FALSE' ELSE COALESCE(Nodes.BooleanValue::text, Nodes.IntegerValue::text, replace(Nodes.TextValue,'"','\"'), Nodes.NameValue, NodeTypes.Literal, 'NULL') END),
     CASE
     WHEN Programs.NodeID = Nodes.NodeID THEN ' style="filled" fillcolor="red"'
     WHEN Nodes.Visited > 0 THEN ' style="filled" fillcolor="grey"'

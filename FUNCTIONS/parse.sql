@@ -10,6 +10,7 @@ _MatchedNodes          text;
 _MatchedNode           text;
 _ChildNodeTypeID       integer;
 _ChildNodeType         text;
+_ChildValueType        regtype;
 _ParentNodeID          integer;
 _ChildNodeID           integer;
 _EdgeID                integer;
@@ -18,14 +19,17 @@ _ExtractNodeID         text := '^[A-Z_]+(\d+)$';
 BEGIN
 
 LOOP
+    RAISE NOTICE '% %', _Output, _Nodes;
     SELECT
         NodeTypes.NodeTypeID,
         NodeTypes.NodeType,
+        NodeTypes.ValueType,
         NodeTypes.NodePattern,
         NodeTypes.Input
     INTO
         _ChildNodeTypeID,
         _ChildNodeType,
+        _ChildValueType,
         _NodePattern,
         _Input
     FROM NodeTypes

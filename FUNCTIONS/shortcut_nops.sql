@@ -15,6 +15,7 @@ _EdgeIDToChild integer;
 _OK boolean;
 _DidWork boolean;
 _NodeTypeID integer;
+_ValueType regtype;
 BEGIN
 
 LOOP
@@ -25,8 +26,8 @@ LOOP
     FROM Nodes
     WHERE NOT EXISTS (SELECT 1 FROM Edges WHERE Edges.ChildNodeID = Nodes.NodeID);
 
-    FOR _NOPNodeID, _NodeTypeID IN
-    SELECT Nodes.NodeID, Nodes.NodeTypeID
+    FOR _NOPNodeID, _NodeTypeID, _ValueType IN
+    SELECT Nodes.NodeID, Nodes.NodeTypeID, NodeTypes.ValueType
     FROM Nodes
     INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
     WHERE Nodes.ValueType IS NULL
@@ -69,6 +70,10 @@ LOOP
 
         IF NOT EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _ChildNodeID) THEN
             INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_SourceCodeNodeID, _ChildNodeID) RETURNING TRUE INTO STRICT _OK;
+        END IF;
+
+        IF _ValueType IS NOT NULL THEN
+            UPDATE Nodes SET NodeTypeID = _NodeTypeID WHERE NodeID = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
         END IF;
 
         RAISE NOTICE 'Shortcutted NOP % -> % -> %', _ParentNodeID, _NOPNodeID, _ChildNodeID;
