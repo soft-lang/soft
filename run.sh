@@ -9,10 +9,6 @@ echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_D
 echo '}' >> prog.dot
 dot -Tpdf -o prog_0.pdf prog.dot
 
-open prog_0.pdf
-
-exit;
-
 unset FOO
 FRAME=100
 while : ; do
@@ -28,13 +24,25 @@ done
 
 psql -q -E -A -t -X -c 'UPDATE soft.Nodes SET Visited = Visited + 1 WHERE NodeID = (SELECT NodeID FROM soft.Programs)'
 
-psql -q -E -A -t -X -c 'SELECT soft.Free_Variables()'
+# psql -q -E -A -t -X -c 'SELECT soft.Free_Variables()'
 
 psql -q -E -A -t -X -c 'UPDATE soft.Nodes SET Visited = 0;'
 
 psql -q -E -A -t -X -c 'UPDATE soft.Nodes SET Visited = 1 WHERE NodeID = (SELECT NodeID FROM soft.Programs)'
 
 psql -q -E -A -t -X -c 'SELECT soft.If_Statements()'
+
+psql -q -E -A -t -X -c 'SELECT soft.Function_Declarations()'
+
+psql -q -E -A -t -X -c 'SELECT soft.Delete_Source_Code_Node()'
+
+echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_DOT()' >> prog.dot
+echo '}' >> prog.dot
+dot -Tpdf -o prog_0.pdf prog.dot
+
+open prog_0.pdf
+
+exit;
 
 while : ; do
     FOO=$(psql -X -t -A -q -c "SELECT soft.Walk_Tree(1)");

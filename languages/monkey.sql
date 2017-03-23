@@ -30,8 +30,8 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NUMERIC',      _L
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'INTEGER',      _LiteralPattern  := '([0-9]+)',                  _ValueType := 'integer'::regtype);
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'TEXT',         _LiteralPattern  := '"((?:[^"\\]|\\.)*)"',       _ValueType := 'text'::regtype);
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IDENTIFIER',   _LiteralPattern  := '([a-zA-Z_]+)',              _ValueType := 'name'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?:(?! (?:EQ|LPAREN|RPAREN|COMMA)\d+) [A-Z_]+\d+|$)', _PreVisitFunction := 'GET_VARIABLE_NODE');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?: EQ\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?:(?! (?:EQ|LPAREN|RPAREN|COMMA|FUNCTION_ARGS)\d+) [A-Z_]+\d+|$)', _PreVisitFunction := 'GET_VARIABLE_NODE');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+) EQ\d+');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VALUE',                                                                    _NodePattern     := '(?:^| )(BOOLEAN\d+|NUMERIC\d+|INTEGER\d+|TEXT\d+|GET_VARIABLE\d+|SUB_EXPRESSION\d+|IF_EXPRESSION\d+|FUNCTION_DECLARATION\d+|FUNCTION_CALL\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SUB_EXPRESSION',                    _Input := 'VALUE',                     _NodePattern     := '(?:^|(?:^| )(?!IDENTIFIER\d+ )[A-Z_]+\d+ )(LPAREN\d+(?: (?:VALUE\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|BANG\d+|LT\d+|GT\d+))+ RPAREN\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION',                        _Input := 'VALUE',                     _NodePattern     := '(?:^| )((?:VALUE\d+|GROUP\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|BANG\d+|LT\d+|GT\d+)(?: (?:VALUE\d+|GROUP\d+|PLUS\d+|MINUS\d+|ASTERISK\d+|SLASH\d+|EQ_EQ\d+|BANG_EQ\d+|BANG\d+|LT\d+|GT\d+))*)');
@@ -50,39 +50,25 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',  
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                                                   _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION',                                                               _NodePattern     := '(?:^| )(FUNCTION\d+ LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_CALL',                                                                      _NodePattern     := '(?:^| )(IDENTIFIER\d+ LPAREN\d+(?: EXPRESSION\d+(?: COMMA\d+ EXPRESSION\d+)*)? RPAREN\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_PARAMS',                                                                    _NodePattern     := '(?:^| )(?:FUNCTION\d+ )(LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION',                                                               _NodePattern     := '(?:^| )(FUNCTION\d+ FUNCTION_PARAMS\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_ARGS',                                                                      _NodePattern     := '(?:^| )(?:IDENTIFIER\d+ )(LPAREN\d+(?: EXPRESSION\d+(?: COMMA\d+ EXPRESSION\d+)*)? RPAREN\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_CALL',                                                                      _NodePattern     := '(?:^| )(IDENTIFIER\d+ FUNCTION_ARGS\d+)', _PreVisitFunction := 'GET_FUNCTION_NODE');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION',                                                                      _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ BLOCK_EXPRESSION\d+ ELSE\d+ BLOCK_EXPRESSION\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',                                                                            _NodePattern     := '(?:^| )(STATEMENTS\d+)');
 
-SELECT soft.New_Program(
-    _Language := 'monkey',
-    _Program := 'test',
-    _NodeID := soft.New_Node(
-        _NodeTypeID := soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
-        _Literal    :=
-$$
-let add = fn(a, b) {
-    let x = a + b;
-    let y = 2*x;
-};
-
-let z = add(2,3);
-$$,
-        _ValueType := 'text'::regtype
-    )
-);
-
-
-
-
-
-
-
-
+CREATE OR REPLACE FUNCTION soft."FUNCTION_DECLARATION"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+RETURN;
+END;
+$$;
 
 
 CREATE OR REPLACE FUNCTION soft.Find_Variable_Node(_NodeID integer, _CreatorNodeType text, _NameValue name DEFAULT NULL) RETURNS integer
@@ -91,7 +77,9 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _VariableNodeID integer;
+_OriginNodeID integer;
 BEGIN
+_OriginNodeID := _NodeID;
 LOOP
     SELECT Variable.NodeID INTO _VariableNodeID
     FROM Nodes AS LetStatementChild
@@ -100,8 +88,35 @@ LOOP
     INNER JOIN Edges AS Edge2 ON Edge2.ChildNodeID = CreatorNode.NodeID
     INNER JOIN Nodes AS Variable ON Variable.NodeID = Edge2.ParentNodeID
     WHERE LetStatementChild.NodeID = _NodeID
-    AND CreatorNode.NodeTypeID  = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = _CreatorNodeType)
+    AND CreatorNode.NodeTypeID  = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'LET_STATEMENT')
     AND Variable.NodeTypeID     = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'VARIABLE')
+    AND (Variable.NameValue     = _NameValue OR _NameValue IS NULL)
+    ORDER BY Edge1.EdgeID DESC
+    LIMIT 1;
+    IF FOUND THEN
+        RETURN _VariableNodeID;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Edges WHERE ParentNodeID = _NodeID) THEN
+        EXIT;
+    END IF;
+    SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE ParentNodeID = _NodeID ORDER BY EdgeID LIMIT 1;
+END LOOP;
+
+_NodeID := _OriginNodeID;
+LOOP
+    RAISE NOTICE 'NodeID %', _NodeID;
+    SELECT Variable.NodeID INTO _VariableNodeID
+    FROM Nodes AS LetStatementChild
+    INNER JOIN Edges AS Edge1       ON Edge1.ChildNodeID  = LetStatementChild.NodeID
+    INNER JOIN Nodes AS CreatorNode ON CreatorNode.NodeID = Edge1.ParentNodeID
+    INNER JOIN Edges AS Edge2       ON Edge2.ChildNodeID  = CreatorNode.NodeID
+    INNER JOIN Nodes AS Params      ON Params.NodeID      = Edge2.ParentNodeID
+    INNER JOIN Edges AS Edge3       ON Edge3.ChildNodeID  = Params.NodeID
+    INNER JOIN Nodes AS Variable    ON Variable.NodeID    = Edge3.ParentNodeID
+    WHERE LetStatementChild.NodeID = _NodeID
+    AND CreatorNode.NodeTypeID  = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'FUNCTION_DECLARATION')
+    AND Params.NodeTypeID       = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'FUNCTION_PARAMS')
+    AND Variable.NodeTypeID     = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'IDENTIFIER')
     AND (Variable.NameValue     = _NameValue OR _NameValue IS NULL)
     ORDER BY Edge1.EdgeID DESC
     LIMIT 1;
@@ -113,6 +128,7 @@ LOOP
         RAISE EXCEPTION 'Origin variable node for % not found from %', _NameValue, _NodeID;
     END IF;
 END LOOP;
+
 RETURN NULL; -- will never reach
 END;
 $$;
@@ -316,6 +332,49 @@ UPDATE Edges SET ParentNodeID = _VariableNodeID WHERE ParentNodeID = _CurrentNod
 DELETE FROM Nodes WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
 
 RAISE NOTICE 'GET_VARIABLE_NODE _CurrentNodeID % _NameValue % <- _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
+
+RETURN;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION soft."GET_FUNCTION_NODE"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_SourceCodeNodeID integer;
+_CurrentNodeID integer;
+_Visited integer;
+_VariableNodeID integer;
+_OK boolean;
+_NameValue name;
+_ChildNodeID integer;
+BEGIN
+
+SELECT NodeID INTO STRICT _SourceCodeNodeID FROM Nodes
+WHERE NOT EXISTS (
+    SELECT 1 FROM Edges WHERE Edges.ChildNodeID = Nodes.NodeID
+);
+
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+
+SELECT ParentNodeID INTO STRICT _CurrentNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
+
+RAISE NOTICE 'GET_FUNCTION_NODE _CurrentNodeID %', _CurrentNodeID;
+
+SELECT Visited, NameValue INTO STRICT _Visited, _NameValue FROM Nodes WHERE NodeID = _CurrentNodeID AND ValueType = 'name'::regtype;
+
+_VariableNodeID := Find_Variable_Node(_CurrentNodeID, 'LET_STATEMENT', _NameValue);
+
+RAISE NOTICE 'VariableNodeID %', _VariableNodeID;
+
+SELECT ChildNodeID INTO STRICT _ChildNodeID FROM Edges WHERE ParentNodeID = _CurrentNodeID;
+
+DELETE FROM Edges WHERE ParentNodeID = _SourceCodeNodeID AND ChildNodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+UPDATE Edges SET ParentNodeID = _VariableNodeID WHERE ParentNodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+DELETE FROM Nodes WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+
+RAISE NOTICE 'GET_FUNCTION_NODE _CurrentNodeID % _NameValue % <- _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
 
 RETURN;
 END;
@@ -707,3 +766,22 @@ CREATE OR REPLACE FUNCTION soft."BITWISE_NOT"              (anyelement)         
 CREATE OR REPLACE FUNCTION soft."ARRAY_INDEX"              (anyarray, integer)                  RETURNS anyelement LANGUAGE sql AS $$ SELECT $1[$2]                           $$;
 CREATE OR REPLACE FUNCTION soft."INCREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + 1                           $$;
 CREATE OR REPLACE FUNCTION soft."DECREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - 1                           $$;
+
+SELECT soft.New_Program(
+    _Language := 'monkey',
+    _Program := 'test',
+    _NodeID := soft.New_Node(
+        _NodeTypeID := soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
+        _Literal    :=
+$$
+let add = fn(a, b) {
+    let x = a + b;
+    let a = 123;
+    let y = 2*x+a;
+};
+
+let z = add(2,add(3,4));
+$$,
+        _ValueType := 'text'::regtype
+    )
+);
