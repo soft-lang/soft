@@ -63,6 +63,8 @@ $SQL$,
     _WHEREs
 );
 
+RAISE NOTICE 'SQL %', _SQL;
+
 EXECUTE _SQL INTO STRICT _FoundNodeID;
 
 RETURN _FoundNodeID;

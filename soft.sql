@@ -22,3 +22,7 @@ CREATE SCHEMA soft;
 \ir FUNCTIONS/if_statements.sql
 \ir FUNCTIONS/function_declarations.sql
 \ir FUNCTIONS/find_node.sql
+\ir FUNCTIONS/copy_node.sql
+\ir FUNCTIONS/set_node_value.sql
+\ir FUNCTIONS/push_node.sql
+\ir FUNCTIONS/pop_node.sql

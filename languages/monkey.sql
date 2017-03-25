@@ -63,25 +63,6 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',      
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',             _Prologue := 'ALLOCA', _Epilogue := 'RET',                     _NodePattern     := '(?:^| )(STATEMENTS\d+)');
 
-CREATE OR REPLACE FUNCTION soft."FUNCTION_DECLARATION"() RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_OK boolean;
-_CurrentNodeID integer;
-_FunctionNameNodeID integer;
-_FunctionDeclarationNodeID integer;
-BEGIN
-
-SELECT NodeID       INTO STRICT _CurrentNodeID             FROM Programs;
-
-RAISE NOTICE 'Incoming function call at %', _CurrentNodeID;
-
-RETURN;
-END;
-$$;
-
 CREATE OR REPLACE FUNCTION soft."FUNCTION_CALL"(name) RETURNS void
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
@@ -94,30 +75,74 @@ _FunctionNameNodeID integer;
 _FunctionDeclarationNodeID integer;
 _RetNodeID integer;
 _RetEdgeID integer;
+_LastNodeID integer;
+_AllocaNodeID integer;
+_VariableNodeID integer;
 BEGIN
 
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
 
-SELECT EdgeID INTO _RetEdgeID FROM Edges WHERE ParentNodeID = _CurrentNodeID ORDER BY EdgeID OFFSET 1 LIMIT 1;
+SELECT EdgeID, ChildNodeID INTO _RetEdgeID, _RetNodeID FROM Edges WHERE ParentNodeID = _CurrentNodeID ORDER BY EdgeID OFFSET 1 LIMIT 1;
 IF NOT FOUND THEN
     RAISE NOTICE 'Outgoing function call at %', _CurrentNodeID;
     SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
     SELECT ParentNodeID INTO STRICT _FunctionNameNodeID        FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
     SELECT ParentNodeID INTO STRICT _FunctionDeclarationNodeID FROM Edges WHERE ChildNodeID = _FunctionNameNodeID;
     SELECT ParentNodeID INTO STRICT _RetNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID DESC LIMIT 1;
-    UPDATE Nodes SET Visited = _Visited WHERE NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Nodes SET Visited = Visited+1 WHERE NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
     UPDATE Nodes SET Visited = _Visited-1 WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
     UPDATE Programs SET NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
     INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_CurrentNodeID, _RetNodeID) RETURNING TRUE INTO STRICT _OK;
 ELSE
-    RAISE NOTICE 'Returning function call at %', _CurrentNodeID;
     UPDATE Nodes SET Visited = _Visited+1 WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+    SELECT ChildNodeID INTO STRICT _FunctionDeclarationNodeID FROM Edges WHERE ParentNodeID = _RetNodeID;
+    SELECT ParentNodeID INTO STRICT _LastNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID DESC OFFSET 1 LIMIT 1;
+    RAISE NOTICE 'Returning function call at % copying value from %', _CurrentNodeID, _LastNodeID;
+    PERFORM Copy_Node(_LastNodeID, _CurrentNodeID);
     DELETE FROM Edges WHERE EdgeID = _RetEdgeID RETURNING TRUE INTO STRICT _OK;
+    SELECT ParentNodeID INTO STRICT _AllocaNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID LIMIT 1;
+    FOR _VariableNodeID IN
+    SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _AllocaNodeID ORDER BY EdgeID
+    LOOP
+        PERFORM Pop_Node(_VariableNodeID);
+    END LOOP;
 END IF;
 
 RETURN;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION soft."RET"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+RETURN;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION soft."BLOCK_EXPRESSION"(anyelement) RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_LastNodeID integer;
+_OK boolean;
+BEGIN
+
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+
+SELECT ParentNodeID INTO STRICT _LastNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID DESC LIMIT 1;
+
+PERFORM Copy_Node(_LastNodeID, _CurrentNodeID);
+
+RETURN;
+END;
+$$;
+
 
 CREATE OR REPLACE FUNCTION soft."STORE_ARGS"() RETURNS void
 SET search_path TO soft, public, pg_temp
@@ -125,12 +150,29 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _CurrentNodeID integer;
+_FunctionArgsNodeID integer;
+_CopyFromNodeIDs integer[];
+_CopyToNodeIDs integer[];
 _OK boolean;
 BEGIN
 
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
 
-RAISE NOTICE 'Store function args at %', _CurrentNodeID;
+_FunctionArgsNodeID := Find_Node(_CurrentNodeID, '-> FUNCTION_DECLARATION <- RET <- FUNCTION_CALL <- FUNCTION_ARGS');
+
+SELECT array_agg(ParentNodeID ORDER BY EdgeID) INTO STRICT _CopyFromNodeIDs FROM Edges WHERE ChildNodeID = _FunctionArgsNodeID;
+SELECT array_agg(ParentNodeID ORDER BY EdgeID) INTO STRICT _CopyToNodeIDs   FROM Edges WHERE ChildNodeID = _CurrentNodeID;
+
+IF (array_length(_CopyFromNodeIDs,1) = array_length(_CopyToNodeIDs,1)) IS NOT TRUE THEN
+    RAISE EXCEPTION 'Number of function arguments differ between call args and the declared functions args: CurrentNodeID % FunctionArgsNodeID % CopyFromNodeIDs % CopyToNodeIDs %', _CurrentNodeID, _FunctionArgsNodeID, _CopyFromNodeIDs, _CopyToNodeIDs;
+END IF;
+
+RAISE NOTICE 'Store function args at % from node %', _CurrentNodeID, _FunctionArgsNodeID;
+
+FOR _i IN 1..array_length(_CopyFromNodeIDs,1) LOOP
+    RAISE NOTICE 'Copying node % to %', _CopyFromNodeIDs[_i], _CopyToNodeIDs[_i];
+    PERFORM Copy_Node(_CopyFromNodeIDs[_i], _CopyToNodeIDs[_i]);
+END LOOP;
 
 RETURN;
 END;
@@ -155,50 +197,12 @@ RAISE NOTICE 'Allocating at %', _CurrentNodeID;
 FOR _VariableNodeID IN
 SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID
 LOOP
-    SELECT New_Node(NodeTypeID) INTO STRICT _NewNodeID FROM NodeTypes WHERE NodeType = 'VARIABLE';
-    
-    UPDATE Nodes AS CopyTo SET
-        ValueType    = CopyFrom.ValueType,
-        NameValue    = CopyFrom.NameValue,
-        BooleanValue = CopyFrom.BooleanValue,
-        NumericValue = CopyFrom.NumericValue,
-        IntegerValue = CopyFrom.IntegerValue,
-        TextValue    = CopyFrom.TextValue
-    FROM Nodes AS CopyFrom
-    WHERE CopyFrom.NodeID = _VariableNodeID
-    AND     CopyTo.NodeID = _NewNodeID
-    RETURNING TRUE INTO STRICT _OK;
-
-    UPDATE Nodes SET
-        ValueType    = NULL,
-        NameValue    = NULL,
-        BooleanValue = NULL,
-        NumericValue = NULL,
-        IntegerValue = NULL,
-        TextValue    = NULL
-    WHERE NodeID = _VariableNodeID
-    RETURNING TRUE INTO STRICT _OK;
-
-    IF EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _VariableNodeID) THEN
-        UPDATE Edges SET ChildNodeID = _NewNodeID WHERE ChildNodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
-    END IF;
-    INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_NewNodeID, _VariableNodeID) RETURNING TRUE INTO STRICT _OK;
+    PERFORM Push_Node(_VariableNodeID);
 END LOOP;
 
 RETURN;
 END;
 $$;
-
-CREATE OR REPLACE FUNCTION soft."RET"() RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE plpgsql
-AS $$
-DECLARE
-BEGIN
-RETURN;
-END;
-$$;
-
 
 CREATE OR REPLACE FUNCTION soft.Find_Variable_Node(_NodeID integer, _CreatorNodeType text, _NameValue name DEFAULT NULL) RETURNS integer
 SET search_path TO soft, public, pg_temp
@@ -647,38 +651,11 @@ _CurrentNodeID integer;
 _ValueNodeID integer;
 _OK boolean;
 BEGIN
-
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-
 SELECT ParentNodeID INTO STRICT _ValueNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
-
-EXECUTE format($SQL$
-UPDATE Nodes SET
-    ValueType    = %1$L::regtype,
-    %1$sValue    = %2$L::%1$s
-WHERE NodeID = %3$s
-$SQL$,
-    pg_typeof($1),
-    $1::text,
-    _ValueNodeID
-);
-
+PERFORM Set_Node_Value(_ValueNodeID, $1);
 RETURN;
 END;
-$$;
-
-CREATE OR REPLACE FUNCTION soft."ASSIGNMENT_STATEMENT"(name,anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE sql
-AS $$
-SELECT soft."ASSIGNMENT_STATEMENT"($2);
-$$;
-
-CREATE OR REPLACE FUNCTION soft."ASSIGNMENT_STATEMENT"(anyelement,anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE sql
-AS $$
-SELECT soft."ASSIGNMENT_STATEMENT"($2);
 $$;
 
 CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"(anyelement) RETURNS void
@@ -690,11 +667,8 @@ _CurrentNodeID integer;
 _ValueNodeID integer;
 _OK boolean;
 BEGIN
-
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-
 SELECT ParentNodeID INTO STRICT _ValueNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
-
 UPDATE Nodes SET
     ValueType    = NULL,
     NameValue    = NULL,
@@ -704,26 +678,9 @@ UPDATE Nodes SET
     TextValue    = NULL
 WHERE NodeID = _ValueNodeID
 RETURNING TRUE INTO STRICT _OK;
-
 PERFORM soft."ASSIGNMENT_STATEMENT"($1);
-
 END;
 $$;
-
-CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"(name,anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE sql
-AS $$
-SELECT soft."LET_STATEMENT"($2);
-$$;
-
-CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"(anyelement,anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE sql
-AS $$
-SELECT soft."LET_STATEMENT"($2);
-$$;
-
 
 CREATE OR REPLACE FUNCTION soft."FREE_STATEMENT"(anyelement) RETURNS void
 SET search_path TO soft, public, pg_temp
