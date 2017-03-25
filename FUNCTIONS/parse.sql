@@ -16,6 +16,9 @@ _ChildNodeID           integer;
 _EdgeID                integer;
 _Input                 text;
 _ExtractNodeID         text := '^[A-Z_]+(\d+)$';
+_PrologueNodeTypeID    integer;
+_EpilogueNodeTypeID    integer;
+_OK                    boolean;
 BEGIN
 
 LOOP
@@ -25,14 +28,20 @@ LOOP
         NodeTypes.NodeType,
         NodeTypes.ValueType,
         NodeTypes.NodePattern,
-        NodeTypes.Input
+        NodeTypes.Input,
+        Prologue.NodeTypeID,
+        Epilogue.NodeTypeID
     INTO
         _ChildNodeTypeID,
         _ChildNodeType,
         _ChildValueType,
         _NodePattern,
-        _Input
+        _Input,
+        _PrologueNodeTypeID,
+        _EpilogueNodeTypeID
     FROM NodeTypes
+    LEFT JOIN NodeTypes AS Prologue ON Prologue.NodeType = NodeTypes.Prologue
+    LEFT JOIN NodeTypes AS Epilogue ON Epilogue.NodeType = NodeTypes.Epilogue
     WHERE NodeTypes.LanguageID = _LanguageID
     AND _Nodes ~ NodeTypes.NodePattern
     AND NodeTypes.Output IS NOT DISTINCT FROM _Output
@@ -52,6 +61,10 @@ LOOP
 
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, COALESCE(_Output,_ChildNodeType)||_ChildNodeID);
 
+    IF _PrologueNodeTypeID IS NOT NULL THEN
+        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_PrologueNodeTypeID), _ChildNodeID) RETURNING EdgeID INTO STRICT _EdgeID;
+    END IF;
+
     FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
         _RegexpCapturingGroups := regexp_matches(_MatchedNode, _ExtractNodeID);
         IF (array_length(_RegexpCapturingGroups,1) = 1) IS NOT TRUE THEN
@@ -69,8 +82,15 @@ LOOP
             VALUES            (_ParentNodeID, _ChildNodeID)
             RETURNING    EdgeID
             INTO STRICT _EdgeID;
+        ELSE
+            DELETE FROM Edges WHERE ChildNodeID = _ParentNodeID;
+            DELETE FROM Nodes WHERE NodeID      = _ParentNodeID;
         END IF;
     END LOOP;
+
+    IF _EpilogueNodeTypeID IS NOT NULL THEN
+        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_EpilogueNodeTypeID), _ChildNodeID) RETURNING EdgeID INTO STRICT _EdgeID;
+    END IF;
 
     IF _Input IS NOT NULL AND _Output IS NULL THEN
         PERFORM Parse(_LanguageID, _MatchedNodes, _Input, _ChildNodeID);

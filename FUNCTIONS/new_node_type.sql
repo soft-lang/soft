@@ -10,7 +10,9 @@ _ValueType         regtype DEFAULT NULL,
 _Input             text    DEFAULT NULL,
 _Output            text    DEFAULT NULL,
 _PreVisitFunction  text    DEFAULT NULL,
-_PostVisitFunction text    DEFAULT NULL
+_PostVisitFunction text    DEFAULT NULL,
+_Prologue          text    DEFAULT NULL,
+_Epilogue          text    DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -22,8 +24,8 @@ _LanguageID       integer;
 BEGIN
 SELECT LanguageID INTO STRICT _LanguageID FROM Languages WHERE Language = _Language;
 
-INSERT INTO NodeTypes ( LanguageID,  NodeType,  Literal, LiteralLength,           LiteralPattern,       NodePattern,  ValueType,  Input,  Output,  PreVisitFunction,  PostVisitFunction)
-VALUES                (_LanguageID, _NodeType, _Literal, length(_Literal), '^('||_LiteralPattern||')', _NodePattern, _ValueType, _Input, _Output, _PreVisitFunction, _PostVisitFunction)
+INSERT INTO NodeTypes ( LanguageID,  NodeType,  Literal, LiteralLength,           LiteralPattern,       NodePattern,  ValueType,  Input,  Output,  PreVisitFunction,  PostVisitFunction,  Prologue,  Epilogue)
+VALUES                (_LanguageID, _NodeType, _Literal, length(_Literal), '^('||_LiteralPattern||')', _NodePattern, _ValueType, _Input, _Output, _PreVisitFunction, _PostVisitFunction, _Prologue, _Epilogue)
 RETURNING    NodeTypeID
 INTO STRICT _NodeTypeID;
 

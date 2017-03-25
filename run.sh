@@ -22,6 +22,9 @@ while : ; do
     dot -Tpdf -o "prog_$FRAME.pdf" prog.dot
 done
 
+open prog_0.pdf
+exit;
+
 psql -q -E -A -t -X -c 'UPDATE soft.Nodes SET Visited = Visited + 1 WHERE NodeID = (SELECT NodeID FROM soft.Programs)'
 
 # psql -q -E -A -t -X -c 'SELECT soft.Free_Variables()'
@@ -33,8 +36,6 @@ psql -q -E -A -t -X -c 'UPDATE soft.Nodes SET Visited = 1 WHERE NodeID = (SELECT
 psql -q -E -A -t -X -c 'SELECT soft.If_Statements()'
 
 psql -q -E -A -t -X -c 'SELECT soft.Function_Declarations()'
-
-psql -q -E -A -t -X -c 'SELECT soft.Delete_Source_Code_Node()'
 
 echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_DOT()' >> prog.dot
 echo '}' >> prog.dot
