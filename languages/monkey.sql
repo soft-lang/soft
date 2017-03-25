@@ -30,7 +30,7 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NUMERIC',      _L
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'INTEGER',      _LiteralPattern  := '([0-9]+)',                  _ValueType := 'integer'::regtype);
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'TEXT',         _LiteralPattern  := '"((?:[^"\\]|\\.)*)"',       _ValueType := 'text'::regtype);
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IDENTIFIER',   _LiteralPattern  := '([a-zA-Z_]+)',              _ValueType := 'name'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_PARAMS',                                                          _NodePattern     := '(?:^| )(?:FUNCTION\d+ )(LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STORE_ARGS',                                                          _NodePattern     := '(?:^| )(?:FUNCTION\d+ )(LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?:(?! (?:EQ|LPAREN|FUNCTION_ARGS)\d+) [A-Z_]+\d+|$)', _PreVisitFunction := 'GET_VARIABLE_NODE');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',                   _ValueType := 'name'::regtype,            _NodePattern     := '(?:^| )(IDENTIFIER\d+) EQ\d+');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VALUE',                                                                    _NodePattern     := '(?:^| )(BOOLEAN\d+|NUMERIC\d+|INTEGER\d+|TEXT\d+|GET_VARIABLE\d+|SUB_EXPRESSION\d+|IF_EXPRESSION\d+|FUNCTION_DECLARATION\d+|FUNCTION_CALL\d+)');
@@ -51,38 +51,145 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',  
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                                                   _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PUSH_STACK');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'POP_STACK');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION', _Prologue := 'PUSH_STACK', _Epilogue := 'POP_STACK',          _NodePattern     := '(?:^| )(FUNCTION\d+ FUNCTION_PARAMS\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ALLOCA');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RET');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_LABEL');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION', _Prologue := 'ALLOCA', _Epilogue := 'RET',                    _NodePattern     := '(?:^| )(FUNCTION\d+ STORE_ARGS\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_ARGS',                                                                      _NodePattern     := '(?:^| )(?:IDENTIFIER\d+ )(LPAREN\d+(?: (?:IDENTIFIER\d+|EXPRESSION\d+)(?: COMMA\d+ (?:IDENTIFIER\d+|EXPRESSION\d+))*)? RPAREN\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_CALL',                                                                      _NodePattern     := '(?:^| )(IDENTIFIER\d+ FUNCTION_ARGS\d+)', _PreVisitFunction := 'GET_FUNCTION_NODE');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION',                                                                      _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ BLOCK_EXPRESSION\d+ ELSE\d+ BLOCK_EXPRESSION\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',                                                                            _NodePattern     := '(?:^| )(STATEMENTS\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',             _Prologue := 'ALLOCA', _Epilogue := 'RET',                     _NodePattern     := '(?:^| )(STATEMENTS\d+)');
 
 CREATE OR REPLACE FUNCTION soft."FUNCTION_DECLARATION"() RETURNS void
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_OK boolean;
+_CurrentNodeID integer;
+_FunctionNameNodeID integer;
+_FunctionDeclarationNodeID integer;
 BEGIN
+
+SELECT NodeID       INTO STRICT _CurrentNodeID             FROM Programs;
+
+RAISE NOTICE 'Incoming function call at %', _CurrentNodeID;
+
 RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."PUSH_STACK"() RETURNS void
+CREATE OR REPLACE FUNCTION soft."FUNCTION_CALL"(name) RETURNS void
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_Visited integer;
+_OK boolean;
+_CurrentNodeID integer;
+_FunctionNameNodeID integer;
+_FunctionDeclarationNodeID integer;
+_RetNodeID integer;
+_RetEdgeID integer;
 BEGIN
+
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+
+SELECT EdgeID INTO _RetEdgeID FROM Edges WHERE ParentNodeID = _CurrentNodeID ORDER BY EdgeID OFFSET 1 LIMIT 1;
+IF NOT FOUND THEN
+    RAISE NOTICE 'Outgoing function call at %', _CurrentNodeID;
+    SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
+    SELECT ParentNodeID INTO STRICT _FunctionNameNodeID        FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
+    SELECT ParentNodeID INTO STRICT _FunctionDeclarationNodeID FROM Edges WHERE ChildNodeID = _FunctionNameNodeID;
+    SELECT ParentNodeID INTO STRICT _RetNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID DESC LIMIT 1;
+    UPDATE Nodes SET Visited = _Visited WHERE NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Nodes SET Visited = _Visited-1 WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Programs SET NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
+    INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_CurrentNodeID, _RetNodeID) RETURNING TRUE INTO STRICT _OK;
+ELSE
+    RAISE NOTICE 'Returning function call at %', _CurrentNodeID;
+    UPDATE Nodes SET Visited = _Visited+1 WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+    DELETE FROM Edges WHERE EdgeID = _RetEdgeID RETURNING TRUE INTO STRICT _OK;
+END IF;
+
 RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."POP_STACK"() RETURNS void
+CREATE OR REPLACE FUNCTION soft."STORE_ARGS"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_OK boolean;
+BEGIN
+
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+
+RAISE NOTICE 'Store function args at %', _CurrentNodeID;
+
+RETURN;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION soft."ALLOCA"(VARIADIC name[]) RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_VariableNodeID integer;
+_NewNodeID integer;
+_OK boolean;
+BEGIN
+
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+
+RAISE NOTICE 'Allocating at %', _CurrentNodeID;
+
+FOR _VariableNodeID IN
+SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID
+LOOP
+    SELECT New_Node(NodeTypeID) INTO STRICT _NewNodeID FROM NodeTypes WHERE NodeType = 'VARIABLE';
+    
+    UPDATE Nodes AS CopyTo SET
+        ValueType    = CopyFrom.ValueType,
+        NameValue    = CopyFrom.NameValue,
+        BooleanValue = CopyFrom.BooleanValue,
+        NumericValue = CopyFrom.NumericValue,
+        IntegerValue = CopyFrom.IntegerValue,
+        TextValue    = CopyFrom.TextValue
+    FROM Nodes AS CopyFrom
+    WHERE CopyFrom.NodeID = _VariableNodeID
+    AND     CopyTo.NodeID = _NewNodeID
+    RETURNING TRUE INTO STRICT _OK;
+
+    UPDATE Nodes SET
+        ValueType    = NULL,
+        NameValue    = NULL,
+        BooleanValue = NULL,
+        NumericValue = NULL,
+        IntegerValue = NULL,
+        TextValue    = NULL
+    WHERE NodeID = _VariableNodeID
+    RETURNING TRUE INTO STRICT _OK;
+
+    IF EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _VariableNodeID) THEN
+        UPDATE Edges SET ChildNodeID = _NewNodeID WHERE ChildNodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
+    END IF;
+    INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_NewNodeID, _VariableNodeID) RETURNING TRUE INTO STRICT _OK;
+END LOOP;
+
+RETURN;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION soft."RET"() RETURNS void
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
@@ -137,7 +244,7 @@ LOOP
     INNER JOIN Nodes AS Variable    ON Variable.NodeID    = Edge3.ParentNodeID
     WHERE LetStatementChild.NodeID = _NodeID
     AND CreatorNode.NodeTypeID  = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'FUNCTION_DECLARATION')
-    AND Params.NodeTypeID       = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'FUNCTION_PARAMS')
+    AND Params.NodeTypeID       = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'STORE_ARGS')
     AND Variable.NodeTypeID     = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'IDENTIFIER')
     AND (Variable.NameValue     = _NameValue OR _NameValue IS NULL)
     ORDER BY Edge1.EdgeID DESC
@@ -536,41 +643,21 @@ SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_NodeTypeID integer;
-_ValueType regtype;
-_VariableNodeID integer;
-_ValueNodeID integer;
-_EdgeID integer;
-_ParentNodeID integer;
-_ChildNodeID integer;
-_OK boolean;
 _CurrentNodeID integer;
+_ValueNodeID integer;
+_OK boolean;
 BEGIN
-
-SELECT NodeTypeID INTO STRICT _NodeTypeID FROM NodeTypes WHERE ValueType = pg_typeof($1);
 
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
 
 SELECT ParentNodeID INTO STRICT _ValueNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
 
-UPDATE Nodes SET
-    ValueType    = NULL,
-    NameValue    = NULL,
-    BooleanValue = NULL,
-    NumericValue = NULL,
-    IntegerValue = NULL,
-    TextValue    = NULL
-WHERE NodeID = _ValueNodeID
-RETURNING TRUE INTO STRICT _OK;
-
 EXECUTE format($SQL$
 UPDATE Nodes SET
-    NodeTypeID   = %1$s,
-    ValueType    = %2$L::regtype,
-    %2$sValue    = %3$L::%2$s
-WHERE NodeID = %4$s
+    ValueType    = %1$L::regtype,
+    %1$sValue    = %2$L::%1$s
+WHERE NodeID = %3$s
 $SQL$,
-    _NodeTypeID,
     pg_typeof($1),
     $1::text,
     _ValueNodeID
@@ -599,41 +686,24 @@ SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_NodeTypeID integer;
 _CurrentNodeID integer;
 _ValueNodeID integer;
-_OldOldValueNodeID integer;
-_NewOldValueNodeID integer;
 _OK boolean;
 BEGIN
-
-SELECT NodeTypeID INTO STRICT _NodeTypeID FROM NodeTypes WHERE ValueType = pg_typeof($1);
 
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
 
 SELECT ParentNodeID INTO STRICT _ValueNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
 
-SELECT ParentNodeID INTO STRICT _OldOldValueNodeID FROM Edges WHERE ChildNodeID = _ValueNodeID;
-
-SELECT New_Node(NodeTypeID) INTO STRICT _NewOldValueNodeID FROM Nodes WHERE NodeID = _ValueNodeID;
-
-UPDATE Nodes AS OldValueNode SET
-    ValueType    = CurValueNode.ValueType,
-    NameValue    = CurValueNode.NameValue,
-    BooleanValue = CurValueNode.BooleanValue,
-    NumericValue = CurValueNode.NumericValue,
-    IntegerValue = CurValueNode.IntegerValue,
-    TextValue    = CurValueNode.TextValue
-FROM Nodes AS CurValueNode
-WHERE OldValueNode.NodeID = _NewOldValueNodeID
-AND CurValueNode.NodeID = _ValueNodeID
+UPDATE Nodes SET
+    ValueType    = NULL,
+    NameValue    = NULL,
+    BooleanValue = NULL,
+    NumericValue = NULL,
+    IntegerValue = NULL,
+    TextValue    = NULL
+WHERE NodeID = _ValueNodeID
 RETURNING TRUE INTO STRICT _OK;
-
--- SOURCE_CODE(OldOldValueNodeID) -1> VARIABLE(ValueNodeID) -2> LET_STATEMENT(CurrentNodeID)
--- SOURCE_CODE(OldOldValueNodeID) -1> VARIABLE(NewOldValueNodeID) -3-> VARIABLE(ValueNodeID) -2> LET_STATEMENT(CurrentNodeID)
-
-UPDATE Edges SET ChildNodeID = _NewOldValueNodeID WHERE ParentNodeID = _OldOldValueNodeID AND ChildNodeID = _ValueNodeID RETURNING TRUE INTO STRICT _OK;
-INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_NewOldValueNodeID, _ValueNodeID) RETURNING TRUE INTO STRICT _OK;
 
 PERFORM soft."ASSIGNMENT_STATEMENT"($1);
 

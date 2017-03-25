@@ -21,5 +21,4 @@ CREATE SCHEMA soft;
 \ir FUNCTIONS/free_variables.sql
 \ir FUNCTIONS/if_statements.sql
 \ir FUNCTIONS/function_declarations.sql
-\ir FUNCTIONS/delete_source_code_node.sql
 \ir FUNCTIONS/find_node.sql

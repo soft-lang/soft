@@ -73,7 +73,8 @@ THEN
 
     RETURN TRUE;
 ELSE
-    RAISE NOTICE '% WALK NODE % IS A VALUE OF TYPE %', _Visited, _NodeID, _ValueType;
+    RAISE NOTICE '% WALK NODE % IS A VALUE OF TYPE %, cannot eval', _Visited, _NodeID, _ValueType;
+    RETURN FALSE;
 END IF;
 
 RETURN TRUE;
