@@ -12,6 +12,8 @@ _ProgramNodeID integer;
 BEGIN
 SELECT LanguageID INTO STRICT _LanguageID FROM Languages WHERE Language = _Language;
 
+PERFORM Expand_Token_Groups(_Language);
+
 INSERT INTO Programs ( LanguageID,  Program,  NodeID)
 VALUES               (_LanguageID, _Program, _SourceCodeNodeID)
 RETURNING ProgramID INTO STRICT _ProgramID;

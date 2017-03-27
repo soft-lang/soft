@@ -9,6 +9,9 @@ echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_D
 echo '}' >> prog.dot
 dot -Tpdf -o prog_0.pdf prog.dot
 
+open prog_0.pdf
+exit
+
 unset FOO
 FRAME=100
 while : ; do

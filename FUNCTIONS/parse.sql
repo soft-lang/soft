@@ -59,6 +59,7 @@ LOOP
     _MatchedNodes := _RegexpCapturingGroups[1];
     _RegexpCapturingGroups := NULL;
 
+    RAISE NOTICE 'REPLACE % WITH %', _MatchedNodes, COALESCE(_Output,_ChildNodeType)||_ChildNodeID;
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, COALESCE(_Output,_ChildNodeType)||_ChildNodeID);
 
     IF _PrologueNodeTypeID IS NOT NULL THEN

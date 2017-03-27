@@ -26,3 +26,4 @@ CREATE SCHEMA soft;
 \ir FUNCTIONS/set_node_value.sql
 \ir FUNCTIONS/push_node.sql
 \ir FUNCTIONS/pop_node.sql
+\ir FUNCTIONS/expand_token_groups.sql
