@@ -5,6 +5,7 @@ CREATE SCHEMA soft;
 \ir TABLES/nodes.sql
 \ir TABLES/edges.sql
 \ir TABLES/programs.sql
+\ir TABLES/bonsaischemas.sql
 \ir FUNCTIONS/new_language.sql
 \ir FUNCTIONS/new_node_type.sql
 \ir FUNCTIONS/new_node.sql
@@ -16,7 +17,6 @@ CREATE SCHEMA soft;
 \ir FUNCTIONS/eval_node.sql
 \ir FUNCTIONS/matching_arguments.sql
 \ir FUNCTIONS/walk_tree.sql
-\ir FUNCTIONS/execute_visit_functions.sql
 \ir FUNCTIONS/find_last_edge.sql
 \ir FUNCTIONS/free_variables.sql
 \ir FUNCTIONS/if_statements.sql
@@ -27,3 +27,5 @@ CREATE SCHEMA soft;
 \ir FUNCTIONS/push_node.sql
 \ir FUNCTIONS/pop_node.sql
 \ir FUNCTIONS/expand_token_groups.sql
+\ir FUNCTIONS/new_bonsai_schema.sql
+\ir FUNCTIONS/execute_bonsai_functions.sql

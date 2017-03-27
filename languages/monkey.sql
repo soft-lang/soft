@@ -66,6 +66,79 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',      
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',             _Prologue := 'ALLOCA', _Epilogue := 'RET',                     _NodePattern     := '(?:^| )(STATEMENTS\d+)');
 
+CREATE SCHEMA "MAP_SET_GET_NODES";
+SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'MAP_SET_GET_NODES');
+
+
+CREATE OR REPLACE FUNCTION "MAP_SET_GET_NODES"."LET_STATEMENT"(_VisitType text) RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_NodeTypeID integer;
+_CurrentNodeID integer;
+_Visited integer;
+_VariableNodeID integer;
+_OK boolean;
+_NameValue name;
+BEGIN
+IF _VisitType <> 'POST_VISIT' THEN
+    RETURN;
+END IF;
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+SELECT NodeTypeID INTO STRICT _NodeTypeID FROM NodeTypes WHERE NodeType = 'VARIABLE';
+SELECT
+    ChildNode.Visited,
+    ParentNode.NameValue,
+    ParentNode.NodeID
+INTO STRICT
+    _Visited,
+    _NameValue,
+    _VariableNodeID
+FROM Nodes AS ChildNode
+INNER JOIN Edges ON Edges.ChildNodeID = ChildNode.NodeID
+INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID = Edges.ParentNodeID
+INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = ParentNode.NodeTypeID
+WHERE ChildNode.NodeID = _CurrentNodeID
+AND NodeTypes.NodeType = 'SET_VARIABLE';
+SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
+UPDATE Nodes SET NodeTypeID = _NodeTypeID WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
+RAISE NOTICE 'MAP_SET_GET_NODES LET_STATEMENT _CurrentNodeID % _NameValue % -> _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
+UPDATE Nodes SET Visited = _Visited WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
+RETURN;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "MAP_SET_GET_NODES"."GET_VARIABLE"(_VisitType text) RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_Visited integer;
+_VariableNodeID integer;
+_OK boolean;
+_NameValue name;
+_ChildNodeID integer;
+BEGIN
+IF _VisitType <> 'PRE_VISIT' THEN
+    RETURN;
+END IF;
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+RAISE NOTICE 'GET_VARIABLE _CurrentNodeID %', _CurrentNodeID;
+SELECT Visited, NameValue INTO STRICT _Visited, _NameValue FROM Nodes WHERE NodeID = _CurrentNodeID AND ValueType = 'name'::regtype;
+_VariableNodeID := Find_Variable_Node(_CurrentNodeID, 'LET_STATEMENT', _NameValue);
+SELECT ChildNodeID INTO STRICT _ChildNodeID FROM Edges WHERE ParentNodeID = _CurrentNodeID;
+UPDATE Programs SET NodeID = _ChildNodeID WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+UPDATE Edges SET ParentNodeID = _VariableNodeID WHERE ParentNodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+DELETE FROM Nodes WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+RAISE NOTICE 'MAP_SET_GET_NODES GET_VARIABLE _CurrentNodeID % _NameValue % <- _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
+RETURN;
+END;
+$$;
+
+
+
 CREATE OR REPLACE FUNCTION soft."FUNCTION_CALL"(name) RETURNS void
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
@@ -359,81 +432,6 @@ RAISE NOTICE 'INIT_CONTINUE_STATEMENT _CurrentNodeID % -> _VariableNodeID %', _C
 
 DELETE FROM Edges WHERE ChildNodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
 INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_VariableNodeID, _CurrentNodeID) RETURNING TRUE INTO STRICT _OK;
-
-RETURN;
-END;
-$$;
-
-
-CREATE OR REPLACE FUNCTION soft."NEW_VARIABLE_NODE"() RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_NodeTypeID integer;
-_CurrentNodeID integer;
-_Visited integer;
-_VariableNodeID integer;
-_OK boolean;
-_NameValue name;
-BEGIN
-
-SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-SELECT NodeTypeID INTO STRICT _NodeTypeID FROM NodeTypes WHERE NodeType = 'VARIABLE';
-
-SELECT
-    ChildNode.Visited,
-    ParentNode.NameValue,
-    ParentNode.NodeID
-INTO STRICT
-    _Visited,
-    _NameValue,
-    _VariableNodeID
-FROM Nodes AS ChildNode
-INNER JOIN Edges ON Edges.ChildNodeID = ChildNode.NodeID
-INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID = Edges.ParentNodeID
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = ParentNode.NodeTypeID
-WHERE ChildNode.NodeID = _CurrentNodeID
-AND NodeTypes.NodeType = 'SET_VARIABLE';
-
-SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
-UPDATE Nodes SET NodeTypeID = _NodeTypeID WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
-RAISE NOTICE 'NEW_VARIABLE_NODE _CurrentNodeID % _NameValue % -> _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
-
-UPDATE Nodes SET Visited = _Visited WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
-
-RETURN;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION soft."GET_VARIABLE_NODE"() RETURNS void
-SET search_path TO soft, public, pg_temp
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_CurrentNodeID integer;
-_Visited integer;
-_VariableNodeID integer;
-_OK boolean;
-_NameValue name;
-_ChildNodeID integer;
-BEGIN
-
-SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-
-RAISE NOTICE 'GET_VARIABLE_NODE _CurrentNodeID %', _CurrentNodeID;
-
-SELECT Visited, NameValue INTO STRICT _Visited, _NameValue FROM Nodes WHERE NodeID = _CurrentNodeID AND ValueType = 'name'::regtype;
-
-_VariableNodeID := Find_Variable_Node(_CurrentNodeID, 'LET_STATEMENT', _NameValue);
-
-SELECT ChildNodeID INTO STRICT _ChildNodeID FROM Edges WHERE ParentNodeID = _CurrentNodeID;
-UPDATE Programs SET NodeID = _ChildNodeID WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
-
-UPDATE Edges SET ParentNodeID = _VariableNodeID WHERE ParentNodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
-DELETE FROM Nodes WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
-
-RAISE NOTICE 'GET_VARIABLE_NODE _CurrentNodeID % _NameValue % <- _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
 
 RETURN;
 END;
@@ -778,7 +776,9 @@ SELECT soft.New_Program(
         _NodeTypeID := soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
         _Literal    :=
 $$
-let x = foo(bar(a,b),c,d);
+let x = 2;
+let y = 3;
+let z = 4 * (x + y);
 $$,
         _ValueType := 'text'::regtype
     )

@@ -9,21 +9,21 @@ echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_D
 echo '}' >> prog.dot
 dot -Tpdf -o prog_0.pdf prog.dot
 
-open prog_0.pdf
-exit
-
 unset FOO
 FRAME=100
 while : ; do
-    FOO=$(psql -X -t -A -q -c "SELECT soft.Execute_Visit_Functions(1)");
+    FOO=$(psql -X -t -A -q -c "SELECT soft.Execute_Bonsai_Functions(1)");
     if [ $FOO == 'f' ]; then
         break
     fi
-#    echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_DOT()' >> prog.dot
-#    echo '}' >> prog.dot
-#    FRAME=$((FRAME+1));
-#    dot -Tpdf -o "prog_$FRAME.pdf" prog.dot
+    echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_DOT()' >> prog.dot
+    echo '}' >> prog.dot
+    FRAME=$((FRAME+1));
+    dot -Tpdf -o "prog_$FRAME.pdf" prog.dot
 done
+
+open prog*.pdf
+exit
 
 psql -q -E -A -t -X -c 'UPDATE soft.Nodes SET Visited = Visited + 1 WHERE NodeID = (SELECT NodeID FROM soft.Programs)'
 
