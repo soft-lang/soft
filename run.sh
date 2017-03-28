@@ -35,7 +35,7 @@ psql -q -E -A -t -X -c 'UPDATE soft.Nodes SET Visited = 1 WHERE NodeID = (SELECT
 
 psql -q -E -A -t -X -c 'SELECT soft.If_Statements()'
 
-psql -q -E -A -t -X -c 'SELECT soft.Function_Declarations()'
+# psql -q -E -A -t -X -c 'SELECT soft.Function_Declarations()'
 
 echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'select distinct soft.Get_DOT()' >> prog.dot
 echo '}' >> prog.dot

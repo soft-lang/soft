@@ -1,11 +1,11 @@
 CREATE SCHEMA soft;
 
 \ir TABLES/languages.sql
+\ir TABLES/bonsaischemas.sql
 \ir TABLES/nodetypes.sql
 \ir TABLES/nodes.sql
 \ir TABLES/edges.sql
 \ir TABLES/programs.sql
-\ir TABLES/bonsaischemas.sql
 \ir FUNCTIONS/new_language.sql
 \ir FUNCTIONS/new_node_type.sql
 \ir FUNCTIONS/new_node.sql

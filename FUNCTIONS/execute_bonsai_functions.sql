@@ -7,7 +7,7 @@ DECLARE
 _LanguageID     integer;
 _NodeID         integer;
 _BonsaiSchemaID integer;
-_Schema         name;
+_BonsaiSchema   name;
 _ValueType      regtype;
 _Visited        integer;
 _ParentNodeID   integer;
@@ -21,12 +21,12 @@ SELECT
     Programs.LanguageID,
     Programs.NodeID,
     Programs.BonsaiSchemaID,
-    BonsaiSchemas.Schema
+    BonsaiSchemas.BonsaiSchema
 INTO STRICT
     _LanguageID,
     _NodeID,
     _BonsaiSchemaID,
-    _Schema
+    _BonsaiSchema
 FROM Programs
 LEFT JOIN BonsaiSchemas ON BonsaiSchemas.BonsaiSchemaID = Programs.BonsaiSchemaID
 WHERE ProgramID = _ProgramID;
@@ -34,8 +34,8 @@ WHERE ProgramID = _ProgramID;
 RAISE NOTICE 'ProgramID % NodeID %', _ProgramID, _NodeID;
 
 IF _BonsaiSchemaID IS NULL THEN
-    SELECT BonsaiSchemaID,  Schema
-    INTO  _BonsaiSchemaID, _Schema
+    SELECT BonsaiSchemaID,  BonsaiSchema
+    INTO  _BonsaiSchemaID, _BonsaiSchema
     FROM BonsaiSchemas
     WHERE LanguageID = _LanguageID
     ORDER BY BonsaiSchemaID
@@ -54,8 +54,12 @@ SELECT Nodes.ValueType, Nodes.Visited INTO STRICT _ValueType, _Visited FROM Node
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE NodeID = _NodeID;
 
-SELECT Edges.ParentNodeID, NodeTypes.NodeType
-INTO        _ParentNodeID,          _NodeType
+SELECT
+    Edges.ParentNodeID,
+    'ENTER_'||NodeTypes.NodeType
+INTO
+    _ParentNodeID,
+    _BonsaiFunction
 FROM Edges
 INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ParentNodeID
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
@@ -64,35 +68,64 @@ AND Nodes.Visited       < _Visited
 ORDER BY Edges.EdgeID
 LIMIT 1;
 IF FOUND THEN
+    RAISE NOTICE '% -> % %', _NodeID, _ParentNodeID, _BonsaiFunction;
     UPDATE Programs SET NodeID  = _ParentNodeID WHERE ProgramID = _ProgramID    RETURNING TRUE INTO STRICT _OK;
     UPDATE Nodes    SET Visited = Visited + 1   WHERE NodeID    = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
 
     IF EXISTS (
         SELECT 1 FROM pg_proc
         INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
-        WHERE pg_namespace.nspname = _Schema
-        AND   pg_proc.proname      = _NodeType
+        WHERE pg_namespace.nspname = _BonsaiSchema
+        AND   pg_proc.proname      = _BonsaiFunction
     ) THEN
-        RAISE NOTICE 'Executing bonsai function %.%', _Schema, _NodeType;
-        EXECUTE format('SELECT %I.%I()', _Schema, _NodeType);
+        RAISE NOTICE 'Executing bonsai function %.%', _BonsaiSchema, _BonsaiFunction;
+        EXECUTE format('SELECT %I.%I()', _BonsaiSchema, _BonsaiFunction);
     END IF;
 
     RETURN TRUE;
 END IF;
 
-SELECT Edges.ChildNodeID
-INTO        _ChildNodeID
+SELECT
+    Edges.ChildNodeID,
+    'LEAVE_'||NodeTypes.NodeType
+INTO
+    _ChildNodeID,
+    _BonsaiFunction
 FROM Edges
+INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ParentNodeID
+INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Edges.ParentNodeID = _NodeID
-ORDER BY EdgeID
+ORDER BY Edges.EdgeID
 LIMIT 1;
 IF FOUND THEN
+    RAISE NOTICE '% <- % %', _ChildNodeID, _NodeID, _BonsaiFunction;
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
+        WHERE pg_namespace.nspname = _BonsaiSchema
+        AND   pg_proc.proname      = _BonsaiFunction
+    ) THEN
+        RAISE NOTICE 'Executing bonsai function %.%', _BonsaiSchema, _BonsaiFunction;
+        EXECUTE format('SELECT %I.%I()', _BonsaiSchema, _BonsaiFunction);
+        IF NOT EXISTS (SELECT 1 FROM Nodes WHERE NodeID = _NodeID) THEN
+            -- Node was deleted by bonsai function
+            RETURN TRUE;
+        END IF;        
+        SELECT
+            Edges.ChildNodeID
+        INTO STRICT
+            _ChildNodeID
+        FROM Edges
+        WHERE Edges.ParentNodeID = _NodeID
+        ORDER BY Edges.EdgeID
+        LIMIT 1;
+    END IF;
     UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
     RETURN TRUE;
 END IF;
 
-SELECT BonsaiSchemaID,  Schema
-INTO  _BonsaiSchemaID, _Schema
+SELECT BonsaiSchemaID,  BonsaiSchema
+INTO  _BonsaiSchemaID, _BonsaiSchema
 FROM BonsaiSchemas
 WHERE LanguageID     = _LanguageID
 AND   BonsaiSchemaID > _BonsaiSchemaID
