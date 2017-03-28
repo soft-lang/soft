@@ -132,10 +132,14 @@ AND   BonsaiSchemaID > _BonsaiSchemaID
 ORDER BY BonsaiSchemaID
 LIMIT 1;
 IF FOUND THEN
+    RAISE NOTICE 'Switching to bonsai schema %', _BonsaiSchema;
     UPDATE Programs SET
-        BonsaiSchemaID = _BonsaiSchemaID,
-        Visited        = Visited + 1
+        BonsaiSchemaID = _BonsaiSchemaID
     WHERE ProgramID = _ProgramID
+    RETURNING NodeID INTO STRICT _NodeID;
+    UPDATE Nodes SET
+        Visited        = Visited + 1
+    WHERE NodeID = _NodeID
     RETURNING TRUE INTO STRICT _OK;
     RETURN TRUE;
 END IF;

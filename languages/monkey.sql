@@ -58,8 +58,7 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ALLOCA');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RET');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_LABEL');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION', _NodeGroup := 'VALUE', _Prologue := 'ALLOCA', _Epilogue := 'RET',                    _NodePattern     := '(?:^| )(FUNCTION\d+ STORE_ARGS\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_ARGS',                                                                      _NodePattern     := '(?:^| )(?:IDENTIFIER\d+ )(LPAREN\d+(?: (?:IDENTIFIER\d+|EXPRESSION\d+)(?: COMMA\d+ (?:IDENTIFIER\d+|EXPRESSION\d+))*)? RPAREN\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_CALL',                                                                      _NodePattern     := '(?:^| )(IDENTIFIER\d+ FUNCTION_ARGS\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ARGS');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION', _NodeGroup := 'VALUE',                                               _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ BLOCK_EXPRESSION\d+ ELSE\d+ BLOCK_EXPRESSION\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
@@ -68,6 +67,15 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',        
 
 CREATE SCHEMA IF NOT EXISTS "MAP_VARIABLES";
 SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'MAP_VARIABLES');
+
+CREATE SCHEMA IF NOT EXISTS "MAP_ALLOCA";
+SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'MAP_ALLOCA');
+
+CREATE SCHEMA IF NOT EXISTS "CUT_NAVEL_CORDS";
+SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'CUT_NAVEL_CORDS');
+
+CREATE SCHEMA IF NOT EXISTS "BLOCK_BRANCHES";
+SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'BLOCK_BRANCHES');
 
 
 CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_LET_STATEMENT"() RETURNS void
@@ -100,7 +108,7 @@ WHERE ChildNode.NodeID = _CurrentNodeID
 AND NodeTypes.NodeType = 'SET_VARIABLE';
 SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
 UPDATE Nodes SET NodeTypeID = _NodeTypeID WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
-RAISE NOTICE 'LEAVE_LET_STATEMENT _CurrentNodeID % _NameValue % -> _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
+RAISE NOTICE 'MAP_VARIABLES.LEAVE_LET_STATEMENT _CurrentNodeID % _NameValue % -> _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
 UPDATE Nodes SET Visited = _Visited WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
 RETURN;
 END;
@@ -124,7 +132,30 @@ UPDATE Edges SET ChildNodeID = _VariableNodeID WHERE ParentNodeID = _CurrentNode
 UPDATE Edges SET ParentNodeID = _VariableNodeID WHERE ParentNodeID = _LetStatementNodeID RETURNING TRUE INTO STRICT _OK;
 DELETE FROM Nodes WHERE NodeID = _LetStatementNodeID RETURNING TRUE INTO STRICT _OK;
 UPDATE Nodes SET NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'FUNCTION_LABEL') WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
-RAISE NOTICE 'LEAVE_FUNCTION_DECLARATION _CurrentNodeID %', _CurrentNodeID;
+RAISE NOTICE 'MAP_VARIABLES.LEAVE_FUNCTION_DECLARATION _CurrentNodeID %', _CurrentNodeID;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "CUT_NAVEL_CORDS"."LEAVE_FUNCTION_LABEL"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_DeclarePointNodeID integer;
+_OK boolean;
+BEGIN
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+DELETE FROM Edges WHERE EdgeID = (
+    SELECT Edges.EdgeID
+    FROM Edges
+    INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ChildNodeID
+    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    WHERE Edges.ParentNodeID = _CurrentNodeID
+    AND NodeTypes.NodeType <> 'CALL'
+)
+RETURNING TRUE INTO STRICT _OK;
+RAISE NOTICE 'CUT_NAVEL_CORDS.LEAVE_FUNCTION_LABEL _CurrentNodeID %', _CurrentNodeID;
 END;
 $$;
 
@@ -181,9 +212,105 @@ RETURN;
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_CALL"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_ArgsNodeID integer;
+_Visited integer;
+_VariableNodeID integer;
+_OK boolean;
+_NameValue name;
+_ChildNodeID integer;
+BEGIN
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+SELECT New_Node(NodeTypeID) INTO STRICT _ArgsNodeID FROM NodeTypes WHERE NodeType = 'ARGS';
+UPDATE Edges SET ChildNodeID = _ArgsNodeID WHERE EdgeID IN (SELECT EdgeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID OFFSET 1);
+INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_ArgsNodeID, _CurrentNodeID) RETURNING TRUE INTO STRICT _OK;
+RAISE NOTICE 'MAP_VARIABLES.ENTER_CALL _CurrentNodeID %', _CurrentNodeID;
+RETURN;
+END;
+$$;
 
+CREATE OR REPLACE FUNCTION "MAP_ALLOCA"."ENTER_VARIABLE"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_NodeID integer;
+_AllocaNodeID integer;
+_OK boolean;
+BEGIN
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+RAISE NOTICE 'MAP_ALLOCA.ENTER_VARIABLE _CurrentNodeID %', _CurrentNodeID;
+_NodeID := _CurrentNodeID;
+LOOP
+    SELECT AllocaNode.NodeID INTO _AllocaNodeID
+    FROM Nodes
+    INNER JOIN Edges               ON Edges.ChildNodeID    = Nodes.NodeID
+    INNER JOIN Nodes AS AllocaNode ON AllocaNode.NodeID    = Edges.ParentNodeID
+    INNER JOIN NodeTypes           ON NodeTypes.NodeTypeID = AllocaNode.NodeTypeID
+    WHERE Nodes.NodeID     = _NodeID
+    AND NodeTypes.NodeType = 'ALLOCA'
+    ORDER BY Edges.EdgeID DESC
+    LIMIT 1;
+    IF FOUND THEN
+        RAISE NOTICE 'MAP_ALLOCA.ENTER_VARIABLE _CurrentNodeID % Connecting to _AllocaNodeID %', _CurrentNodeID, _AllocaNodeID;
+        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_CurrentNodeID, _AllocaNodeID) RETURNING TRUE INTO STRICT _OK;
+        EXIT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Edges WHERE ParentNodeID = _NodeID) THEN
+        EXIT;
+    END IF;
+    SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE ParentNodeID = _NodeID ORDER BY EdgeID LIMIT 1;
+END LOOP;
+RETURN;
+END;
+$$;
 
-CREATE OR REPLACE FUNCTION soft."FUNCTION_CALL"(name) RETURNS void
+CREATE OR REPLACE FUNCTION "MAP_ALLOCA"."ENTER_IDENTIFIER"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_OK boolean;
+BEGIN
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+UPDATE Nodes SET NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'VARIABLE') WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+PERFORM "MAP_ALLOCA"."ENTER_VARIABLE"();
+RETURN;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "BLOCK_BRANCHES"."LEAVE_IF_STATEMENT"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_CurrentNodeID integer;
+_BranchNodeID integer;
+_OK boolean;
+BEGIN
+SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+RAISE NOTICE 'BLOCK_BRANCHES.LEAVE_IF_STATEMENT CurrentNodeID %', _CurrentNodeID;
+FOR _BranchNodeID IN
+SELECT Edges.ParentNodeID FROM Edges
+WHERE Edges.ChildNodeID = _CurrentNodeID
+ORDER BY Edges.EdgeID
+OFFSET 1
+LOOP
+    RAISE NOTICE 'BLOCK_BRANCHES.LEAVE_IF_STATEMENT CurrentNodeID % BranchNodeID %', _CurrentNodeID, _BranchNodeID;
+    UPDATE Nodes SET Visited = NULL WHERE NodeID = _BranchNodeID RETURNING TRUE INTO STRICT _OK;
+END LOOP;
+RETURN;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION soft."CALL"(name) RETURNS void
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
@@ -278,7 +405,7 @@ BEGIN
 
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
 
-_FunctionArgsNodeID := Find_Node(_CurrentNodeID, '-> FUNCTION_DECLARATION <- RET <- FUNCTION_CALL <- FUNCTION_ARGS');
+_FunctionArgsNodeID := Find_Node(_CurrentNodeID, '-> FUNCTION_DECLARATION <- RET <- CALL <- ARGS');
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID) INTO STRICT _CopyFromNodeIDs FROM Edges WHERE ChildNodeID = _FunctionArgsNodeID;
 SELECT array_agg(ParentNodeID ORDER BY EdgeID) INTO STRICT _CopyToNodeIDs   FROM Edges WHERE ChildNodeID = _CurrentNodeID;
@@ -298,6 +425,15 @@ RETURN;
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION soft."ALLOCA"() RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+RETURN;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION soft."ALLOCA"(VARIADIC name[]) RETURNS void
 SET search_path TO soft, public, pg_temp
@@ -815,18 +951,16 @@ let foo = fn(a,b) {
     let c = a+b;
     c
 };
-let x = foo(2,3);
+let x = foo(1,2);
+if (x == 3) {
+    "Correct";
+} else {
+    "Error";
+}
 $$,
         _ValueType := 'text'::regtype
     )
 );
 
 /*
-let add = fn(a, b) {
-    let x = a + b;
-    x
-};
-let aa = 3;
-let bb = 4;
-let z = add(2,add(aa,bb));
 */
