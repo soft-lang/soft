@@ -1,7 +1,8 @@
 CREATE OR REPLACE FUNCTION soft.New_Node(
-_NodeTypeID integer,
-_Literal    text    DEFAULT NULL,
-_ValueType  regtype DEFAULT NULL
+_NodeTypeID      integer,
+_Literal         text      DEFAULT NULL,
+_ValueType       regtype   DEFAULT NULL,
+_Chars           integer[] DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -16,6 +17,8 @@ _IntegerValue    integer;
 _TextValue       text;
 _OK              boolean;
 BEGIN
+
+RAISE NOTICE '% % % %', _NodeTypeID, _Literal, _ValueType, _Chars;
 
 IF (SELECT ValueType FROM NodeTypes WHERE NodeTypeID = _NodeTypeID) <> _ValueType THEN
     RAISE EXCEPTION 'ValueType % is different from NodeTypes.ValueType', _ValueType;
@@ -37,8 +40,8 @@ ELSE
     RAISE EXCEPTION 'Unsupported ValueType %', _ValueType;
 END IF;
 
-INSERT INTO Nodes  ( NodeTypeID,  ValueType,  NameValue,  BooleanValue,  NumericValue,  IntegerValue,  TextValue)
-VALUES             (_NodeTypeID, _ValueType, _NameValue, _BooleanValue, _NumericValue, _IntegerValue, _TextValue)
+INSERT INTO Nodes  ( NodeTypeID,  ValueType,  NameValue,  BooleanValue,  NumericValue,  IntegerValue,  TextValue,  Chars)
+VALUES             (_NodeTypeID, _ValueType, _NameValue, _BooleanValue, _NumericValue, _IntegerValue, _TextValue, _Chars)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 

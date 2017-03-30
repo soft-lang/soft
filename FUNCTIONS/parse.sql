@@ -17,7 +17,10 @@ _EdgeID                integer;
 _Input                 text;
 _ExtractNodeID         text := '^[A-Z_]+(\d+)$';
 _PrologueNodeTypeID    integer;
+_PrologueNodeID        integer;
 _EpilogueNodeTypeID    integer;
+_EpilogueNodeID        integer;
+_Chars                 integer[];
 _OK                    boolean;
 BEGIN
 
@@ -63,9 +66,10 @@ LOOP
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, COALESCE(_Output,_ChildNodeType)||_ChildNodeID);
 
     IF _PrologueNodeTypeID IS NOT NULL THEN
-        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_PrologueNodeTypeID), _ChildNodeID) RETURNING EdgeID INTO STRICT _EdgeID;
+        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_PrologueNodeTypeID), _ChildNodeID) RETURNING ParentNodeID, EdgeID INTO STRICT _PrologueNodeID, _EdgeID;
     END IF;
 
+    _Chars := NULL;
     FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
         _RegexpCapturingGroups := regexp_matches(_MatchedNode, _ExtractNodeID);
         IF (array_length(_RegexpCapturingGroups,1) = 1) IS NOT TRUE THEN
@@ -75,7 +79,7 @@ LOOP
         _ParentNodeID := _RegexpCapturingGroups[1]::integer;
 
         IF _GrandChildNodeID IS NOT NULL THEN
-            DELETE FROM Edges WHERE ChildNodeID = _GrandChildNodeID AND ParentNodeID = _ParentNodeID;
+            UPDATE Edges SET Deleted = TRUE WHERE NOT Deleted AND ChildNodeID = _GrandChildNodeID AND ParentNodeID = _ParentNodeID;
         END IF;
 
         IF _Input IS NULL OR _MatchedNode ~ ('^'||_Input||'\d+$') THEN
@@ -83,15 +87,18 @@ LOOP
             VALUES            (_ParentNodeID, _ChildNodeID)
             RETURNING    EdgeID
             INTO STRICT _EdgeID;
-        ELSE
-            DELETE FROM Edges WHERE ChildNodeID = _ParentNodeID;
-            DELETE FROM Nodes WHERE NodeID      = _ParentNodeID;
+        ELSIF _Input IS NOT NULL AND _Output IS NOT NULL THEN
+            UPDATE Edges SET Deleted = TRUE WHERE NOT Deleted AND ChildNodeID = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
+            UPDATE Nodes SET Deleted = TRUE WHERE NOT Deleted AND NodeID      = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
+            SELECT _Chars||Chars INTO STRICT _Chars FROM Nodes WHERE NodeID = _ParentNodeID;
         END IF;
     END LOOP;
 
     IF _EpilogueNodeTypeID IS NOT NULL THEN
-        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_EpilogueNodeTypeID), _ChildNodeID) RETURNING EdgeID INTO STRICT _EdgeID;
+        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_EpilogueNodeTypeID), _ChildNodeID) RETURNING ParentNodeID, EdgeID INTO STRICT _EpilogueNodeID, _EdgeID;
     END IF;
+
+    UPDATE Nodes SET Chars = _Chars WHERE NodeID IN (_PrologueNodeID, _ChildNodeID, _EpilogueNodeID);
 
     IF _Input IS NOT NULL AND _Output IS NULL THEN
         PERFORM Parse(_LanguageID, _MatchedNodes, _Input, _ChildNodeID);

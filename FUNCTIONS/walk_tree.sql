@@ -48,7 +48,7 @@ THEN
     IF FOUND THEN
         RAISE NOTICE '% WALK NodeID % GOTO PARENT %', _Visited, _NodeID, _ParentNodeID;
         UPDATE Programs SET NodeID = _ParentNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-        UPDATE Nodes SET Visited = _Visited WHERE NodeID = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
+        PERFORM Set_Visited(_ParentNodeID, _Visited);
         RETURN TRUE;
     END IF;
 

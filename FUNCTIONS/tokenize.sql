@@ -16,6 +16,7 @@ _ValueType      regtype;
 _LiteralPattern text;
 _Matches        text[];
 _OK             boolean;
+_Chars          integer[];
 BEGIN
 
 SELECT TextValue INTO STRICT _SourceCode FROM Nodes WHERE NodeID = _SourceCodeNodeID;
@@ -59,7 +60,9 @@ LOOP
         _LiteralLength := length(_Matches[1]);
     END IF;
 
-    _TokenNodeID := New_Node(_NodeTypeID, _Literal, _ValueType);
+     SELECT array_agg(Chars.C) INTO STRICT _Chars FROM generate_series(_AtChar, _AtChar+_LiteralLength-1) AS Chars(C);
+
+    _TokenNodeID := New_Node(_NodeTypeID, _Literal, _ValueType, _Chars);
 
     INSERT INTO Edges (     ParentNodeID,  ChildNodeID)
     VALUES            (_SourceCodeNodeID, _TokenNodeID)

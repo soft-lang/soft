@@ -53,7 +53,7 @@ SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FREE_STATEMENT');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',                                                                      _NodePattern     := '(?:^| )(LET\d+ SET_VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                                                   _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
+SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                            _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ALLOCA');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RET');
 SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_LABEL');
@@ -109,7 +109,7 @@ AND NodeTypes.NodeType = 'SET_VARIABLE';
 SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
 UPDATE Nodes SET NodeTypeID = _NodeTypeID WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
 RAISE NOTICE 'MAP_VARIABLES.LEAVE_LET_STATEMENT _CurrentNodeID % _NameValue % -> _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
-UPDATE Nodes SET Visited = _Visited WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
+PERFORM Set_Visited(_VariableNodeID, _Visited);
 RETURN;
 END;
 $$;
@@ -146,6 +146,17 @@ _DeclarePointNodeID integer;
 _OK boolean;
 BEGIN
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
+IF NOT EXISTS (
+    SELECT 1
+    FROM Edges
+    INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ChildNodeID
+    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    WHERE Edges.ParentNodeID = _CurrentNodeID
+    AND NodeTypes.NodeType = 'CALL'
+) THEN
+    RAISE NOTICE 'Function NodeID % is unused', _CurrentNodeID;
+    RETURN;
+END IF;
 DELETE FROM Edges WHERE EdgeID = (
     SELECT Edges.EdgeID
     FROM Edges
@@ -304,8 +315,18 @@ ORDER BY Edges.EdgeID
 OFFSET 1
 LOOP
     RAISE NOTICE 'BLOCK_BRANCHES.LEAVE_IF_STATEMENT CurrentNodeID % BranchNodeID %', _CurrentNodeID, _BranchNodeID;
-    UPDATE Nodes SET Visited = NULL WHERE NodeID = _BranchNodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_BranchNodeID, NULL);
 END LOOP;
+RETURN;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION soft."EXPRESSION_STATEMENT"(anyelement) RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
 RETURN;
 END;
 $$;
@@ -329,19 +350,20 @@ BEGIN
 
 SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
 
+SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
+
 SELECT EdgeID, ChildNodeID INTO _RetEdgeID, _RetNodeID FROM Edges WHERE ParentNodeID = _CurrentNodeID ORDER BY EdgeID OFFSET 1 LIMIT 1;
 IF NOT FOUND THEN
     RAISE NOTICE 'Outgoing function call at %', _CurrentNodeID;
-    SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
     SELECT ParentNodeID INTO STRICT _FunctionNameNodeID        FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
     SELECT ParentNodeID INTO STRICT _FunctionDeclarationNodeID FROM Edges WHERE ChildNodeID = _FunctionNameNodeID;
     SELECT ParentNodeID INTO STRICT _RetNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID DESC LIMIT 1;
     UPDATE Nodes SET Visited = Visited+1 WHERE NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
-    UPDATE Nodes SET Visited = _Visited-1 WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_CurrentNodeID, _Visited-1);
     UPDATE Programs SET NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
     INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_CurrentNodeID, _RetNodeID) RETURNING TRUE INTO STRICT _OK;
 ELSE
-    UPDATE Nodes SET Visited = _Visited+1 WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_CurrentNodeID, _Visited+1);
     SELECT ChildNodeID INTO STRICT _FunctionDeclarationNodeID FROM Edges WHERE ParentNodeID = _RetNodeID;
     SELECT ParentNodeID INTO STRICT _LastNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID DESC OFFSET 1 LIMIT 1;
     RAISE NOTICE 'Returning function call at % copying value from %', _CurrentNodeID, _LastNodeID;
@@ -792,11 +814,11 @@ SELECT Visited INTO        _ElseVisited  FROM Nodes WHERE NodeID = _FalseNodeID;
 
 IF _TrueVisited IS NOT NULL THEN
     RAISE NOTICE '*** RETURN FROM TRUE BRANCH';
-    UPDATE Nodes SET Visited = NULL WHERE NodeID = _TrueNodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_TrueNodeID, NULL);
     UPDATE Nodes SET Visited = Visited - 1 WHERE NodeID = _ConditionNodeID RETURNING TRUE INTO STRICT _OK;
 ELSIF _ElseVisited IS NOT NULL THEN
     RAISE NOTICE '*** RETURN FROM FALSE BRANCH';
-    UPDATE Nodes SET Visited = NULL WHERE NodeID = _FalseNodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_FalseNodeID, NULL);
     UPDATE Nodes SET Visited = Visited - 1 WHERE NodeID = _ConditionNodeID RETURNING TRUE INTO STRICT _OK;
 ELSE
     IF $1 THEN
@@ -807,7 +829,7 @@ ELSE
         _BranchNodeID := _FalseNodeID;
     END IF;
     UPDATE Programs SET NodeID = _BranchNodeID WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
-    UPDATE Nodes SET Visited = _IfVisited WHERE NodeID = _BranchNodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_BranchNodeID, _IfVisited);
 END IF;
 
 RETURN;
@@ -830,7 +852,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"(anyelement) RETURNS void
+CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"() RETURNS void
 SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
@@ -850,6 +872,16 @@ UPDATE Nodes SET
     TextValue    = NULL
 WHERE NodeID = _ValueNodeID
 RETURNING TRUE INTO STRICT _OK;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"(anyelement) RETURNS void
+SET search_path TO soft, public, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+PERFORM soft."LET_STATEMENT"();
 PERFORM soft."ASSIGNMENT_STATEMENT"($1);
 END;
 $$;
@@ -947,16 +979,7 @@ SELECT soft.New_Program(
         _NodeTypeID := soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
         _Literal    :=
 $$
-let foo = fn(a,b) {
-    let c = a+b;
-    c
-};
-let x = foo(1,2);
-if (x == 3) {
-    "Correct";
-} else {
-    "Error";
-}
+1+2*3;
 $$,
         _ValueType := 'text'::regtype
     )

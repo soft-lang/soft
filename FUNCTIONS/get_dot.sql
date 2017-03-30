@@ -21,12 +21,14 @@ SELECT format(E'"%s" [label="%s\n%s\n%s\n%s"%s];',
 )
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID  = Nodes.NodeTypeID
-LEFT JOIN Programs   ON Programs.NodeID = Nodes.NodeID;
+LEFT JOIN Programs   ON Programs.NodeID = Nodes.NodeID
+WHERE NOT Nodes.Deleted;
 
 RETURN QUERY
 SELECT format('"%s" -> "%s" [label="%s"];', ParentNodeID, ChildNodeID, 'EdgeID ' || EdgeID)
 --  SELECT format('"%s" -> "%s";', ParentNodeID, ChildNodeID)
-FROM Edges;
+FROM Edges
+WHERE NOT Deleted;
 
 RETURN;
 END;

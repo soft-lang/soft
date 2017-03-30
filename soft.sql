@@ -1,5 +1,4 @@
 CREATE SCHEMA soft;
-
 \ir TABLES/languages.sql
 \ir TABLES/bonsaischemas.sql
 \ir TABLES/nodetypes.sql
@@ -29,3 +28,5 @@ CREATE SCHEMA soft;
 \ir FUNCTIONS/expand_token_groups.sql
 \ir FUNCTIONS/new_bonsai_schema.sql
 \ir FUNCTIONS/execute_bonsai_functions.sql
+\ir FUNCTIONS/set_visited.sql
+\ir FUNCTIONS/highlight_code.sql
