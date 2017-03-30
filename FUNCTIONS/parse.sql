@@ -78,19 +78,20 @@ LOOP
 
         _ParentNodeID := _RegexpCapturingGroups[1]::integer;
 
-        IF _GrandChildNodeID IS NOT NULL THEN
-            UPDATE Edges SET Deleted = TRUE WHERE NOT Deleted AND ChildNodeID = _GrandChildNodeID AND ParentNodeID = _ParentNodeID;
-        END IF;
-
-        IF _Input IS NULL OR _MatchedNode ~ ('^'||_Input||'\d+$') THEN
+        IF _Input IS NOT NULL AND _Output IS NULL THEN
+            -- Not handled here
+        ELSIF _Input IS NULL OR _MatchedNode ~ ('^'||_Input||'\d+$') THEN
             INSERT INTO Edges ( ParentNodeID,  ChildNodeID)
             VALUES            (_ParentNodeID, _ChildNodeID)
             RETURNING    EdgeID
             INTO STRICT _EdgeID;
+            RAISE NOTICE 'NEW EDGE % -> % EdgeID %', _ParentNodeID, _ChildNodeID, _EdgeID;
         ELSIF _Input IS NOT NULL AND _Output IS NOT NULL THEN
             UPDATE Edges SET Deleted = TRUE WHERE NOT Deleted AND ChildNodeID = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
             UPDATE Nodes SET Deleted = TRUE WHERE NOT Deleted AND NodeID      = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
             SELECT _Chars||Chars INTO STRICT _Chars FROM Nodes WHERE NodeID = _ParentNodeID;
+        ELSE
+            RAISE EXCEPTION 'How did we end up here?!';
         END IF;
     END LOOP;
 
