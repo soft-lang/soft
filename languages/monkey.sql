@@ -1,85 +1,86 @@
-SELECT soft.New_Language(_Language := 'monkey');
+SELECT New_Language(_Language := 'monkey');
 
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VARIABLE');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQ',           _Literal         := '=');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PLUS',         _Literal         := '+',  _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MINUS',        _Literal         := '-',  _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BANG',         _Literal         := '!',  _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ASTERISK',     _Literal         := '*',  _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SLASH',        _Literal         := '/',  _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LT',           _Literal         := '<',  _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GT',           _Literal         := '>',  _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQ_EQ',        _Literal         := '==', _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BANG_EQ',      _Literal         := '!=', _NodeGroup := 'OPS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'COMMA',        _Literal         := ',');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SEMICOLON',    _Literal         := ';');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'COLON',        _Literal         := ':');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LPAREN',       _Literal         := '(');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RPAREN',       _Literal         := ')');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACE',       _Literal         := '{');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACE',       _Literal         := '}');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACKET',     _Literal         := '[');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACKET',     _Literal         := ']');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION',     _Literal         := 'fn');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET',          _Literal         := 'let');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF',           _Literal         := 'if');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ELSE',         _Literal         := 'else');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RETURN',       _Literal         := 'return');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BOOLEAN',      _LiteralPattern  := '(true|false)',          _NodeGroup := 'VALUE', _ValueType := 'boolean'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NUMERIC',      _LiteralPattern  := '([0-9]+\.[0-9]+)',      _NodeGroup := 'VALUE', _ValueType := 'numeric'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'INTEGER',      _LiteralPattern  := '([0-9]+)',              _NodeGroup := 'VALUE', _ValueType := 'integer'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'TEXT',         _LiteralPattern  := '"((?:[^"\\]|\\.)*)"',   _NodeGroup := 'VALUE', _ValueType := 'text'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IDENTIFIER',   _LiteralPattern  := '([a-zA-Z_]+)',              _ValueType := 'name'::regtype);
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STORE_ARGS',                                                               _NodePattern     := '(?:^| )(?:FUNCTION\d+ )(LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',  _ValueType := 'name'::regtype, _NodeGroup := 'VALUE',      _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?:(?! (?:EQ|LPAREN|FUNCTION_ARGS)\d+) [A-Z_]+\d+|$)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',  _ValueType := 'name'::regtype,                             _NodePattern     := '(?:^| )(IDENTIFIER\d+) EQ\d+');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_NAME', _ValueType := 'name'::regtype, _NodeGroup := 'VALUE',      _NodePattern     := '(?:^| )(IDENTIFIER\d+) LPAREN\d+');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'VALUE',                                                                    _NodePattern     := '(?:^| )((?#VALUE)\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'CALL_EXPRESSION',                   _Input := 'VALUE', _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LPAREN\d+(?: (?:VALUE\d+|COMMA\d+|(?#OPS)\d+))* RPAREN\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SUB_EXPRESSION',                    _Input := 'VALUE', _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+(?: (?:VALUE\d+|(?#OPS)\d+))+ RPAREN\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION',                        _Input := 'VALUE',                     _NodePattern     := '(?:^| )((?:VALUE\d+|CALL\d+|GROUP\d+|(?#OPS)\d+)(?: (?:VALUE\d+|CALL\d+|GROUP\d+|(?#OPS)\d+))*)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'CALL',                              _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LPAREN\d+(?: VALUE\d+(?: COMMA\d+ VALUE\d+)*)? RPAREN\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GROUP',                             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+ VALUE\d+ RPAREN\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'UNARY_MINUS',                       _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(MINUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'MULTIPLY',                          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ ASTERISK\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'DIVIDE',                            _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ SLASH\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SUBTRACT',                          _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ MINUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ADD',                               _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PLUS\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LESS_THAN',                         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'GREATER_THAN',                      _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EQUAL',                             _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ EQ_EQ\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'NOT_EQUAL',                         _Input := 'VALUE', _Output := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ BANG_EQ\d+ VALUE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FREE_STATEMENT');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',                                                                      _NodePattern     := '(?:^| )(LET\d+ SET_VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                            _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ALLOCA');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'RET');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_LABEL');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION', _NodeGroup := 'VALUE', _Prologue := 'ALLOCA', _Epilogue := 'RET',                    _NodePattern     := '(?:^| )(FUNCTION\d+ STORE_ARGS\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'ARGS');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION', _NodeGroup := 'VALUE',                                               _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ BLOCK_EXPRESSION\d+ ELSE\d+ BLOCK_EXPRESSION\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
-SELECT soft.New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',             _Prologue := 'ALLOCA', _Epilogue := 'RET',                     _NodePattern     := '(?:^| )(STATEMENTS\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'VARIABLE');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EQ',           _Literal         := '=');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'PLUS',         _Literal         := '+',  _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'MINUS',        _Literal         := '-',  _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BANG',         _Literal         := '!',  _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ASTERISK',     _Literal         := '*',  _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SLASH',        _Literal         := '/',  _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LT',           _Literal         := '<',  _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GT',           _Literal         := '>',  _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EQ_EQ',        _Literal         := '==', _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BANG_EQ',      _Literal         := '!=', _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'COMMA',        _Literal         := ',');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SEMICOLON',    _Literal         := ';');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'COLON',        _Literal         := ':');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LPAREN',       _Literal         := '(');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RPAREN',       _Literal         := ')');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACE',       _Literal         := '{');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACE',       _Literal         := '}');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACKET',     _Literal         := '[');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACKET',     _Literal         := ']');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION',     _Literal         := 'fn');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LET',          _Literal         := 'let');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IF',           _Literal         := 'if');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ELSE',         _Literal         := 'else');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RETURN',       _Literal         := 'return');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BOOLEAN',      _LiteralPattern  := '(true|false)',          _NodeGroup := 'VALUE', _ValueType := 'boolean'::regtype);
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'NUMERIC',      _LiteralPattern  := '([0-9]+\.[0-9]+)',      _NodeGroup := 'VALUE', _ValueType := 'numeric'::regtype);
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'INTEGER',      _LiteralPattern  := '([0-9]+)',              _NodeGroup := 'VALUE', _ValueType := 'integer'::regtype);
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'TEXT',         _LiteralPattern  := '"((?:[^"\\]|\\.)*)"',   _NodeGroup := 'VALUE', _ValueType := 'text'::regtype);
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IDENTIFIER',   _LiteralPattern  := '([a-zA-Z_]+)',              _ValueType := 'name'::regtype);
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'STORE_ARGS',                                                               _NodePattern     := '(?:^| )(?:FUNCTION\d+ )(LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',  _ValueType := 'name'::regtype, _NodeGroup := 'VALUE',      _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?:(?! (?:EQ|LPAREN|FUNCTION_ARGS)\d+) [A-Z_]+\d+|$)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',  _ValueType := 'name'::regtype,                             _NodePattern     := '(?:^| )(IDENTIFIER\d+) EQ\d+');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_NAME', _ValueType := 'name'::regtype, _NodeGroup := 'VALUE',      _NodePattern     := '(?:^| )(IDENTIFIER\d+) LPAREN\d+');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'VALUE',                                                                    _NodePattern     := '(?:^| )((?#VALUE)\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'CALL_EXPRESSION',                   _GrowFrom := 'VALUE', _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LPAREN\d+(?: (?:VALUE\d+|COMMA\d+|(?#OPS)\d+))* RPAREN\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SUB_EXPRESSION',                    _GrowFrom := 'VALUE', _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+(?: (?:VALUE\d+|(?#OPS)\d+))+ RPAREN\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION',                        _GrowFrom := 'VALUE',                     _NodePattern     := '(?:^| )((?:VALUE\d+|CALL\d+|GROUP\d+|(?#OPS)\d+)(?: (?:VALUE\d+|CALL\d+|GROUP\d+|(?#OPS)\d+))*)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'CALL',                              _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LPAREN\d+(?: VALUE\d+(?: COMMA\d+ VALUE\d+)*)? RPAREN\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GROUP',                             _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+ VALUE\d+ RPAREN\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'UNARY_MINUS',                       _GrowInto := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(MINUS\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'MULTIPLY',                          _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ ASTERISK\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'DIVIDE',                            _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ SLASH\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SUBTRACT',                          _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ MINUS\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ADD',                               _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PLUS\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LESS_THAN',                         _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GREATER_THAN',                      _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EQUAL',                             _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ EQ_EQ\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'NOT_EQUAL',                         _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ BANG_EQ\d+ VALUE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FREE_STATEMENT');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',                                                                      _NodePattern     := '(?:^| )(LET\d+ SET_VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                            _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ALLOCA');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RET');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_LABEL');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION', _NodeGroup := 'VALUE', _Prologue := 'ALLOCA', _Epilogue := 'RET',                    _NodePattern     := '(?:^| )(FUNCTION\d+ STORE_ARGS\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ARGS');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION', _NodeGroup := 'VALUE',                                               _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ BLOCK_EXPRESSION\d+ ELSE\d+ BLOCK_EXPRESSION\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
+SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',             _Prologue := 'ALLOCA', _Epilogue := 'RET',                     _NodePattern     := '(?:^| )(STATEMENTS\d+)');
+
+SELECT Expand_Token_Groups(_Language := 'monkey');
 
 CREATE SCHEMA IF NOT EXISTS "MAP_VARIABLES";
-SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'MAP_VARIABLES');
+SELECT New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'MAP_VARIABLES');
 
 CREATE SCHEMA IF NOT EXISTS "MAP_ALLOCA";
-SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'MAP_ALLOCA');
+SELECT New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'MAP_ALLOCA');
 
 CREATE SCHEMA IF NOT EXISTS "CUT_NAVEL_CORDS";
-SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'CUT_NAVEL_CORDS');
+SELECT New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'CUT_NAVEL_CORDS');
 
 CREATE SCHEMA IF NOT EXISTS "BLOCK_BRANCHES";
-SELECT soft.New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'BLOCK_BRANCHES');
+SELECT New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'BLOCK_BRANCHES');
 
 
 CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_LET_STATEMENT"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -115,7 +116,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_FUNCTION_DECLARATION"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -137,7 +137,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "CUT_NAVEL_CORDS"."LEAVE_FUNCTION_LABEL"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -171,7 +170,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_GET_VARIABLE"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -196,7 +194,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_FUNCTION_NAME"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -224,7 +221,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_CALL"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -246,7 +242,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "MAP_ALLOCA"."ENTER_VARIABLE"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -283,7 +278,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "MAP_ALLOCA"."ENTER_IDENTIFIER"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -298,7 +292,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "BLOCK_BRANCHES"."LEAVE_IF_STATEMENT"() RETURNS void
-SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -321,8 +314,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."EXPRESSION_STATEMENT"(anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "EXPRESSION_STATEMENT"(anyelement) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -331,8 +323,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."CALL"(name) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "CALL"(name) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -381,8 +372,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."RET"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "RET"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -392,8 +382,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION soft."BLOCK_EXPRESSION"(anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "BLOCK_EXPRESSION"(anyelement) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -413,8 +402,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION soft."STORE_ARGS"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "STORE_ARGS"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -447,8 +435,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."ALLOCA"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "ALLOCA"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -457,8 +444,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."ALLOCA"(VARIADIC name[]) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "ALLOCA"(VARIADIC name[]) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -482,8 +468,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft.Find_Variable_Node(_NodeID integer, _NameValue name DEFAULT NULL) RETURNS integer
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION Find_Variable_Node(_NodeID integer, _NameValue name DEFAULT NULL) RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -541,8 +526,7 @@ RETURN NULL; -- will never reach
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft.Find_Function_Node(_NodeID integer, _NameValue name DEFAULT NULL) RETURNS integer
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION Find_Function_Node(_NodeID integer, _NameValue name DEFAULT NULL) RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -571,8 +555,7 @@ RETURN NULL; -- will never reach
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."INIT_LOOP_STATEMENT"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "INIT_LOOP_STATEMENT"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -612,8 +595,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."INIT_BREAK_STATEMENT"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "INIT_BREAK_STATEMENT"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -639,8 +621,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."INIT_CONTINUE_STATEMENT"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "INIT_CONTINUE_STATEMENT"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -666,8 +647,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."SET_VARIABLE_NODE"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "SET_VARIABLE_NODE"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -708,8 +688,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."LOOP_STATEMENT"(boolean) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "LOOP_STATEMENT"(boolean) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -736,8 +715,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."BREAK_STATEMENT"(boolean) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "BREAK_STATEMENT"(boolean) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -758,8 +736,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."CONTINUE_STATEMENT"(boolean) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "CONTINUE_STATEMENT"(boolean) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -786,8 +763,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION soft."IF_STATEMENT"(boolean) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "IF_STATEMENT"(boolean) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -836,8 +812,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."ASSIGNMENT_STATEMENT"(anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "ASSIGNMENT_STATEMENT"(anyelement) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -852,8 +827,7 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"() RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "LET_STATEMENT"() RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -875,19 +849,17 @@ RETURNING TRUE INTO STRICT _OK;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."LET_STATEMENT"(anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "LET_STATEMENT"(anyelement) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-PERFORM soft."LET_STATEMENT"();
-PERFORM soft."ASSIGNMENT_STATEMENT"($1);
+PERFORM "LET_STATEMENT"();
+PERFORM "ASSIGNMENT_STATEMENT"($1);
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION soft."FREE_STATEMENT"(anyelement) RETURNS void
-SET search_path TO soft, public, pg_temp
+CREATE OR REPLACE FUNCTION "FREE_STATEMENT"(anyelement) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -938,48 +910,50 @@ $$;
 
 
 
-CREATE OR REPLACE FUNCTION soft."TERNARY"                  (boolean, anyelement, anyelement)    RETURNS anyelement LANGUAGE sql AS $$ SELECT CASE WHEN $1 THEN $2 ELSE $3 END $$;
-CREATE OR REPLACE FUNCTION soft."LOGICAL_OR"               (boolean, boolean)                   RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 OR $2                         $$;
-CREATE OR REPLACE FUNCTION soft."LOGICAL_XOR"              (boolean, boolean)                   RETURNS boolean    LANGUAGE sql AS $$ SELECT NOT($1 AND $2)                   $$;
-CREATE OR REPLACE FUNCTION soft."LOGICAL_AND"              (boolean, boolean)                   RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 AND $2                        $$;
-CREATE OR REPLACE FUNCTION soft."LOGICAL_NOT"              (boolean)                            RETURNS boolean    LANGUAGE sql AS $$ SELECT NOT $1                           $$;
-CREATE OR REPLACE FUNCTION soft."BITWISE_OR"               (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 | $2                          $$;
-CREATE OR REPLACE FUNCTION soft."BITWISE_XOR"              (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 # $2                          $$;
-CREATE OR REPLACE FUNCTION soft."BITWISE_AND"              (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 & $2                          $$;
-CREATE OR REPLACE FUNCTION soft."EQUAL"                    (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 = $2                          $$;
-CREATE OR REPLACE FUNCTION soft."NOT_EQUAL"                (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 <> $2                         $$;
-CREATE OR REPLACE FUNCTION soft."LESS_THAN"                (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 < $2                          $$;
-CREATE OR REPLACE FUNCTION soft."GREATER_THAN"             (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 > $2                          $$;
-CREATE OR REPLACE FUNCTION soft."LESS_THAN_OR_EQUAL_TO"    (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 <= $2                         $$;
-CREATE OR REPLACE FUNCTION soft."GREATER_THAN_OR_EQUAL_TO" (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 >= $2                         $$;
-CREATE OR REPLACE FUNCTION soft."BITWISE_SHIFT_LEFT"       (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 << $2::integer                $$;
-CREATE OR REPLACE FUNCTION soft."BITWISE_SHIFT_RIGHT"      (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 >> $2::integer                $$;
-CREATE OR REPLACE FUNCTION soft."BETWEEN"                  (anyelement, anyelement, anyelement) RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 BETWEEN $2 AND $3             $$;
-CREATE OR REPLACE FUNCTION soft."SQUARE_ROOT"              (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT |/ $1                            $$;
-CREATE OR REPLACE FUNCTION soft."CUBE_ROOT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT ||/ $1                           $$;
-CREATE OR REPLACE FUNCTION soft."FACTOR"                   (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 !                             $$;
-CREATE OR REPLACE FUNCTION soft."ABS"                      (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT @ $1                             $$;
-CREATE OR REPLACE FUNCTION soft."ADD"                      (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + $2                          $$;
-CREATE OR REPLACE FUNCTION soft."SUBTRACT"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - $2                          $$;
-CREATE OR REPLACE FUNCTION soft."MULTIPLY"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 * $2                          $$;
-CREATE OR REPLACE FUNCTION soft."DIVIDE"                   (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 / $2                          $$;
-CREATE OR REPLACE FUNCTION soft."MODULO"                   (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 % $2                          $$;
-CREATE OR REPLACE FUNCTION soft."EXPONENT"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT ($1 ^ $2)::integer                $$;
-CREATE OR REPLACE FUNCTION soft."UNARY_MINUS"              (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT - $1                             $$;
-CREATE OR REPLACE FUNCTION soft."UNARY_PLUS"               (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT + $1                             $$;
-CREATE OR REPLACE FUNCTION soft."BITWISE_NOT"              (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT ~$1                              $$;
-CREATE OR REPLACE FUNCTION soft."ARRAY_INDEX"              (anyarray, integer)                  RETURNS anyelement LANGUAGE sql AS $$ SELECT $1[$2]                           $$;
-CREATE OR REPLACE FUNCTION soft."INCREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + 1                           $$;
-CREATE OR REPLACE FUNCTION soft."DECREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - 1                           $$;
+CREATE OR REPLACE FUNCTION "TERNARY"                  (boolean, anyelement, anyelement)    RETURNS anyelement LANGUAGE sql AS $$ SELECT CASE WHEN $1 THEN $2 ELSE $3 END $$;
+CREATE OR REPLACE FUNCTION "LOGICAL_OR"               (boolean, boolean)                   RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 OR $2                         $$;
+CREATE OR REPLACE FUNCTION "LOGICAL_XOR"              (boolean, boolean)                   RETURNS boolean    LANGUAGE sql AS $$ SELECT NOT($1 AND $2)                   $$;
+CREATE OR REPLACE FUNCTION "LOGICAL_AND"              (boolean, boolean)                   RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 AND $2                        $$;
+CREATE OR REPLACE FUNCTION "LOGICAL_NOT"              (boolean)                            RETURNS boolean    LANGUAGE sql AS $$ SELECT NOT $1                           $$;
+CREATE OR REPLACE FUNCTION "BITWISE_OR"               (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 | $2                          $$;
+CREATE OR REPLACE FUNCTION "BITWISE_XOR"              (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 # $2                          $$;
+CREATE OR REPLACE FUNCTION "BITWISE_AND"              (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 & $2                          $$;
+CREATE OR REPLACE FUNCTION "EQUAL"                    (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 = $2                          $$;
+CREATE OR REPLACE FUNCTION "NOT_EQUAL"                (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 <> $2                         $$;
+CREATE OR REPLACE FUNCTION "LESS_THAN"                (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 < $2                          $$;
+CREATE OR REPLACE FUNCTION "GREATER_THAN"             (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 > $2                          $$;
+CREATE OR REPLACE FUNCTION "LESS_THAN_OR_EQUAL_TO"    (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 <= $2                         $$;
+CREATE OR REPLACE FUNCTION "GREATER_THAN_OR_EQUAL_TO" (anyelement, anyelement)             RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 >= $2                         $$;
+CREATE OR REPLACE FUNCTION "BITWISE_SHIFT_LEFT"       (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 << $2::integer                $$;
+CREATE OR REPLACE FUNCTION "BITWISE_SHIFT_RIGHT"      (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 >> $2::integer                $$;
+CREATE OR REPLACE FUNCTION "BETWEEN"                  (anyelement, anyelement, anyelement) RETURNS boolean    LANGUAGE sql AS $$ SELECT $1 BETWEEN $2 AND $3             $$;
+CREATE OR REPLACE FUNCTION "SQUARE_ROOT"              (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT |/ $1                            $$;
+CREATE OR REPLACE FUNCTION "CUBE_ROOT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT ||/ $1                           $$;
+CREATE OR REPLACE FUNCTION "FACTOR"                   (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 !                             $$;
+CREATE OR REPLACE FUNCTION "ABS"                      (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT @ $1                             $$;
+CREATE OR REPLACE FUNCTION "ADD"                      (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + $2                          $$;
+CREATE OR REPLACE FUNCTION "SUBTRACT"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - $2                          $$;
+CREATE OR REPLACE FUNCTION "MULTIPLY"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 * $2                          $$;
+CREATE OR REPLACE FUNCTION "DIVIDE"                   (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 / $2                          $$;
+CREATE OR REPLACE FUNCTION "MODULO"                   (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 % $2                          $$;
+CREATE OR REPLACE FUNCTION "EXPONENT"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT ($1 ^ $2)::integer                $$;
+CREATE OR REPLACE FUNCTION "UNARY_MINUS"              (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT - $1                             $$;
+CREATE OR REPLACE FUNCTION "UNARY_PLUS"               (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT + $1                             $$;
+CREATE OR REPLACE FUNCTION "BITWISE_NOT"              (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT ~$1                              $$;
+CREATE OR REPLACE FUNCTION "ARRAY_INDEX"              (anyarray, integer)                  RETURNS anyelement LANGUAGE sql AS $$ SELECT $1[$2]                           $$;
+CREATE OR REPLACE FUNCTION "INCREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + 1                           $$;
+CREATE OR REPLACE FUNCTION "DECREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - 1                           $$;
 
-SELECT soft.New_Program(
+SELECT New_Program(
     _Language := 'monkey',
     _Program := 'test',
-    _SourceCodeNodeID := soft.New_Node(
-        _NodeTypeID := soft.New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
+    _SourceCodeNodeID := New_Node(
+        _NodeTypeID := New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
         _Literal    :=
 $$
-1+2*3;
+let x = 1+2*3;
+let y = 4-5*x;
+let z = 6-x*y;
 $$,
         _ValueType := 'text'::regtype
     )
