@@ -9,7 +9,6 @@ _Matches     text[];
 _NodePattern text;
 _OK          boolean;
 BEGIN
-
 SELECT LanguageID INTO STRICT _LanguageID FROM Languages WHERE Language = _Language;
 
 FOR    _NodeTypeID, _NodePattern IN

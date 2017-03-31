@@ -1,6 +1,9 @@
 #!/bin/bash
 psql -X -f install.sql
+
 psql -X -f languages/monkey.sql
+
+exit
 
 rm prog_*.gif
 rm prog_*.pdf

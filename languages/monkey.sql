@@ -1,70 +1,20 @@
+SET search_path TO soft, public;
+
 SELECT New_Language(_Language := 'monkey');
+\ir monkey/node_types.sql
+SELECT Expand_Token_Groups(_Language := 'monkey');
 
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'VARIABLE');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EQ',           _Literal         := '=');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'PLUS',         _Literal         := '+',  _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'MINUS',        _Literal         := '-',  _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BANG',         _Literal         := '!',  _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ASTERISK',     _Literal         := '*',  _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SLASH',        _Literal         := '/',  _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LT',           _Literal         := '<',  _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GT',           _Literal         := '>',  _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EQ_EQ',        _Literal         := '==', _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BANG_EQ',      _Literal         := '!=', _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'COMMA',        _Literal         := ',');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SEMICOLON',    _Literal         := ';');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'COLON',        _Literal         := ':');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LPAREN',       _Literal         := '(');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RPAREN',       _Literal         := ')');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACE',       _Literal         := '{');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACE',       _Literal         := '}');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LBRACKET',     _Literal         := '[');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RBRACKET',     _Literal         := ']');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION',     _Literal         := 'fn');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LET',          _Literal         := 'let');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IF',           _Literal         := 'if');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ELSE',         _Literal         := 'else');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RETURN',       _Literal         := 'return');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BOOLEAN',      _LiteralPattern  := '(true|false)',          _NodeGroup := 'VALUE', _ValueType := 'boolean'::regtype);
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'NUMERIC',      _LiteralPattern  := '([0-9]+\.[0-9]+)',      _NodeGroup := 'VALUE', _ValueType := 'numeric'::regtype);
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'INTEGER',      _LiteralPattern  := '([0-9]+)',              _NodeGroup := 'VALUE', _ValueType := 'integer'::regtype);
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'TEXT',         _LiteralPattern  := '"((?:[^"\\]|\\.)*)"',   _NodeGroup := 'VALUE', _ValueType := 'text'::regtype);
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IDENTIFIER',   _LiteralPattern  := '([a-zA-Z_]+)',              _ValueType := 'name'::regtype);
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'STORE_ARGS',                                                               _NodePattern     := '(?:^| )(?:FUNCTION\d+ )(LPAREN\d+(?: IDENTIFIER\d+(?: COMMA\d+ IDENTIFIER\d+)*)? RPAREN\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GET_VARIABLE',  _ValueType := 'name'::regtype, _NodeGroup := 'VALUE',      _NodePattern     := '(?:^| )(IDENTIFIER\d+)(?:(?! (?:EQ|LPAREN|FUNCTION_ARGS)\d+) [A-Z_]+\d+|$)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SET_VARIABLE',  _ValueType := 'name'::regtype,                             _NodePattern     := '(?:^| )(IDENTIFIER\d+) EQ\d+');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_NAME', _ValueType := 'name'::regtype, _NodeGroup := 'VALUE',      _NodePattern     := '(?:^| )(IDENTIFIER\d+) LPAREN\d+');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'VALUE',                                                                    _NodePattern     := '(?:^| )((?#VALUE)\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'CALL_EXPRESSION',                   _GrowFrom := 'VALUE', _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LPAREN\d+(?: (?:VALUE\d+|COMMA\d+|(?#OPS)\d+))* RPAREN\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SUB_EXPRESSION',                    _GrowFrom := 'VALUE', _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+(?: (?:VALUE\d+|(?#OPS)\d+))+ RPAREN\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION',                        _GrowFrom := 'VALUE',                     _NodePattern     := '(?:^| )((?:VALUE\d+|CALL\d+|GROUP\d+|(?#OPS)\d+)(?: (?:VALUE\d+|CALL\d+|GROUP\d+|(?#OPS)\d+))*)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'CALL',                              _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LPAREN\d+(?: VALUE\d+(?: COMMA\d+ VALUE\d+)*)? RPAREN\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GROUP',                             _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(LPAREN\d+ VALUE\d+ RPAREN\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'UNARY_MINUS',                       _GrowInto := 'VALUE', _NodePattern     := '(?:^|(?:^| )(?!VALUE\d+ )[A-Z_]+\d+ )(MINUS\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'MULTIPLY',                          _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ ASTERISK\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'DIVIDE',                            _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ SLASH\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'SUBTRACT',                          _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ MINUS\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ADD',                               _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ PLUS\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LESS_THAN',                         _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ LT\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'GREATER_THAN',                      _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ GT\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EQUAL',                             _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ EQ_EQ\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'NOT_EQUAL',                         _GrowInto := 'VALUE', _NodePattern     := '(?:^| )(VALUE\d+ BANG_EQ\d+ VALUE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FREE_STATEMENT');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'LET_STATEMENT',                                                                      _NodePattern     := '(?:^| )(LET\d+ SET_VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'EXPRESSION_STATEMENT',                                                               _NodePattern     := '(?:^| )(EXPRESSION\d+ SEMICOLON\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_STATEMENT',                                                                    _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'BLOCK_EXPRESSION',                                            _NodeGroup := 'VALUE', _NodePattern     := '(?:^| )(LBRACE\d+(?: STATEMENT\d+)* EXPRESSION\d+ RBRACE\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ALLOCA');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'RET');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_LABEL');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'FUNCTION_DECLARATION', _NodeGroup := 'VALUE', _Prologue := 'ALLOCA', _Epilogue := 'RET',                    _NodePattern     := '(?:^| )(FUNCTION\d+ STORE_ARGS\d+ (?:BLOCK_EXPRESSION\d+|STATEMENTS\d+))');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'ARGS');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IF_STATEMENT',                                                                       _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+ ELSE\d+ STATEMENT\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'IF_EXPRESSION', _NodeGroup := 'VALUE',                                               _NodePattern     := '(?:^| )(IF\d+ EXPRESSION\d+ BLOCK_EXPRESSION\d+ ELSE\d+ BLOCK_EXPRESSION\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENT',                                                                          _NodePattern     := '(?:^| )(LET_STATEMENT\d+|ASSIGNMENT_STATEMENT\d+|EXPRESSION_STATEMENT\d+|BLOCK_STATEMENT\d+|LOOP_STATEMENT\d+|IF_STATEMENT\d+|BREAK_STATEMENT\d+|CONTINUE_STATEMENT\d+)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'STATEMENTS',                                                                         _NodePattern     := '(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*)');
-SELECT New_Node_Type(_Language := 'monkey', _NodeType := 'PROGRAM',             _Prologue := 'ALLOCA', _Epilogue := 'RET',                     _NodePattern     := '(?:^| )(STATEMENTS\d+)');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
 
+SELECT New_Program(_Language := 'monkey', _Program := 'test');
+
+SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
+let x = 1+2*3;
+let y = 4-5*x;
+let z = 6-x*y;
+$SRC$);
+
+/*
 SELECT Expand_Token_Groups(_Language := 'monkey');
 
 CREATE SCHEMA IF NOT EXISTS "MAP_VARIABLES";
@@ -944,20 +894,4 @@ CREATE OR REPLACE FUNCTION "ARRAY_INDEX"              (anyarray, integer)       
 CREATE OR REPLACE FUNCTION "INCREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + 1                           $$;
 CREATE OR REPLACE FUNCTION "DECREMENT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - 1                           $$;
 
-SELECT New_Program(
-    _Language := 'monkey',
-    _Program := 'test',
-    _SourceCodeNodeID := New_Node(
-        _NodeTypeID := New_Node_Type(_Language := 'monkey', _NodeType := 'SOURCE_CODE'),
-        _Literal    :=
-$$
-let x = 1+2*3;
-let y = 4-5*x;
-let z = 6-x*y;
-$$,
-        _ValueType := 'text'::regtype
-    )
-);
-
-/*
 */

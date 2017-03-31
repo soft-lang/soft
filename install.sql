@@ -1,14 +1,11 @@
 ROLLBACK;
-\set AUTOCOMMIT OFF
-BEGIN;
+\set AUTOCOMMIT ON
 DROP SCHEMA soft CASCADE;
-COMMIT;
-BEGIN;
-\ir FUNCTIONS/opr_isnotdistinctfrom.sql
-COMMIT;
-BEGIN;
-\ir OPERATORS/opr_isnotdistinctfrom.sql
-COMMIT;
+DROP SCHEMA "TOKENIZE" CASCADE;
+DROP SCHEMA "PARSE" CASCADE;
+\ir public/FUNCTIONS/is_not_distinct_from.sql
+\ir public/OPERATORS/is_not_distinct_from.sql
+\set AUTOCOMMIT OFF
 BEGIN;
 \ir soft.sql
 COMMIT;

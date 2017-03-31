@@ -15,7 +15,7 @@ IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname = _Phase) THE
     RAISE EXCEPTION 'Schema for phase "%" does not exist.', _Phase;
 END IF;
 
-INSERT INTO Phases (LanguageID, Phase) VALUES (_LanguageID, _BonsaiSchema) RETURNING PhaseID INTO STRICT _PhaseID;
+INSERT INTO Phases (LanguageID, Phase) VALUES (_LanguageID, _Phase) RETURNING PhaseID INTO STRICT _PhaseID;
 
 RETURN _PhaseID;
 END;
