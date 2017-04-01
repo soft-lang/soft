@@ -5,6 +5,8 @@ SELECT New_Language(_Language := 'monkey');
 SELECT Expand_Token_Groups(_Language := 'monkey');
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
@@ -13,6 +15,14 @@ let x = 1+2*3;
 let y = 4-5*x;
 let z = 6-x*y;
 $SRC$);
+
+SELECT "TOKENIZE"."SOURCE_CODE"(1);
+
+UPDATE Programs SET PhaseID = 2 WHERE ProgramID = 1;
+
+SELECT "PARSE"."SOURCE_CODE"(1);
+
+-- SELECT "PARSE"."SOURCE_CODE"(1);
 
 /*
 SELECT Expand_Token_Groups(_Language := 'monkey');

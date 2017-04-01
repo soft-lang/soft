@@ -9,16 +9,29 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_PhaseID  integer;
-_NodeID   integer;
-_OK       boolean;
-_CastTest text;
+_BirthPhaseID integer;
+_ExistPhaseID integer;
+_NodeID       integer;
+_OK           boolean;
+_CastTest     text;
 BEGIN
 IF (SELECT TerminalType FROM NodeTypes WHERE NodeTypeID = _NodeTypeID) <> _TerminalType THEN
     RAISE EXCEPTION 'TerminalType % is different from NodeTypes.TerminalType', _TerminalType;
 END IF;
 
-SELECT PhaseID INTO STRICT _PhaseID FROM Programs WHERE ProgramID = _ProgramID;
+SELECT
+    BirthPhase.PhaseID,
+    ExistPhase.PhaseID
+INTO STRICT
+    _BirthPhaseID,
+    _ExistPhaseID
+FROM Programs
+INNER JOIN Phases AS BirthPhase ON BirthPhase.PhaseID    = Programs.PhaseID
+INNER JOIN Phases AS ExistPhase ON ExistPhase.LanguageID = BirthPhase.LanguageID
+                               AND ExistPhase.PhaseID    > BirthPhase.PhaseID
+WHERE Programs.ProgramID = _ProgramID
+ORDER BY ExistPhase.PhaseID
+LIMIT 1;
 
 IF _TerminalValue IS NOT NULL AND _TerminalType IS NOT NULL THEN
     EXECUTE format('SELECT %L::%s::text', _TerminalValue, _TerminalType) INTO STRICT _CastTest;
@@ -27,8 +40,8 @@ IF _TerminalValue IS NOT NULL AND _TerminalType IS NOT NULL THEN
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID, BirthPhaseID, ExistPhaseID,  TerminalType,  TerminalValue,  SourceCodeCharacters)
-VALUES             (_ProgramID, _NodeTypeID,     _PhaseID,     _PhaseID, _TerminalType, _TerminalValue, _SourceCodeCharacters)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  ExistPhaseID,  TerminalType,  TerminalValue,  SourceCodeCharacters)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _ExistPhaseID, _TerminalType, _TerminalValue, _SourceCodeCharacters)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 

@@ -13,10 +13,19 @@ SET search_path TO soft, public;
 \ir soft/FUNCTIONS/new_program.sql
 \ir soft/FUNCTIONS/new_node.sql
 \ir soft/FUNCTIONS/new_edge.sql
+\ir soft/FUNCTIONS/kill_node.sql
+\ir soft/FUNCTIONS/kill_edge.sql
 \ir soft/FUNCTIONS/expand_token_groups.sql
+\ir soft/FUNCTIONS/get_capturing_group.sql
+\ir soft/FUNCTIONS/get_dot.sql
 
 CREATE SCHEMA "TOKENIZE";
 \ir TOKENIZE/SOURCE_CODE.sql
+
+CREATE SCHEMA "PARSE";
+\ir PARSE/SOURCE_CODE.sql
+
+CREATE SCHEMA "MAP_VARIABLES";
 
 -- \ir soft/FUNCTIONS/tokenize.sql
 -- \ir soft/FUNCTIONS/parse.sql

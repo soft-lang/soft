@@ -9,25 +9,21 @@ RETURN QUERY
 SELECT format(E'"%s" [label="%s\n%s\n%s\n%s"%s];',
     Nodes.NodeID,
     NodeTypes.NodeType,
-    Nodes.ValueType::text,
-    Nodes.Visited,
-    'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.ValueType::text,'NAN') || ' ' || COALESCE(CASE Nodes.BooleanValue WHEN TRUE THEN 'TRUE' WHEN FALSE THEN 'FALSE' ELSE COALESCE(Nodes.BooleanValue::text, Nodes.IntegerValue::text, replace(Nodes.TextValue,'"','\"'), Nodes.NameValue, NodeTypes.Literal, 'NULL') END),
+    Nodes.TerminalType::text,
+    Nodes.BirthPhaseID,
+    'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.TerminalType::text,'NAN') || ' ' || COALESCE(replace(Nodes.TerminalValue,'"','\"'), 'NULL'),
     CASE
-    WHEN Programs.NodeID = Nodes.NodeID THEN ' style="filled" fillcolor="red"'
-    WHEN Nodes.Visited > 0 THEN ' style="filled" fillcolor="grey"'
+    WHEN Nodes.BirthPhaseID > 1 THEN ' style="filled" fillcolor="grey"'
     END
---      COALESCE(CASE Nodes.BooleanValue WHEN TRUE THEN 'TRUE' WHEN FALSE THEN 'FALSE' ELSE COALESCE(Nodes.NameValue::text, Nodes.BooleanValue::text, Nodes.NumericValue::text, Nodes.IntegerValue::text, Nodes.TextValue, NodeTypes.Literal, 'NULL') END)
 )
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID  = Nodes.NodeTypeID
-LEFT JOIN Programs   ON Programs.NodeID = Nodes.NodeID
-WHERE NOT Nodes.Deleted;
+WHERE Nodes.DeathPhaseID IS NULL;
 
 RETURN QUERY
 SELECT format('"%s" -> "%s" [label="%s"];', ParentNodeID, ChildNodeID, 'EdgeID ' || EdgeID)
---  SELECT format('"%s" -> "%s";', ParentNodeID, ChildNodeID)
 FROM Edges
-WHERE NOT Deleted;
+WHERE Edges.DeathPhaseID IS NULL;
 
 RETURN;
 END;

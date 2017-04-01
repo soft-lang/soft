@@ -3,6 +3,9 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_GrandChildNodeID      integer;
+_Nodes                 text;
+_OuterNodes            text;
 _ProgramID             integer;
 _LanguageID            integer;
 _PhaseID               integer;
@@ -16,13 +19,15 @@ _ChildValueType        regtype;
 _ParentNodeID          integer;
 _ChildNodeID           integer;
 _EdgeID                integer;
-_Input                 text;
 _ExtractNodeID         text := '^[A-Z_]+(\d+)$';
 _PrologueNodeTypeID    integer;
 _PrologueNodeID        integer;
 _EpilogueNodeTypeID    integer;
 _EpilogueNodeID        integer;
-_Chars                 integer[];
+_GrowFromNodeTypeID    integer;
+_GrowIntoNodeTypeID    integer;
+_GrowIntoNodeType      text;
+_SourceCodeCharacters  integer[];
 _OK                    boolean;
 BEGIN
 
@@ -43,121 +48,125 @@ AND Phases.Phase       = 'PARSE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'
 AND Nodes.TerminalType = 'text'::regtype;
 
-TerminalType       regtype,
-NodeGroup          text,
-Literal            text,
-LiteralLength      integer,
-LiteralPattern     text,
-NodePattern        text,
-PrologueNodeTypeID integer,
-EpilogueNodeTypeID integer,
-GrowFromNodeTypeID integer,
-GrowIntoNodeTypeID integer,
-
-
 SELECT string_agg(format('%s%s',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY Nodes.NodeID)
 INTO _Nodes
 FROM Nodes
 INNER JOIN NodeTypes              ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Edges                  ON Edges.ChildNodeID    = Nodes.NodeID
-WHERE Edges.ParentNodeID = _SourceCodeNodeID
-AND NOT Nodes.Deleted
-AND NOT Edges.Deleted;
+WHERE Edges.ParentNodeID = _NodeID;
+
+RAISE NOTICE 'Parsing nodes "%"', _Nodes;
 
 LOOP
-    RAISE NOTICE '% %', _Output, _Nodes;
     SELECT
         NodeTypes.NodeTypeID,
         NodeTypes.NodeType,
-        NodeTypes.ValueType,
+        NodeTypes.TerminalType,
         NodeTypes.NodePattern,
-        NodeTypes.Input,
-        Prologue.NodeTypeID,
-        Epilogue.NodeTypeID
+        NodeTypes.PrologueNodeTypeID,
+        NodeTypes.EpilogueNodeTypeID,
+        NodeTypes.GrowFromNodeTypeID,
+        GrowIntoNodeType.NodeType
     INTO
         _ChildNodeTypeID,
         _ChildNodeType,
         _ChildValueType,
         _NodePattern,
-        _Input,
         _PrologueNodeTypeID,
-        _EpilogueNodeTypeID
+        _EpilogueNodeTypeID,
+        _GrowFromNodeTypeID,
+        _GrowIntoNodeType
     FROM NodeTypes
-    LEFT JOIN NodeTypes AS Prologue ON Prologue.NodeType = NodeTypes.Prologue
-    LEFT JOIN NodeTypes AS Epilogue ON Epilogue.NodeType = NodeTypes.Epilogue
+    LEFT JOIN NodeTypes AS GrowIntoNodeType ON GrowIntoNodeType.NodeTypeID = NodeTypes.GrowIntoNodeTypeID
     WHERE NodeTypes.LanguageID = _LanguageID
     AND _Nodes ~ NodeTypes.NodePattern
-    AND NodeTypes.Output IS NOT DISTINCT FROM _Output
+    AND NodeTypes.GrowIntoNodeTypeID IS NOT DISTINCT FROM _GrowIntoNodeTypeID
     ORDER BY NodeTypes.NodeTypeID
     LIMIT 1;
+    RAISE NOTICE 'Matched %', _ChildNodeType;
     IF NOT FOUND THEN
-        RETURN TRUE;
+        IF _GrowIntoNodeTypeID IS NOT NULL THEN
+            RAISE NOTICE 'Grow of % completed', _GrowIntoNodeTypeID;
+            _EdgeID := New_Edge(
+                _ProgramID    := _ProgramID,
+                _ParentNodeID := _ChildNodeID,
+                _ChildNodeID  := _GrandChildNodeID
+            );
+            RAISE NOTICE 'FINAL GROW EDGE % -> % EdgeID %', _ChildNodeID, _GrandChildNodeID, _EdgeID;
+            _Nodes              := _OuterNodes;
+            _OuterNodes         := NULL;
+            _GrowIntoNodeTypeID := NULL;
+            _GrandChildNodeID   := NULL;
+            CONTINUE;
+        ELSE
+            RETURN TRUE;
+        END IF;
     END IF;
 
-    _ChildNodeID := New_Node(_ChildNodeTypeID);
-    _RegexpCapturingGroups := regexp_matches(_Nodes, _NodePattern);
-    IF (array_length(_RegexpCapturingGroups,1) = 1) IS NOT TRUE THEN
-        RAISE EXCEPTION 'Regexp % did not return a single capturing group from "%": %', _NodePattern, _Nodes, _RegexpCapturingGroups;
-    END IF;
-    _MatchedNodes := _RegexpCapturingGroups[1];
-    _RegexpCapturingGroups := NULL;
+    _ChildNodeID := New_Node(
+        _ProgramID  := _ProgramID,
+        _NodeTypeID := _ChildNodeTypeID
+    );
 
-    RAISE NOTICE 'REPLACE % WITH %', _MatchedNodes, COALESCE(_Output,_ChildNodeType)||_ChildNodeID;
-    _Nodes := regexp_replace(_Nodes, _MatchedNodes, COALESCE(_Output,_ChildNodeType)||_ChildNodeID);
+    _MatchedNodes := Get_Capturing_Group(_Nodes, _NodePattern);
+
+    _Nodes := regexp_replace(_Nodes, _MatchedNodes, COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID);
+
+    IF _GrowFromNodeTypeID IS NOT NULL THEN
+        _GrandChildNodeID   := _ChildNodeID;
+        _ChildNodeID        := NULL;
+        _GrowIntoNodeTypeID := _GrowFromNodeTypeID;
+        _OuterNodes         := _Nodes;
+        _Nodes              := _MatchedNodes;
+        CONTINUE;
+    END IF;
 
     IF _PrologueNodeTypeID IS NOT NULL THEN
-        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_PrologueNodeTypeID), _ChildNodeID) RETURNING ParentNodeID, EdgeID INTO STRICT _PrologueNodeID, _EdgeID;
+        _PrologueNodeID := New_Node(
+            _ProgramID  := _ProgramID,
+            _NodeTypeID := _PrologueNodeTypeID
+        );
+        PERFORM New_Edge(
+            _ProgramID    := _ProgramID,
+            _ParentNodeID := _PrologueNodeID,
+            _ChildNodeID  := _ChildNodeID
+        );
     END IF;
 
-    _Chars := NULL;
+    _SourceCodeCharacters := NULL;
     FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
-        _RegexpCapturingGroups := regexp_matches(_MatchedNode, _ExtractNodeID);
-        IF (array_length(_RegexpCapturingGroups,1) = 1) IS NOT TRUE THEN
-            RAISE EXCEPTION 'Regexp % did not return a single capturing group from "%": %', _ExtractNodeID, _MatchedNode, _RegexpCapturingGroups;
-        END IF;
+        _ParentNodeID := Get_Capturing_Group(_MatchedNode, _ExtractNodeID)::integer;
 
-        _ParentNodeID := _RegexpCapturingGroups[1]::integer;
-
-        IF _Input IS NOT NULL AND _Output IS NULL THEN
-            -- Not handled here
-        ELSIF _Input IS NULL OR _MatchedNode ~ ('^'||_Input||'\d+$') THEN
-            INSERT INTO Edges ( ParentNodeID,  ChildNodeID)
-            VALUES            (_ParentNodeID, _ChildNodeID)
-            RETURNING    EdgeID
-            INTO STRICT _EdgeID;
+        IF _GrowIntoNodeType IS NULL OR _MatchedNode ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
+            _EdgeID := New_Edge(
+                _ProgramID    := _ProgramID,
+                _ParentNodeID := _ParentNodeID,
+                _ChildNodeID  := _ChildNodeID
+            );
             RAISE NOTICE 'NEW EDGE % -> % EdgeID %', _ParentNodeID, _ChildNodeID, _EdgeID;
-        ELSIF _Input IS NOT NULL AND _Output IS NOT NULL THEN
-            UPDATE Edges SET Deleted = TRUE WHERE NOT Deleted AND ChildNodeID = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
-            UPDATE Nodes SET Deleted = TRUE WHERE NOT Deleted AND NodeID      = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
-            SELECT _Chars||Chars INTO STRICT _Chars FROM Nodes WHERE NodeID = _ParentNodeID;
+        ELSIF _GrowIntoNodeType IS NOT NULL THEN
+            SELECT Kill_Edge(EdgeID)                           INTO STRICT _OK                   FROM Edges WHERE ChildNodeID = _ParentNodeID;
+            SELECT Kill_Node(NodeID)                           INTO STRICT _OK                   FROM Nodes WHERE NodeID      = _ParentNodeID;
+            SELECT _SourceCodeCharacters||SourceCodeCharacters INTO STRICT _SourceCodeCharacters FROM Nodes WHERE NodeID      = _ParentNodeID;
+            RAISE NOTICE 'KILL NODE %', _ParentNodeID;
         ELSE
             RAISE EXCEPTION 'How did we end up here?!';
         END IF;
     END LOOP;
 
     IF _EpilogueNodeTypeID IS NOT NULL THEN
-        INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (New_Node(_EpilogueNodeTypeID), _ChildNodeID) RETURNING ParentNodeID, EdgeID INTO STRICT _EpilogueNodeID, _EdgeID;
+        _EpilogueNodeID := New_Node(
+            _ProgramID  := _ProgramID,
+            _NodeTypeID := _PrologueNodeTypeID
+        );
+        PERFORM New_Edge(
+            _ProgramID    := _ProgramID,
+            _ParentNodeID := _EpilogueNodeID,
+            _ChildNodeID  := _ChildNodeID
+        );
     END IF;
 
-    UPDATE Nodes SET Chars = _Chars WHERE NodeID IN (_PrologueNodeID, _ChildNodeID, _EpilogueNodeID);
-
-    IF _Input IS NOT NULL AND _Output IS NULL THEN
-        PERFORM Parse(_LanguageID, _MatchedNodes, _Input, _ChildNodeID);
-    END IF;
-
-    IF _Nodes ~ ('^'||_Input||'\d+$') THEN
-        IF _GrandChildNodeID IS NOT NULL THEN
-            _RegexpCapturingGroups := regexp_matches(_Nodes, _ExtractNodeID);
-            IF (array_length(_RegexpCapturingGroups,1) = 1) IS NOT TRUE THEN
-                RAISE EXCEPTION 'Regexp % did not return a single capturing group from "%": %', _ExtractNodeID, _Nodes, _RegexpCapturingGroups;
-            END IF;
-            INSERT INTO Edges ( ParentNodeID,                            ChildNodeID)
-            VALUES            (_RegexpCapturingGroups[1]::integer, _GrandChildNodeID)
-            RETURNING    EdgeID
-            INTO STRICT _EdgeID;
-        END IF;
-        RETURN TRUE;
-    END IF;
+    UPDATE Nodes SET SourceCodeCharacters = _SourceCodeCharacters WHERE NodeID IN (_PrologueNodeID, _ChildNodeID, _EpilogueNodeID);
 
 END LOOP;
 
