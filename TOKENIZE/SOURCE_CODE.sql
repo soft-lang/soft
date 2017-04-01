@@ -108,8 +108,15 @@ IF _IllegalCharacters IS NOT NULL THEN
         _Message              := 'Illegal characters',
         _SourceCodeCharacters := _IllegalCharacters
     );
+    RETURN FALSE;
+ELSE
+    PERFORM Log(
+        _NodeID               := _NodeID,
+        _Severity             := 'INFO',
+        _Message              := 'OK'
+    );
+    RETURN TRUE;
 END IF;
 
-RETURN TRUE;
 END;
 $$;

@@ -3,29 +3,30 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID             integer;
-_LanguageID            integer;
-_PhaseID               integer;
-_Nodes                 text;
-_ChildNodeTypeID       integer;
-_ChildNodeType         text;
-_ChildValueType        regtype;
-_NodePattern           text;
-_PrologueNodeTypeID    integer;
-_EpilogueNodeTypeID    integer;
-_GrowFromNodeTypeID    integer;
-_GrowIntoNodeType      text;
-_OuterNodes            text;
-_GrowIntoNodeTypeID    integer;
-_GrandChildNodeID      integer;
-_ChildNodeID           integer;
-_MatchedNodes          text;
-_PrologueNodeID        integer;
-_SourceCodeCharacters  integer[];
-_MatchedNode           text;
-_ParentNodeID          integer;
-_EpilogueNodeID        integer;
-_OK                    boolean;
+_ProgramID                  integer;
+_LanguageID                 integer;
+_PhaseID                    integer;
+_Nodes                      text;
+_ChildNodeTypeID            integer;
+_ChildNodeType              text;
+_ChildValueType             regtype;
+_NodePattern                text;
+_PrologueNodeTypeID         integer;
+_EpilogueNodeTypeID         integer;
+_GrowFromNodeTypeID         integer;
+_GrowIntoNodeType           text;
+_OuterNodes                 text;
+_GrowIntoNodeTypeID         integer;
+_GrandChildNodeID           integer;
+_ChildNodeID                integer;
+_MatchedNodes               text;
+_PrologueNodeID             integer;
+_SourceCodeCharacters       integer[];
+_MatchedNode                text;
+_ParentNodeID               integer;
+_EpilogueNodeID             integer;
+_OK                         boolean;
+_SingleNodePattern CONSTANT text := '^[A-Z_]+(\d+)$';
 BEGIN
 
 SELECT
@@ -90,8 +91,20 @@ LOOP
             _GrowIntoNodeTypeID := NULL;
             _GrandChildNodeID   := NULL;
             CONTINUE;
-        ELSE
+        ELSIF _Nodes ~ _SingleNodePattern THEN
+            PERFORM Log(
+                _NodeID   := _NodeID,
+                _Severity := 'INFO',
+                _Message  := 'OK'
+            );
             RETURN TRUE;
+        ELSE
+            PERFORM Log(
+                _NodeID   := _NodeID,
+                _Severity := 'ERROR',
+                _Message  := format('Illegal node pattern: %s', _Nodes)
+            );
+            RETURN FALSE;
         END IF;
     END IF;
 
@@ -127,7 +140,7 @@ LOOP
 
     _SourceCodeCharacters := NULL;
     FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
-        _ParentNodeID := Get_Capturing_Group(_String := _MatchedNode, _Pattern := '^[A-Z_]+(\d+)$', _Strict := TRUE)::integer;
+        _ParentNodeID := Get_Capturing_Group(_String := _MatchedNode, _Pattern := _SingleNodePattern, _Strict := TRUE)::integer;
 
         IF _GrowIntoNodeType IS NULL OR _MatchedNode ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
             PERFORM New_Edge(
