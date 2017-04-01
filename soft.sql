@@ -1,11 +1,15 @@
 CREATE SCHEMA soft;
 SET search_path TO soft, public;
+\ir soft/TYPES/severity.sql
+
 \ir soft/TABLES/languages.sql
 \ir soft/TABLES/phases.sql
 \ir soft/TABLES/nodetypes.sql
 \ir soft/TABLES/programs.sql
 \ir soft/TABLES/nodes.sql
 \ir soft/TABLES/edges.sql
+\ir soft/TABLES/log.sql
+\ir soft/TABLES/ansiescapecodes.sql
 
 \ir soft/FUNCTIONS/new_language.sql
 \ir soft/FUNCTIONS/new_phase.sql
@@ -18,6 +22,9 @@ SET search_path TO soft, public;
 \ir soft/FUNCTIONS/expand_token_groups.sql
 \ir soft/FUNCTIONS/get_capturing_group.sql
 \ir soft/FUNCTIONS/get_dot.sql
+\ir soft/FUNCTIONS/log.sql
+\ir soft/FUNCTIONS/colorize.sql
+\ir soft/FUNCTIONS/highlight_code.sql
 
 CREATE SCHEMA "TOKENIZE";
 \ir TOKENIZE/SOURCE_CODE.sql
@@ -45,4 +52,3 @@ CREATE SCHEMA "MAP_VARIABLES";
 -- \ir soft/FUNCTIONS/pop_node.sql
 -- \ir soft/FUNCTIONS/execute_bonsai_functions.sql
 -- \ir soft/FUNCTIONS/set_visited.sql
--- \ir soft/FUNCTIONS/highlight_code.sql

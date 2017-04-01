@@ -17,6 +17,7 @@ _LiteralLength        integer;
 _LiteralPattern       text;
 _Matches              text[];
 _SourceCodeCharacters integer[];
+_IllegalCharacters    integer[];
 _TokenNodeID          integer;
 _OK                   boolean;
 BEGIN
@@ -72,7 +73,9 @@ LOOP
         ORDER BY NodeTypeID
         LIMIT 1;
         IF NOT FOUND THEN
-            RAISE EXCEPTION 'Unable to tokenize, illegal character at % [%]: %', _AtChar, substr(_SourceCode, _AtChar, 1), _Remainder;
+            _IllegalCharacters := _IllegalCharacters || _AtChar;
+            _AtChar := _AtChar + 1;
+            CONTINUE;
         END IF;
         _Matches       := regexp_matches(_Remainder, _LiteralPattern);
         _Literal       := _Matches[2];
@@ -97,6 +100,15 @@ LOOP
 
     _AtChar := _AtChar + _LiteralLength;
 END LOOP;
+
+IF _IllegalCharacters IS NOT NULL THEN
+    PERFORM Log(
+        _NodeID               := _NodeID,
+        _Severity             := 'ERROR',
+        _Message              := 'Illegal characters',
+        _SourceCodeCharacters := _IllegalCharacters
+    );
+END IF;
 
 RETURN TRUE;
 END;

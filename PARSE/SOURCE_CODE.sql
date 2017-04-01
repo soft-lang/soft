@@ -3,31 +3,28 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_GrandChildNodeID      integer;
-_Nodes                 text;
-_OuterNodes            text;
 _ProgramID             integer;
 _LanguageID            integer;
 _PhaseID               integer;
-_NodePattern           text;
-_RegexpCapturingGroups text[];
-_MatchedNodes          text;
-_MatchedNode           text;
+_Nodes                 text;
 _ChildNodeTypeID       integer;
 _ChildNodeType         text;
 _ChildValueType        regtype;
-_ParentNodeID          integer;
-_ChildNodeID           integer;
-_EdgeID                integer;
-_ExtractNodeID         text := '^[A-Z_]+(\d+)$';
+_NodePattern           text;
 _PrologueNodeTypeID    integer;
-_PrologueNodeID        integer;
 _EpilogueNodeTypeID    integer;
-_EpilogueNodeID        integer;
 _GrowFromNodeTypeID    integer;
-_GrowIntoNodeTypeID    integer;
 _GrowIntoNodeType      text;
+_OuterNodes            text;
+_GrowIntoNodeTypeID    integer;
+_GrandChildNodeID      integer;
+_ChildNodeID           integer;
+_MatchedNodes          text;
+_PrologueNodeID        integer;
 _SourceCodeCharacters  integer[];
+_MatchedNode           text;
+_ParentNodeID          integer;
+_EpilogueNodeID        integer;
 _OK                    boolean;
 BEGIN
 
@@ -51,11 +48,9 @@ AND Nodes.TerminalType = 'text'::regtype;
 SELECT string_agg(format('%s%s',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY Nodes.NodeID)
 INTO _Nodes
 FROM Nodes
-INNER JOIN NodeTypes              ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-INNER JOIN Edges                  ON Edges.ChildNodeID    = Nodes.NodeID
+INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+INNER JOIN Edges     ON Edges.ChildNodeID    = Nodes.NodeID
 WHERE Edges.ParentNodeID = _NodeID;
-
-RAISE NOTICE 'Parsing nodes "%"', _Nodes;
 
 LOOP
     SELECT
@@ -83,16 +78,13 @@ LOOP
     AND NodeTypes.GrowIntoNodeTypeID IS NOT DISTINCT FROM _GrowIntoNodeTypeID
     ORDER BY NodeTypes.NodeTypeID
     LIMIT 1;
-    RAISE NOTICE 'Matched %', _ChildNodeType;
     IF NOT FOUND THEN
         IF _GrowIntoNodeTypeID IS NOT NULL THEN
-            RAISE NOTICE 'Grow of % completed', _GrowIntoNodeTypeID;
-            _EdgeID := New_Edge(
+            PERFORM New_Edge(
                 _ProgramID    := _ProgramID,
                 _ParentNodeID := _ChildNodeID,
                 _ChildNodeID  := _GrandChildNodeID
             );
-            RAISE NOTICE 'FINAL GROW EDGE % -> % EdgeID %', _ChildNodeID, _GrandChildNodeID, _EdgeID;
             _Nodes              := _OuterNodes;
             _OuterNodes         := NULL;
             _GrowIntoNodeTypeID := NULL;
@@ -108,7 +100,7 @@ LOOP
         _NodeTypeID := _ChildNodeTypeID
     );
 
-    _MatchedNodes := Get_Capturing_Group(_Nodes, _NodePattern);
+    _MatchedNodes := Get_Capturing_Group(_String := _Nodes, _Pattern := _NodePattern, _Strict := FALSE);
 
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID);
 
@@ -135,20 +127,18 @@ LOOP
 
     _SourceCodeCharacters := NULL;
     FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
-        _ParentNodeID := Get_Capturing_Group(_MatchedNode, _ExtractNodeID)::integer;
+        _ParentNodeID := Get_Capturing_Group(_String := _MatchedNode, _Pattern := '^[A-Z_]+(\d+)$', _Strict := TRUE)::integer;
 
         IF _GrowIntoNodeType IS NULL OR _MatchedNode ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
-            _EdgeID := New_Edge(
+            PERFORM New_Edge(
                 _ProgramID    := _ProgramID,
                 _ParentNodeID := _ParentNodeID,
                 _ChildNodeID  := _ChildNodeID
             );
-            RAISE NOTICE 'NEW EDGE % -> % EdgeID %', _ParentNodeID, _ChildNodeID, _EdgeID;
         ELSIF _GrowIntoNodeType IS NOT NULL THEN
             SELECT Kill_Edge(EdgeID)                           INTO STRICT _OK                   FROM Edges WHERE ChildNodeID = _ParentNodeID;
             SELECT Kill_Node(NodeID)                           INTO STRICT _OK                   FROM Nodes WHERE NodeID      = _ParentNodeID;
             SELECT _SourceCodeCharacters||SourceCodeCharacters INTO STRICT _SourceCodeCharacters FROM Nodes WHERE NodeID      = _ParentNodeID;
-            RAISE NOTICE 'KILL NODE %', _ParentNodeID;
         ELSE
             RAISE EXCEPTION 'How did we end up here?!';
         END IF;
