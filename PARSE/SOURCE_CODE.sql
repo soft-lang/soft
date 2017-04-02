@@ -33,6 +33,9 @@ _SingleNodePattern CONSTANT text := '^[A-Z_]+(\d+)$';
 _ProgramNodeType            text;
 _IllegalNodePattern         text;
 _IllegalNodePatterns        text[];
+_Children                   integer;
+_Parents                    integer;
+_Killed                     integer;
 BEGIN
 
 SELECT
@@ -59,12 +62,17 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Edges     ON Edges.ChildNodeID    = Nodes.NodeID
 WHERE Edges.ParentNodeID = _NodeID;
 
+SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
+
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG1',
-    _Message  := format('Parsing nodes: %s', _Nodes)
+    _Message  := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA'))
 );
 
+_Children := 0;
+_Parents  := 0;
+_Killed   := 0;
 LOOP
     SELECT
         NodeTypes.NodeTypeID,
@@ -96,7 +104,7 @@ LOOP
             PERFORM Log(
                 _NodeID   := _NodeID,
                 _Severity := 'DEBUG2',
-                _Message  := format('Grew %s', Colorize(_GrowIntoNodeType))
+                _Message  := format('Done growing %s', Colorize(_GrowIntoNodeType))
             );
             PERFORM New_Edge(
                 _ProgramID    := _ProgramID,
@@ -109,15 +117,14 @@ LOOP
             _GrowIntoNodeType   := NULL;
             _GrandChildNodeID   := NULL;
             CONTINUE;
-        ELSIF _Nodes ~ _SingleNodePattern THEN
+        ELSIF _Nodes ~ format('^%s\d+$',_ProgramNodeType) THEN
             PERFORM Log(
                 _NodeID   := _NodeID,
                 _Severity := 'INFO',
-                _Message  := 'OK'
+                _Message  := format('OK, %s children born with %s valuable parents and killed %s valueless parents', _Children, _Parents, _Killed)
             );
             RETURN TRUE;
         ELSE
-            SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
             _IllegalNodePatterns  := NULL;
             _SourceCodeCharacters := NULL;
             FOREACH _IllegalNodePattern IN ARRAY regexp_split_to_array(_Nodes, format('(^| )%s\d+( |$)',_ProgramNodeType)) LOOP
@@ -148,6 +155,7 @@ LOOP
         _ProgramID  := _ProgramID,
         _NodeTypeID := _ChildNodeTypeID
     );
+    _Children := _Children + 1;
 
     _MatchedNodes := Get_Capturing_Group(_String := _Nodes, _Pattern := _NodePattern, _Strict := FALSE);
 
@@ -171,7 +179,7 @@ LOOP
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG2',
-            _Message  := format('Growing %s', Colorize(_GrowFromNodeType))
+            _Message  := format('Begin growing %s', Colorize(_GrowFromNodeType))
         );
         _GrandChildNodeID   := _ChildNodeID;
         _ChildNodeID        := NULL;
@@ -192,6 +200,7 @@ LOOP
             _ParentNodeID := _PrologueNodeID,
             _ChildNodeID  := _ChildNodeID
         );
+        _Parents := _Parents + 1;
     END IF;
 
     _SourceCodeCharacters := NULL;
@@ -204,10 +213,12 @@ LOOP
                 _ParentNodeID := _ParentNodeID,
                 _ChildNodeID  := _ChildNodeID
             );
+            _Parents := _Parents + 1;
         ELSIF _GrowIntoNodeType IS NOT NULL THEN
             SELECT Kill_Edge(EdgeID)                           INTO STRICT _OK                   FROM Edges WHERE ChildNodeID = _ParentNodeID;
             SELECT Kill_Node(NodeID)                           INTO STRICT _OK                   FROM Nodes WHERE NodeID      = _ParentNodeID;
             SELECT _SourceCodeCharacters||SourceCodeCharacters INTO STRICT _SourceCodeCharacters FROM Nodes WHERE NodeID      = _ParentNodeID;
+            _Killed := _Killed + 1;
         ELSE
             RAISE EXCEPTION 'How did we end up here?!';
         END IF;
@@ -223,6 +234,7 @@ LOOP
             _ParentNodeID := _EpilogueNodeID,
             _ChildNodeID  := _ChildNodeID
         );
+        _Parents := _Parents + 1;
     END IF;
 
     UPDATE Nodes SET SourceCodeCharacters = _SourceCodeCharacters WHERE NodeID IN (_PrologueNodeID, _ChildNodeID, _EpilogueNodeID);

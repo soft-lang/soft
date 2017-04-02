@@ -20,6 +20,7 @@ _SourceCodeCharacters integer[];
 _IllegalCharacters    integer[];
 _TokenNodeID          integer;
 _OK                   boolean;
+_Tokens               integer;
 BEGIN
 
 SELECT
@@ -44,6 +45,7 @@ AND Nodes.TerminalType = 'text'::regtype;
 _NumChars := length(_SourceCode);
 
 _AtChar := 1;
+_Tokens := 0;
 LOOP
     IF _AtChar > _NumChars THEN
         EXIT;
@@ -91,6 +93,7 @@ LOOP
         _TerminalValue        := _Literal,
         _SourceCodeCharacters := _SourceCodeCharacters
     );
+    _Tokens := _Tokens + 1;
 
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
@@ -113,7 +116,7 @@ ELSE
     PERFORM Log(
         _NodeID               := _NodeID,
         _Severity             := 'INFO',
-        _Message              := 'OK'
+        _Message              := format('OK, created %s tokens from %s characters', _Tokens, _NumChars)
     );
     RETURN TRUE;
 END IF;
