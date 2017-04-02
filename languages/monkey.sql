@@ -12,6 +12,14 @@ SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
 let x = 1+2*3;
+{
+    let y = 4*x;
+    {
+        let z = 5*y+x;
+        let o = 123;
+        let fn = 123;
+    }
+}
 $SRC$);
 
 SELECT "TOKENIZE"."SOURCE_CODE"(1);
