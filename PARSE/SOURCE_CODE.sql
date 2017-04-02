@@ -5,7 +5,6 @@ AS $$
 DECLARE
 _ProgramID                  integer;
 _LanguageID                 integer;
-_PhaseID                    integer;
 _Nodes                      text;
 _ChildNodeTypeID            integer;
 _ChildNodeType              text;
@@ -43,18 +42,16 @@ BEGIN
 SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID,
-    Programs.PhaseID,
-    Settings.LogSeverity
+    Languages.LogSeverity
 INTO STRICT
     _ProgramID,
     _LanguageID,
-    _PhaseID,
     _LogSeverity
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
-CROSS JOIN Settings
+INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'PARSE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'

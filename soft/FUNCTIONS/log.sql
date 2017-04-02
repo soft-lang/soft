@@ -23,7 +23,7 @@ SELECT
     Programs.Program,
     Phases.PhaseID,
     Phases.Phase,
-    Settings.LogSeverity
+    Languages.LogSeverity
 INTO STRICT
     _ProgramID,
     _Program,
@@ -31,9 +31,9 @@ INTO STRICT
     _Phase,
     _LogSeverity
 FROM Nodes
-INNER JOIN Programs ON Programs.ProgramID = Nodes.ProgramID
-INNER JOIN Phases   ON Phases.PhaseID     = Programs.PhaseID
-CROSS JOIN Settings
+INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
+INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
+INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID = _NodeID;
 
 IF _Severity < _LogSeverity THEN

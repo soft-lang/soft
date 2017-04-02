@@ -5,6 +5,7 @@ SELECT New_Language(_Language := 'monkey');
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
@@ -18,6 +19,10 @@ SELECT "TOKENIZE"."SOURCE_CODE"(1);
 UPDATE Programs SET PhaseID = 2 WHERE ProgramID = 1;
 
 SELECT "PARSE"."SOURCE_CODE"(1);
+
+UPDATE Programs SET PhaseID = 3 WHERE ProgramID = 1;
+
+SELECT "REDUCE"."SOURCE_CODE"(1);
 
 -- SELECT "PARSE"."SOURCE_CODE"(1);
 

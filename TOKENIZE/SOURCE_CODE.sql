@@ -30,7 +30,7 @@ SELECT
     NodeTypes.LanguageID,
     Nodes.TerminalValue,
     Programs.PhaseID,
-    Settings.LogSeverity
+    Languages.LogSeverity
 INTO STRICT
     _ProgramID,
     _LanguageID,
@@ -41,7 +41,7 @@ FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
-CROSS JOIN Settings
+INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'TOKENIZE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'
@@ -113,9 +113,6 @@ LOOP
             )
         );
     END IF;
-
-
-
 
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
