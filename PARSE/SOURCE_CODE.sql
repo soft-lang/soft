@@ -36,20 +36,24 @@ _IllegalNodePatterns        text[];
 _Children                   integer;
 _Parents                    integer;
 _Killed                     integer;
+_LogSeverity                severity;
 BEGIN
 
 SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID,
-    Programs.PhaseID
+    Programs.PhaseID,
+    Settings.LogSeverity
 INTO STRICT
     _ProgramID,
     _LanguageID,
-    _PhaseID
+    _PhaseID,
+    _LogSeverity
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
+CROSS JOIN Settings
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'PARSE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'
@@ -161,17 +165,26 @@ LOOP
 
     _ChildNodeString := COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID;
 
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
-        _Message  := format('%s <- %s',
-            Colorize(CASE
-            WHEN _GrowIntoNodeType IS NOT NULL THEN _ChildNodeString || '(' || _ChildNodeType || ')'
-            ELSE _ChildNodeString
-            END, 'CYAN'),
-            regexp_replace(_Nodes, _MatchedNodes, Colorize(_MatchedNodes, 'MAGENTA'))
-        )
-    );
+    IF _LogSeverity < 'DEBUG2' THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := _LogSeverity,
+            _Message  := format('%s <- %s <- %s',
+                Colorize(CASE
+                WHEN _GrowIntoNodeType IS NOT NULL THEN _ChildNodeString || '(' || _ChildNodeType || ')'
+                ELSE _ChildNodeString
+                END, 'CYAN'),
+                CASE _LogSeverity
+                WHEN 'DEBUG5' THEN Get_Source_Code_Fragment(_MatchedNodes, 'BLUE')
+                ELSE One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'BLUE'))
+                END,
+                CASE _LogSeverity
+                WHEN 'DEBUG5' THEN regexp_replace(_Nodes, _MatchedNodes, Colorize(_MatchedNodes, 'MAGENTA'))
+                ELSE Colorize(_MatchedNodes, 'MAGENTA')
+                END
+            )
+        );
+    END IF;
 
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, _ChildNodeString);
 

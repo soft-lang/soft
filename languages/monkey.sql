@@ -11,7 +11,7 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8));
+let x = 1+2*3;
 $SRC$);
 
 SELECT "TOKENIZE"."SOURCE_CODE"(1);

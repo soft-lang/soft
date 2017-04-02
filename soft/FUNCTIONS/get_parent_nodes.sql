@@ -4,10 +4,10 @@ LANGUAGE sql
 AS $$
 WITH RECURSIVE
 Parents AS (
-SELECT $1 AS ParentNodeID
-UNION ALL
-SELECT Edges.ParentNodeID FROM Edges
-INNER JOIN Parents ON Parents.ParentNodeID = Edges.ChildNodeID
+    SELECT $1 AS ParentNodeID
+    UNION ALL
+    SELECT Edges.ParentNodeID FROM Edges
+    INNER JOIN Parents ON Parents.ParentNodeID = Edges.ChildNodeID
 )
 SELECT ParentNodeID FROM Parents
 $$;

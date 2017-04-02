@@ -10,6 +10,7 @@ SET search_path TO soft, public;
 \ir soft/TABLES/edges.sql
 \ir soft/TABLES/log.sql
 \ir soft/TABLES/ansiescapecodes.sql
+\ir soft/TABLES/settings.sql
 
 \ir soft/FUNCTIONS/new_language.sql
 \ir soft/FUNCTIONS/new_phase.sql
@@ -25,7 +26,10 @@ SET search_path TO soft, public;
 \ir soft/FUNCTIONS/log.sql
 \ir soft/FUNCTIONS/colorize.sql
 \ir soft/FUNCTIONS/highlight_code.sql
+\ir soft/FUNCTIONS/get_source_code.sql
+\ir soft/FUNCTIONS/get_source_code_fragment.sql
 \ir soft/FUNCTIONS/get_parent_nodes.sql
+\ir soft/FUNCTIONS/one_line.sql
 
 CREATE SCHEMA "TOKENIZE";
 \ir TOKENIZE/SOURCE_CODE.sql

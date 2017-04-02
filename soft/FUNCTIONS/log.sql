@@ -9,28 +9,36 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID  integer;
-_Program    text;
-_PhaseID    integer;
-_Phase      text;
-_Context    text;
-_LogID      integer;
-_Color      text;
+_ProgramID   integer;
+_Program     text;
+_PhaseID     integer;
+_Phase       text;
+_Context     text;
+_LogID       integer;
+_Color       text;
+_LogSeverity severity;
 BEGIN
 SELECT
     Nodes.ProgramID,
     Programs.Program,
     Phases.PhaseID,
-    Phases.Phase
+    Phases.Phase,
+    Settings.LogSeverity
 INTO STRICT
     _ProgramID,
     _Program,
     _PhaseID,
-    _Phase
+    _Phase,
+    _LogSeverity
 FROM Nodes
 INNER JOIN Programs ON Programs.ProgramID = Nodes.ProgramID
 INNER JOIN Phases   ON Phases.PhaseID     = Programs.PhaseID
+CROSS JOIN Settings
 WHERE Nodes.NodeID = _NodeID;
+
+IF _Severity < _LogSeverity THEN
+    RETURN NULL;
+END IF;
 
 _Color := CASE
     WHEN _Severity <= 'DEBUG1' THEN 'BLUE'
@@ -42,7 +50,7 @@ END;
 _Context := '';
 IF _SourceCodeCharacters IS NOT NULL THEN
     _Context := E'\n' || Highlight_Code(
-        _Text                 := (SELECT TerminalValue FROM Nodes WHERE ProgramID = _ProgramID ORDER BY NodeID LIMIT 1),
+        _Text                 := Get_Source_Code(_ProgramID),
         _SourceCodeCharacters := _SourceCodeCharacters,
         _Color                := _Color
     );

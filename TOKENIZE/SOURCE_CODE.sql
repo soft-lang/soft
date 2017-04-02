@@ -11,6 +11,7 @@ _NumChars             integer;
 _AtChar               integer;
 _Remainder            text;
 _NodeTypeID           integer;
+_NodeType             text;
 _TerminalType         regtype;
 _Literal              text;
 _LiteralLength        integer;
@@ -21,22 +22,26 @@ _IllegalCharacters    integer[];
 _TokenNodeID          integer;
 _OK                   boolean;
 _Tokens               integer;
+_LogSeverity          severity;
 BEGIN
 
 SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID,
     Nodes.TerminalValue,
-    Programs.PhaseID
+    Programs.PhaseID,
+    Settings.LogSeverity
 INTO STRICT
     _ProgramID,
     _LanguageID,
     _SourceCode,
-    _PhaseID
+    _PhaseID,
+    _LogSeverity
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
+CROSS JOIN Settings
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'TOKENIZE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'
@@ -59,16 +64,16 @@ LOOP
         CONTINUE;
     END IF;
 
-    SELECT NodeTypeID,  TerminalType,  Literal,  LiteralLength
-    INTO  _NodeTypeID, _TerminalType, _Literal, _LiteralLength
+    SELECT NodeTypeID,  NodeType,  TerminalType,  Literal,  LiteralLength
+    INTO  _NodeTypeID, _NodeType, _TerminalType, _Literal, _LiteralLength
     FROM NodeTypes
     WHERE LanguageID = _LanguageID
     AND   Literal    = substr(_SourceCode, _AtChar, LiteralLength)
     ORDER BY LiteralLength DESC
     LIMIT 1;
     IF NOT FOUND THEN
-        SELECT  NodeTypeID,  TerminalType,  LiteralPattern
-        INTO   _NodeTypeID, _TerminalType, _LiteralPattern
+        SELECT  NodeTypeID,  NodeType, TerminalType,  LiteralPattern
+        INTO   _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern
         FROM NodeTypes
         WHERE LanguageID = _LanguageID
         AND   _Remainder ~ LiteralPattern
@@ -94,6 +99,23 @@ LOOP
         _SourceCodeCharacters := _SourceCodeCharacters
     );
     _Tokens := _Tokens + 1;
+
+    IF _LogSeverity < 'DEBUG2' THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := _LogSeverity,
+            _Message  := format('%s <- %s',
+                Colorize(_NodeType, 'CYAN'),
+                CASE _LogSeverity
+                WHEN 'DEBUG3' THEN Colorize(One_Line(_Literal), 'MAGENTA')
+                ELSE Colorize(_Literal, 'MAGENTA')
+                END
+            )
+        );
+    END IF;
+
+
+
 
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
