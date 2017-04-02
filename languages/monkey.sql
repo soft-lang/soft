@@ -2,7 +2,6 @@ SET search_path TO soft, public;
 
 SELECT New_Language(_Language := 'monkey');
 \ir monkey/node_types.sql
-SELECT Expand_Token_Groups(_Language := 'monkey');
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');

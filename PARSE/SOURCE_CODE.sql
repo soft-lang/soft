@@ -11,6 +11,7 @@ _ChildNodeTypeID            integer;
 _ChildNodeType              text;
 _ChildValueType             regtype;
 _NodePattern                text;
+_ExpandedNodePattern        text;
 _PrologueNodeTypeID         integer;
 _EpilogueNodeTypeID         integer;
 _GrowFromNodeTypeID         integer;
@@ -83,6 +84,7 @@ LOOP
         NodeTypes.NodeType,
         NodeTypes.TerminalType,
         NodeTypes.NodePattern,
+        Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID),
         NodeTypes.PrologueNodeTypeID,
         NodeTypes.EpilogueNodeTypeID,
         NodeTypes.GrowFromNodeTypeID,
@@ -92,6 +94,7 @@ LOOP
         _ChildNodeType,
         _ChildValueType,
         _NodePattern,
+        _ExpandedNodePattern,
         _PrologueNodeTypeID,
         _EpilogueNodeTypeID,
         _GrowFromNodeTypeID,
@@ -99,7 +102,7 @@ LOOP
     FROM NodeTypes
     LEFT JOIN NodeTypes AS GrowFromNodeType ON GrowFromNodeType.NodeTypeID = NodeTypes.GrowFromNodeTypeID
     WHERE NodeTypes.LanguageID = _LanguageID
-    AND _Nodes ~ NodeTypes.NodePattern
+    AND _Nodes ~ Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)
     AND NodeTypes.GrowIntoNodeTypeID IS NOT DISTINCT FROM _GrowIntoNodeTypeID
     ORDER BY NodeTypes.NodeTypeID
     LIMIT 1;
@@ -161,7 +164,7 @@ LOOP
     );
     _Children := _Children + 1;
 
-    _MatchedNodes := Get_Capturing_Group(_String := _Nodes, _Pattern := _NodePattern, _Strict := FALSE);
+    _MatchedNodes := Get_Capturing_Group(_String := _Nodes, _Pattern := _ExpandedNodePattern, _Strict := FALSE);
 
     _ChildNodeString := COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID;
 
@@ -169,19 +172,11 @@ LOOP
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := _LogSeverity,
-            _Message  := format('%s <- %s <- %s',
-                Colorize(CASE
-                WHEN _GrowIntoNodeType IS NOT NULL THEN _ChildNodeString || '(' || _ChildNodeType || ')'
-                ELSE _ChildNodeString
-                END, 'CYAN'),
-                CASE _LogSeverity
-                WHEN 'DEBUG5' THEN Get_Source_Code_Fragment(_MatchedNodes, 'BLUE')
-                ELSE One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'BLUE'))
-                END,
-                CASE _LogSeverity
-                WHEN 'DEBUG5' THEN regexp_replace(_Nodes, _MatchedNodes, Colorize(_MatchedNodes, 'MAGENTA'))
-                ELSE Colorize(_MatchedNodes, 'MAGENTA')
-                END
+            _Message  := format('%s <- %s <- %s <- %s',
+                Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
+                Colorize(_NodePattern, 'CYAN'),
+                Colorize(_MatchedNodes, 'BLUE'),
+                One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'MAGENTA'))
             )
         );
     END IF;
