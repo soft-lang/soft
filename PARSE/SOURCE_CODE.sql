@@ -14,11 +14,13 @@ _NodePattern                text;
 _PrologueNodeTypeID         integer;
 _EpilogueNodeTypeID         integer;
 _GrowFromNodeTypeID         integer;
+_GrowFromNodeType           text;
 _GrowIntoNodeType           text;
 _OuterNodes                 text;
 _GrowIntoNodeTypeID         integer;
 _GrandChildNodeID           integer;
 _ChildNodeID                integer;
+_ChildNodeString            text;
 _MatchedNodes               text;
 _PrologueNodeID             integer;
 _SourceCodeCharacters       integer[];
@@ -26,7 +28,11 @@ _MatchedNode                text;
 _ParentNodeID               integer;
 _EpilogueNodeID             integer;
 _OK                         boolean;
+_AnyNodePattern    CONSTANT text := '(?:^| )[A-Z_]+(\d+)';
 _SingleNodePattern CONSTANT text := '^[A-Z_]+(\d+)$';
+_ProgramNodeType            text;
+_IllegalNodePattern         text;
+_IllegalNodePatterns        text[];
 BEGIN
 
 SELECT
@@ -53,6 +59,12 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Edges     ON Edges.ChildNodeID    = Nodes.NodeID
 WHERE Edges.ParentNodeID = _NodeID;
 
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'DEBUG1',
+    _Message  := format('Parsing nodes: %s', _Nodes)
+);
+
 LOOP
     SELECT
         NodeTypes.NodeTypeID,
@@ -62,7 +74,7 @@ LOOP
         NodeTypes.PrologueNodeTypeID,
         NodeTypes.EpilogueNodeTypeID,
         NodeTypes.GrowFromNodeTypeID,
-        GrowIntoNodeType.NodeType
+        GrowFromNodeType.NodeType
     INTO
         _ChildNodeTypeID,
         _ChildNodeType,
@@ -71,16 +83,21 @@ LOOP
         _PrologueNodeTypeID,
         _EpilogueNodeTypeID,
         _GrowFromNodeTypeID,
-        _GrowIntoNodeType
+        _GrowFromNodeType
     FROM NodeTypes
-    LEFT JOIN NodeTypes AS GrowIntoNodeType ON GrowIntoNodeType.NodeTypeID = NodeTypes.GrowIntoNodeTypeID
+    LEFT JOIN NodeTypes AS GrowFromNodeType ON GrowFromNodeType.NodeTypeID = NodeTypes.GrowFromNodeTypeID
     WHERE NodeTypes.LanguageID = _LanguageID
     AND _Nodes ~ NodeTypes.NodePattern
     AND NodeTypes.GrowIntoNodeTypeID IS NOT DISTINCT FROM _GrowIntoNodeTypeID
     ORDER BY NodeTypes.NodeTypeID
     LIMIT 1;
     IF NOT FOUND THEN
-        IF _GrowIntoNodeTypeID IS NOT NULL THEN
+        IF _Nodes ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
+            PERFORM Log(
+                _NodeID   := _NodeID,
+                _Severity := 'DEBUG2',
+                _Message  := format('Grew %s', Colorize(_GrowIntoNodeType))
+            );
             PERFORM New_Edge(
                 _ProgramID    := _ProgramID,
                 _ParentNodeID := _ChildNodeID,
@@ -89,6 +106,7 @@ LOOP
             _Nodes              := _OuterNodes;
             _OuterNodes         := NULL;
             _GrowIntoNodeTypeID := NULL;
+            _GrowIntoNodeType   := NULL;
             _GrandChildNodeID   := NULL;
             CONTINUE;
         ELSIF _Nodes ~ _SingleNodePattern THEN
@@ -99,10 +117,28 @@ LOOP
             );
             RETURN TRUE;
         ELSE
+            SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
+            _IllegalNodePatterns  := NULL;
+            _SourceCodeCharacters := NULL;
+            FOREACH _IllegalNodePattern IN ARRAY regexp_split_to_array(_Nodes, format('(^| )%s\d+( |$)',_ProgramNodeType)) LOOP
+                IF _IllegalNodePattern = '' THEN
+                    CONTINUE;
+                END IF;
+                _IllegalNodePatterns := _IllegalNodePatterns || _IllegalNodePattern;
+                SELECT _SourceCodeCharacters || ARRAY(
+                    SELECT unnest(SourceCodeCharacters)
+                    FROM Nodes
+                    WHERE SourceCodeCharacters IS NOT NULL
+                    AND NodeID IN (
+                        SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID FROM regexp_matches(_IllegalNodePattern,_AnyNodePattern,'g')
+                    )
+                ) INTO STRICT _SourceCodeCharacters;
+            END LOOP;
             PERFORM Log(
-                _NodeID   := _NodeID,
-                _Severity := 'ERROR',
-                _Message  := format('Illegal node pattern: %s', _Nodes)
+                _NodeID               := _NodeID,
+                _Severity             := 'ERROR',
+                _Message              := format(E'Illegal node patterns (%s): %s', array_length(_IllegalNodePatterns,1), array_to_string(_IllegalNodePatterns, ', ')),
+                _SourceCodeCharacters := _SourceCodeCharacters
             );
             RETURN FALSE;
         END IF;
@@ -115,12 +151,32 @@ LOOP
 
     _MatchedNodes := Get_Capturing_Group(_String := _Nodes, _Pattern := _NodePattern, _Strict := FALSE);
 
-    _Nodes := regexp_replace(_Nodes, _MatchedNodes, COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID);
+    _ChildNodeString := COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID;
 
-    IF _GrowFromNodeTypeID IS NOT NULL THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('%s <- %s',
+            Colorize(CASE
+            WHEN _GrowIntoNodeType IS NOT NULL THEN _ChildNodeString || '(' || _ChildNodeType || ')'
+            ELSE _ChildNodeString
+            END, 'CYAN'),
+            regexp_replace(_Nodes, _MatchedNodes, Colorize(_MatchedNodes, 'MAGENTA'))
+        )
+    );
+
+    _Nodes := regexp_replace(_Nodes, _MatchedNodes, _ChildNodeString);
+
+    IF _GrowFromNodeTypeID IS NOT NULL AND _MatchedNodes !~ ('^'||_GrowFromNodeType||'\d+$') THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG2',
+            _Message  := format('Growing %s', Colorize(_GrowFromNodeType))
+        );
         _GrandChildNodeID   := _ChildNodeID;
         _ChildNodeID        := NULL;
         _GrowIntoNodeTypeID := _GrowFromNodeTypeID;
+        _GrowIntoNodeType   := _GrowFromNodeType;
         _OuterNodes         := _Nodes;
         _Nodes              := _MatchedNodes;
         CONTINUE;

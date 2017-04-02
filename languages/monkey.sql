@@ -13,8 +13,8 @@ SELECT New_Program(_Language := 'monkey', _Program := 'test');
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
 €
 let x = 1+2*3;
-let y = 4-5*x
-let z = 6-x*y;
+let y = 4*x-5+(6_£7);
+let foo = bar*bar;
 $SRC$);
 
 SELECT "TOKENIZE"."SOURCE_CODE"(1);

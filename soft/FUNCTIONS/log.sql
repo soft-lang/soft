@@ -33,6 +33,7 @@ INNER JOIN Phases   ON Phases.PhaseID     = Programs.PhaseID
 WHERE Nodes.NodeID = _NodeID;
 
 _Color := CASE
+    WHEN _Severity <= 'DEBUG1' THEN 'BLUE'
     WHEN _Severity < 'WARNING' THEN 'GREEN'
     WHEN _Severity = 'WARNING' THEN 'YELLOW'
     WHEN _Severity > 'WARNING' THEN 'RED'

@@ -25,6 +25,7 @@ SET search_path TO soft, public;
 \ir soft/FUNCTIONS/log.sql
 \ir soft/FUNCTIONS/colorize.sql
 \ir soft/FUNCTIONS/highlight_code.sql
+\ir soft/FUNCTIONS/get_parent_nodes.sql
 
 CREATE SCHEMA "TOKENIZE";
 \ir TOKENIZE/SOURCE_CODE.sql
