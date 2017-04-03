@@ -58,14 +58,18 @@ LOOP
     AND   Nodes.DeathPhaseID IS NULL
     AND   Nodes.TerminalType IS NULL
     AND NOT Exists_Node_Type_Function(NodeTypes.NodeType, _LanguageID)
-    AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ParentNodeID = Nodes.NodeID) = 1
-    AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ChildNodeID  = Nodes.NodeID) = 1
+    AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ParentNodeID = Nodes.NodeID)  = 1
+    AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ChildNodeID  = Nodes.NodeID) <= 1
     LOOP
-        SELECT ParentNodeID                           INTO STRICT _ParentNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID  = _NOPNodeID;
-        SELECT ChildNodeID                            INTO STRICT _ChildNodeID  FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID;
-        SELECT Kill_Edge(EdgeID)                      INTO STRICT _OK           FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID  = _NOPNodeID AND ParentNodeID = _ParentNodeID;
-        SELECT Set_Edge_Parent(EdgeID, _ParentNodeID) INTO STRICT _OK           FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID AND ChildNodeID  = _ChildNodeID;
-        SELECT Kill_Node(NodeID)                      INTO STRICT _OK           FROM Nodes WHERE DeathPhaseID IS NULL AND NodeID       = _NOPNodeID;
+        SELECT ChildNodeID                                INTO STRICT _ChildNodeID  FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID;
+        SELECT ParentNodeID                               INTO        _ParentNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID  = _NOPNodeID;
+        IF FOUND THEN
+            SELECT Kill_Edge(EdgeID)                      INTO STRICT _OK           FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID  = _NOPNodeID AND ParentNodeID = _ParentNodeID;
+            SELECT Set_Edge_Parent(EdgeID, _ParentNodeID) INTO STRICT _OK           FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID AND ChildNodeID  = _ChildNodeID;
+        ELSE
+            SELECT Kill_Edge(EdgeID)                      INTO STRICT _OK           FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID AND ChildNodeID  = _ChildNodeID;
+        END IF;
+        SELECT Kill_Node(NodeID)                          INTO STRICT _OK           FROM Nodes WHERE DeathPhaseID IS NULL AND NodeID       = _NOPNodeID;
         _Killed := _Killed + 1;
         PERFORM Log(
             _NodeID   := _NodeID,

@@ -55,14 +55,17 @@ INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'PARSE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'
-AND Nodes.TerminalType = 'text'::regtype;
+AND Nodes.TerminalType = 'text'::regtype
+AND Nodes.DeathPhaseID IS NULL;
 
 SELECT string_agg(format('%s%s',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY Nodes.NodeID)
 INTO _Nodes
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Edges     ON Edges.ChildNodeID    = Nodes.NodeID
-WHERE Edges.ParentNodeID = _NodeID;
+WHERE Edges.ParentNodeID = _NodeID
+AND   Nodes.DeathPhaseID IS NULL
+AND   Edges.DeathPhaseID IS NULL;
 
 SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
 

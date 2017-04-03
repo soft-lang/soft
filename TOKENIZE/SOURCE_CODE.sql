@@ -58,12 +58,6 @@ LOOP
 
     _Remainder := substr(_SourceCode, _AtChar);
 
-    IF _Remainder ~ '^\s+' THEN
-        _Literal := substring(_Remainder from '^\s+');
-        _AtChar := _AtChar + length(_Literal);
-        CONTINUE;
-    END IF;
-
     SELECT NodeTypeID,  NodeType,  TerminalType,  Literal,  LiteralLength
     INTO  _NodeTypeID, _NodeType, _TerminalType, _Literal, _LiteralLength
     FROM NodeTypes
@@ -72,11 +66,11 @@ LOOP
     ORDER BY LiteralLength DESC
     LIMIT 1;
     IF NOT FOUND THEN
-        SELECT  NodeTypeID,  NodeType, TerminalType,  LiteralPattern
+        SELECT  NodeTypeID,  NodeType,  TerminalType,  LiteralPattern
         INTO   _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern
         FROM NodeTypes
         WHERE LanguageID = _LanguageID
-        AND   _Remainder ~ LiteralPattern
+        AND  _Remainder  ~  LiteralPattern
         ORDER BY NodeTypeID
         LIMIT 1;
         IF NOT FOUND THEN
@@ -87,6 +81,20 @@ LOOP
         _Matches       := regexp_matches(_Remainder, _LiteralPattern);
         _Literal       := _Matches[2];
         _LiteralLength := length(_Matches[1]);
+
+        IF EXISTS (SELECT 1 FROM NodeTypes WHERE LanguageID = _LanguageID AND GrowFromNodeTypeID = _NodeTypeID AND _Literal ~ LiteralPattern) THEN
+            SELECT       NodeTypeID,  NodeType,  TerminalType,  LiteralPattern
+            INTO STRICT _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern
+            FROM NodeTypes
+            WHERE LanguageID         = _LanguageID
+            AND   GrowFromNodeTypeID = _NodeTypeID
+            AND  _Literal            ~  LiteralPattern
+            ORDER BY NodeTypeID
+            LIMIT 1;
+            _Matches       := regexp_matches(_Literal, _LiteralPattern);
+            _Literal       := _Matches[2];
+            _LiteralLength := length(_Matches[1]);
+        END IF;
     END IF;
 
     SELECT array_agg(Chars.C) INTO STRICT _SourceCodeCharacters FROM generate_series(_AtChar, _AtChar+_LiteralLength-1) AS Chars(C);

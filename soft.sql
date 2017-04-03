@@ -36,6 +36,9 @@ SET search_path TO soft, public;
 \ir soft/FUNCTIONS/set_node_type.sql
 \ir soft/FUNCTIONS/get_program_node.sql
 
+CREATE SCHEMA "DISCARD";
+\ir DISCARD/WHITE_SPACE.sql
+
 CREATE SCHEMA "TOKENIZE";
 \ir TOKENIZE/SOURCE_CODE.sql
 
