@@ -3,7 +3,7 @@ psql -X -f install.sql
 
 psql -X -f languages/monkey.sql
 
-rm prog_*.pdf
+rm prog*.pdf
 
 unset FOO
 FRAME=100
@@ -12,13 +12,20 @@ while : ; do
     if [ $FOO == 'f' ]; then
         break
     fi
-    echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'SET search_path TO soft; SELECT DISTINCT Get_DOT()' >> prog.dot
-    echo '}' >> prog.dot
-    FRAME=$((FRAME+1));
-    dot -Tpdf -o "prog_$FRAME.pdf" prog.dot
+    # echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'SET search_path TO soft; SELECT DISTINCT Get_DOT()' >> prog.dot
+    # echo '}' >> prog.dot
+    # FRAME=$((FRAME+1));
+    # dot -Tpdf -o "prog_$FRAME.pdf" prog.dot
 done
 
-open prog_*.pdf
+echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'SET search_path TO soft; SELECT DISTINCT Get_DOT()' >> prog.dot
+echo '}' >> prog.dot
+FRAME=$((FRAME+1));
+dot -Tpdf -o "prog.pdf" prog.dot
+
+rm prog.dot
+
+open prog.pdf
 exit
 
 psql -q -E -A -t -X -c 'UPDATE Nodes SET Visited = 0 WHERE Visited IS NOT NULL;'

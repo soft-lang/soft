@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION "EVAL"."UNARY_MINUS" (anyelement) RETURNS anyelement LANGUAGE sql AS $$ SELECT - $1 $$;

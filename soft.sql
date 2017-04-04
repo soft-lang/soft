@@ -56,6 +56,17 @@ CREATE SCHEMA "REDUCE";
 
 CREATE SCHEMA "MAP_VARIABLES";
 
+CREATE SCHEMA "EVAL";
+\ir EVAL/ADD.sql
+\ir EVAL/DIVIDE.sql
+\ir EVAL/EQUAL.sql
+\ir EVAL/GREATER_THAN.sql
+\ir EVAL/LESS_THAN.sql
+\ir EVAL/MULTIPLY.sql
+\ir EVAL/NOT_EQUAL.sql
+\ir EVAL/SUBTRACT.sql
+\ir EVAL/UNARY_MINUS.sql
+
 -- \ir soft/FUNCTIONS/tokenize.sql
 -- \ir soft/FUNCTIONS/parse.sql
 -- \ir soft/FUNCTIONS/get_dot.sql

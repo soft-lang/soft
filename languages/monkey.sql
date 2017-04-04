@@ -7,13 +7,14 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
--- SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = 1+2*3;
-let y = 4*x;
+let x = 1--2+-3*(4--5+6)*7-8*9;
+let y = 10*-x*x;
 $SRC$);
 
 -- SELECT "TOKENIZE"."SOURCE_CODE"(1);
@@ -893,7 +894,6 @@ CREATE OR REPLACE FUNCTION "SQUARE_ROOT"              (anyelement)              
 CREATE OR REPLACE FUNCTION "CUBE_ROOT"                (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT ||/ $1                           $$;
 CREATE OR REPLACE FUNCTION "FACTOR"                   (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 !                             $$;
 CREATE OR REPLACE FUNCTION "ABS"                      (anyelement)                         RETURNS anyelement LANGUAGE sql AS $$ SELECT @ $1                             $$;
-CREATE OR REPLACE FUNCTION "ADD"                      (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 + $2                          $$;
 CREATE OR REPLACE FUNCTION "SUBTRACT"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 - $2                          $$;
 CREATE OR REPLACE FUNCTION "MULTIPLY"                 (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 * $2                          $$;
 CREATE OR REPLACE FUNCTION "DIVIDE"                   (anyelement, anyelement)             RETURNS anyelement LANGUAGE sql AS $$ SELECT $1 / $2                          $$;
