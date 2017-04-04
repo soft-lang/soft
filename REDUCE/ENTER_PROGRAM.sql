@@ -51,7 +51,12 @@ LOOP
     WHERE Nodes.ProgramID = _ProgramID
     AND   Nodes.DeathPhaseID IS NULL
     AND   Nodes.TerminalType IS NULL
-    AND NOT Exists_Node_Type_Function(NodeTypes.NodeType, _LanguageID)
+    AND NOT EXISTS (
+        SELECT 1 FROM pg_proc
+        INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
+        WHERE pg_proc.proname      = NodeTypes.NodeType
+        AND   pg_namespace.nspname = 'EVAL'
+    )
     AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ParentNodeID = Nodes.NodeID)  = 1
     AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ChildNodeID  = Nodes.NodeID) <= 1
     LOOP

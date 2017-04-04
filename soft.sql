@@ -32,7 +32,6 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/get_source_code_fragment.sql
 \ir soft/FUNCTIONS/get_parent_nodes.sql
 \ir soft/FUNCTIONS/one_line.sql
-\ir soft/FUNCTIONS/exists_node_type_function.sql
 \ir soft/FUNCTIONS/set_edge_parent.sql
 \ir soft/FUNCTIONS/node.sql
 \ir soft/FUNCTIONS/phase.sql
