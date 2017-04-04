@@ -23,6 +23,7 @@ _TokenNodeID          integer;
 _OK                   boolean;
 _Tokens               integer;
 _LogSeverity          severity;
+_NodeSeverity         severity;
 BEGIN
 
 SELECT
@@ -58,16 +59,16 @@ LOOP
 
     _Remainder := substr(_SourceCode, _AtChar);
 
-    SELECT NodeTypeID,  NodeType,  TerminalType,  Literal,  LiteralLength
-    INTO  _NodeTypeID, _NodeType, _TerminalType, _Literal, _LiteralLength
+    SELECT NodeTypeID,  NodeType,  TerminalType,  Literal,  LiteralLength,  NodeSeverity
+    INTO  _NodeTypeID, _NodeType, _TerminalType, _Literal, _LiteralLength, _NodeSeverity
     FROM NodeTypes
     WHERE LanguageID = _LanguageID
     AND   Literal    = substr(_SourceCode, _AtChar, LiteralLength)
     ORDER BY LiteralLength DESC
     LIMIT 1;
     IF NOT FOUND THEN
-        SELECT  NodeTypeID,  NodeType,  TerminalType,  LiteralPattern
-        INTO   _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern
+        SELECT  NodeTypeID,  NodeType,  TerminalType,  LiteralPattern,  NodeSeverity
+        INTO   _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern, _NodeSeverity
         FROM NodeTypes
         WHERE LanguageID = _LanguageID
         AND  _Remainder  ~  LiteralPattern
@@ -83,8 +84,8 @@ LOOP
         _LiteralLength := length(_Matches[1]);
 
         IF EXISTS (SELECT 1 FROM NodeTypes WHERE LanguageID = _LanguageID AND GrowFromNodeTypeID = _NodeTypeID AND _Literal ~ LiteralPattern) THEN
-            SELECT       NodeTypeID,  NodeType,  TerminalType,  LiteralPattern
-            INTO STRICT _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern
+            SELECT       NodeTypeID,  NodeType,  TerminalType,  LiteralPattern,  NodeSeverity
+            INTO STRICT _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern, _NodeSeverity
             FROM NodeTypes
             WHERE LanguageID         = _LanguageID
             AND   GrowFromNodeTypeID = _NodeTypeID
@@ -108,19 +109,14 @@ LOOP
     );
     _Tokens := _Tokens + 1;
 
-    IF _LogSeverity < 'DEBUG2' THEN
-        PERFORM Log(
-            _NodeID   := _NodeID,
-            _Severity := _LogSeverity,
-            _Message  := format('%s <- %s',
-                Colorize(_NodeType, 'CYAN'),
-                CASE _LogSeverity
-                WHEN 'DEBUG3' THEN Colorize(One_Line(_Literal), 'MAGENTA')
-                ELSE Colorize(_Literal, 'MAGENTA')
-                END
-            )
-        );
-    END IF;
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := COALESCE(_NodeSeverity, 'DEBUG2'),
+        _Message  := format('%s <- %s',
+            Colorize(_NodeType, 'CYAN'),
+            Colorize(One_Line(_Literal), 'MAGENTA')
+        )
+    );
 
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
@@ -132,21 +128,20 @@ LOOP
 END LOOP;
 
 IF _IllegalCharacters IS NOT NULL THEN
-    PERFORM Log(
-        _NodeID               := _NodeID,
-        _Severity             := 'ERROR',
-        _Message              := 'Illegal characters',
-        _SourceCodeCharacters := _IllegalCharacters
-    );
-    RETURN FALSE;
-ELSE
-    PERFORM Log(
-        _NodeID               := _NodeID,
-        _Severity             := 'INFO',
-        _Message              := format('OK, created %s tokens from %s characters', _Tokens, _NumChars)
-    );
-    RETURN TRUE;
+    RAISE EXCEPTION E'Illegal characters:\n%', Highlight_Code(
+        _Text                 := Get_Source_Code(_ProgramID),
+        _SourceCodeCharacters := _IllegalCharacters,
+        _Color                := 'RED'
+    )
+    USING HINT = 'Define a catch-all node type e.g. LiteralPattern (.) with e.g. node severity ERROR as the last LiteralPattern node type';
 END IF;
+
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'INFO',
+    _Message  := format('OK, created %s tokens from %s characters', _Tokens, _NumChars)
+);
+RETURN TRUE;
 
 END;
 $$;

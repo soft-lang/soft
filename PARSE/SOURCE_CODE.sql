@@ -37,6 +37,7 @@ _Children                   integer;
 _Parents                    integer;
 _Killed                     integer;
 _LogSeverity                severity;
+_NodeSeverity               severity;
 BEGIN
 
 SELECT
@@ -88,7 +89,8 @@ LOOP
         NodeTypes.PrologueNodeTypeID,
         NodeTypes.EpilogueNodeTypeID,
         NodeTypes.GrowFromNodeTypeID,
-        GrowFromNodeType.NodeType
+        GrowFromNodeType.NodeType,
+        NodeTypes.NodeSeverity
     INTO
         _ChildNodeTypeID,
         _ChildNodeType,
@@ -98,7 +100,8 @@ LOOP
         _PrologueNodeTypeID,
         _EpilogueNodeTypeID,
         _GrowFromNodeTypeID,
-        _GrowFromNodeType
+        _GrowFromNodeType,
+        _NodeSeverity
     FROM NodeTypes
     LEFT JOIN NodeTypes AS GrowFromNodeType ON GrowFromNodeType.NodeTypeID = NodeTypes.GrowFromNodeTypeID
     WHERE NodeTypes.LanguageID = _LanguageID
@@ -148,13 +151,15 @@ LOOP
                     )
                 ) INTO STRICT _SourceCodeCharacters;
             END LOOP;
-            PERFORM Log(
-                _NodeID               := _NodeID,
-                _Severity             := 'ERROR',
-                _Message              := format(E'Illegal node patterns (%s): %s', array_length(_IllegalNodePatterns,1), array_to_string(_IllegalNodePatterns, ', ')),
-                _SourceCodeCharacters := _SourceCodeCharacters
-            );
-            RETURN FALSE;
+            RAISE EXCEPTION E'Illegal node patterns (%): %\n%',
+                array_length(_IllegalNodePatterns,1),
+                array_to_string(_IllegalNodePatterns, ', '),
+                Highlight_Code(
+                    _Text                 := Get_Source_Code(_ProgramID),
+                    _SourceCodeCharacters := _SourceCodeCharacters,
+                    _Color                := 'RED'
+                )
+            USING HINT = 'Define a node type with a catch-all node pattern with NodeSeverity e.g. ERROR and a suitable name e.g. UNPARSEABLE';
         END IF;
     END IF;
 
@@ -168,18 +173,16 @@ LOOP
 
     _ChildNodeString := COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID;
 
-    IF _LogSeverity < 'DEBUG2' THEN
-        PERFORM Log(
-            _NodeID   := _NodeID,
-            _Severity := _LogSeverity,
-            _Message  := format('%s <- %s <- %s <- %s',
-                Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
-                Colorize(_NodePattern, 'CYAN'),
-                Colorize(_MatchedNodes, 'BLUE'),
-                One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'MAGENTA'))
-            )
-        );
-    END IF;
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := COALESCE(_NodeSeverity,'DEBUG2'),
+        _Message  := format('%s <- %s <- %s <- %s',
+            Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
+            Colorize(_NodePattern, 'CYAN'),
+            Colorize(_MatchedNodes, 'BLUE'),
+            One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'MAGENTA'))
+        )
+    );
 
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, _ChildNodeString);
 
