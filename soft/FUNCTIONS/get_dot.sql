@@ -6,13 +6,10 @@ DECLARE
 BEGIN
 
 RETURN QUERY
-SELECT format(E'"%s" [label="%s\n%s\n%s\n%s\n%s\n%s"%s];',
+SELECT format(E'"%s" [label="%s\n%s\n%s"%s];',
     Nodes.NodeID,
     NodeTypes.NodeType,
     Nodes.TerminalType::text,
-    Nodes.BirthPhaseID,
-    Nodes.EnterPhaseID,
-    Nodes.LeavePhaseID,
     'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.TerminalType::text,'NAN') || ' ' || COALESCE(replace(Nodes.TerminalValue,'"','\"'), 'NULL'),
     CASE
     WHEN Nodes.BirthPhaseID > 1 THEN ' style="filled" fillcolor="grey"'

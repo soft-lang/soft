@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "REDUCE"."ENTER_SOURCE_CODE"(_NodeID integer)
+CREATE OR REPLACE FUNCTION "REDUCE"."ENTER_PROGRAM"(_NodeID integer)
 RETURNS boolean
 LANGUAGE plpgsql
 AS $$
@@ -13,7 +13,6 @@ _NodeType         text;
 _TerminalType     regtype;
 _ParentNodeID     integer;
 _ChildNodeID      integer;
-_SourceCodeNodeID integer;
 _ProgramNodeID    integer;
 _OK               boolean;
 _Killed           integer;
@@ -34,18 +33,13 @@ INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID     = _NodeID
 AND Phases.Phase       = 'REDUCE'
-AND NodeTypes.NodeType = 'SOURCE_CODE'
-AND Nodes.TerminalType = 'text'::regtype;
+AND NodeTypes.NodeType = 'PROGRAM';
 
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG1',
     _Message  := format('Reducing tree by killing unnecessary valueless middle-men nodes')
 );
-
-_SourceCodeNodeID := Get_Source_Code_Node(_ProgramID := _ProgramID);
-PERFORM Kill_Edge(EdgeID) FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _SourceCodeNodeID;
-PERFORM Kill_Node(_SourceCodeNodeID);
 
 _Killed := 0;
 LOOP
