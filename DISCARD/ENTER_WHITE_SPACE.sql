@@ -1,10 +1,11 @@
-CREATE OR REPLACE FUNCTION "DISCARD"."WHITE_SPACE"(_NodeID integer)
+CREATE OR REPLACE FUNCTION "DISCARD"."ENTER_WHITE_SPACE"(_NodeID integer)
 RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID integer;
-_OK        boolean;
+_ProgramID   integer;
+_ChildNodeID integer;
+_OK          boolean;
 BEGIN
 
 SELECT
@@ -26,7 +27,8 @@ PERFORM Log(
     _Message  := format('Killing white space NodeID %s', _NodeID)
 );
 
-SELECT Kill_Edge(EdgeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NodeID;
+SELECT Kill_Edge(EdgeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
+UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 PERFORM Kill_Node(_NodeID);
 
 RETURN TRUE;

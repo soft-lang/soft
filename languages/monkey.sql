@@ -6,32 +6,23 @@ SELECT New_Language(_Language := 'monkey');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
-SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
-SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
+-- SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
+-- SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let letx = 1+2*3+true-foo-false;
-€
-let foo = bar;
-$
-let baz = 123*456;
+let x = 1+2*3;
+let y = 4*x;
 $SRC$);
 
-SELECT "TOKENIZE"."SOURCE_CODE"(1);
-
-UPDATE Programs SET PhaseID = 2 WHERE ProgramID = 1;
-
-SELECT "DISCARD"."WHITE_SPACE"(NodeID) FROM Nodes WHERE NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'WHITE_SPACE');
-
-UPDATE Programs SET PhaseID = 3 WHERE ProgramID = 1;
-
-SELECT "PARSE"."SOURCE_CODE"(1);
-
-UPDATE Programs SET PhaseID = 4 WHERE ProgramID = 1;
-
-SELECT "REDUCE"."SOURCE_CODE"(1);
+-- SELECT "TOKENIZE"."SOURCE_CODE"(1);
+-- UPDATE Programs SET PhaseID = 2 WHERE ProgramID = 1;
+-- SELECT "DISCARD"."WHITE_SPACE"(NodeID) FROM Nodes WHERE NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'WHITE_SPACE');
+-- UPDATE Programs SET PhaseID = 3 WHERE ProgramID = 1;
+-- SELECT "PARSE"."SOURCE_CODE"(1);
+-- UPDATE Programs SET PhaseID = 4 WHERE ProgramID = 1;
+-- SELECT "REDUCE"."SOURCE_CODE"(1);
 
 -- SELECT "PARSE"."SOURCE_CODE"(1);
 

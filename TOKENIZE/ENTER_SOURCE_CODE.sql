@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "TOKENIZE"."SOURCE_CODE"(_NodeID integer)
+CREATE OR REPLACE FUNCTION "TOKENIZE"."ENTER_SOURCE_CODE"(_NodeID integer)
 RETURNS boolean
 LANGUAGE plpgsql
 AS $$
@@ -120,8 +120,8 @@ LOOP
 
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
-        _ParentNodeID := _NodeID,
-        _ChildNodeID  := _TokenNodeID
+        _ParentNodeID := _TokenNodeID,
+        _ChildNodeID  := _NodeID
     );
 
     _AtChar := _AtChar + _LiteralLength;

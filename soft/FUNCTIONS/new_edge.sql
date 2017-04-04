@@ -8,26 +8,13 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _BirthPhaseID integer;
-_ExistPhaseID integer;
 _EdgeID       integer;
 BEGIN
 
-SELECT
-    BirthPhase.PhaseID,
-    ExistPhase.PhaseID
-INTO STRICT
-    _BirthPhaseID,
-    _ExistPhaseID
-FROM Programs
-INNER JOIN Phases AS BirthPhase ON BirthPhase.PhaseID    = Programs.PhaseID
-INNER JOIN Phases AS ExistPhase ON ExistPhase.LanguageID = BirthPhase.LanguageID
-                               AND ExistPhase.PhaseID    > BirthPhase.PhaseID
-WHERE Programs.ProgramID = _ProgramID
-ORDER BY ExistPhase.PhaseID
-LIMIT 1;
+SELECT PhaseID INTO STRICT _BirthPhaseID FROM Programs WHERE ProgramID = _ProgramID;
 
-INSERT INTO Edges ( ProgramID,  ParentNodeID,  ChildNodeID,  BirthPhaseID,  ExistPhaseID)
-VALUES            (_ProgramID, _ParentNodeID, _ChildNodeID, _BirthPhaseID, _ExistPhaseID)
+INSERT INTO Edges ( ProgramID,  ParentNodeID,  ChildNodeID,  BirthPhaseID)
+VALUES            (_ProgramID, _ParentNodeID, _ChildNodeID, _BirthPhaseID)
 RETURNING    EdgeID
 INTO STRICT _EdgeID;
 

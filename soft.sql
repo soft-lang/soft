@@ -11,6 +11,8 @@ SET search_path TO soft, public;
 \ir soft/TABLES/log.sql
 \ir soft/TABLES/ansiescapecodes.sql
 
+ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
+
 \ir soft/FUNCTIONS/new_language.sql
 \ir soft/FUNCTIONS/new_phase.sql
 \ir soft/FUNCTIONS/new_node_type.sql
@@ -33,20 +35,24 @@ SET search_path TO soft, public;
 \ir soft/FUNCTIONS/exists_node_type_function.sql
 \ir soft/FUNCTIONS/set_edge_parent.sql
 \ir soft/FUNCTIONS/node.sql
+\ir soft/FUNCTIONS/phase.sql
 \ir soft/FUNCTIONS/set_node_type.sql
 \ir soft/FUNCTIONS/get_program_node.sql
+\ir soft/FUNCTIONS/walk_tree.sql
+\ir soft/FUNCTIONS/enter_node.sql
+\ir soft/FUNCTIONS/leave_node.sql
 
 CREATE SCHEMA "DISCARD";
-\ir DISCARD/WHITE_SPACE.sql
+\ir DISCARD/ENTER_WHITE_SPACE.sql
 
 CREATE SCHEMA "TOKENIZE";
-\ir TOKENIZE/SOURCE_CODE.sql
+\ir TOKENIZE/ENTER_SOURCE_CODE.sql
 
 CREATE SCHEMA "PARSE";
-\ir PARSE/SOURCE_CODE.sql
+\ir PARSE/ENTER_SOURCE_CODE.sql
 
 CREATE SCHEMA "REDUCE";
-\ir REDUCE/SOURCE_CODE.sql
+\ir REDUCE/ENTER_SOURCE_CODE.sql
 
 CREATE SCHEMA "MAP_VARIABLES";
 

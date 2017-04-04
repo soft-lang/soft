@@ -6,6 +6,7 @@ DECLARE
 _OK                boolean;
 _NodeAlreadyDead   boolean;
 _EdgeIDsStillAlive integer[];
+_ProgramID         integer;
 BEGIN
 SELECT
     Nodes.DeathPhaseID IS NOT NULL,
@@ -28,6 +29,11 @@ IF array_length(_EdgeIDsStillAlive,1) = 1 AND _EdgeIDsStillAlive[1] IS NOT NULL 
     RAISE EXCEPTION 'EdgeID % is still alive for NodeID %', _EdgeIDsStillAlive, _NodeID;
 ELSIF array_length(_EdgeIDsStillAlive,1) > 1 THEN
     RAISE EXCEPTION 'NodeID % has EdgeIDs that are still alive: %', _NodeID, _EdgeIDsStillAlive;
+END IF;
+
+SELECT ProgramID INTO _ProgramID FROM Programs WHERE NodeID = _NodeID;
+IF FOUND THEN
+    RAISE EXCEPTION 'NodeID % is current node for ProgramID %', _NodeID, _ProgramID;
 END IF;
 
 UPDATE Nodes

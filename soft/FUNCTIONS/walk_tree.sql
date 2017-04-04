@@ -3,79 +3,107 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_NodeID integer;
-_ValueType regtype;
+_NodeID       integer;
+_PhaseID      integer;
+_LanguageID   integer;
+_NextPhaseID  integer;
 _ParentNodeID integer;
-_ChildNodeID integer;
-_OK boolean;
-_Visited integer;
-_NodeType text;
+_ChildNodeID  integer;
+_OK           boolean;
 BEGIN
 
-SELECT NodeID INTO STRICT _NodeID FROM Programs WHERE ProgramID = _ProgramID;
+SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID
+INTO STRICT          _NodeID,         _PhaseID,       _LanguageID
+FROM Programs
+INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
+WHERE Programs.ProgramID = _ProgramID
+FOR UPDATE OF Programs;
 
-SELECT Nodes.ValueType, Nodes.Visited, NodeTypes.NodeType INTO STRICT _ValueType, _Visited, _NodeType FROM Nodes
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-WHERE NodeID = _NodeID;
-
-IF _ValueType IS NULL OR EXISTS (
-    SELECT 1 FROM pg_proc
-    INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
-    WHERE pg_namespace.nspname = 'soft'
-    AND pg_proc.proname = _NodeType
-)
-THEN
-    SELECT Edges.ParentNodeID
-    INTO        _ParentNodeID
-    FROM Edges
-    INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ParentNodeID
-    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-    WHERE Edges.ChildNodeID = _NodeID
-    AND Nodes.Visited < _Visited
-    AND (
-        Nodes.ValueType IS NULL
-        OR
-        EXISTS (
-            SELECT 1 FROM pg_proc
-            INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
-            WHERE pg_namespace.nspname = 'soft'
-            AND pg_proc.proname = NodeTypes.NodeType
-        )
-    )
-    ORDER BY Edges.EdgeID
-    LIMIT 1;
-    IF FOUND THEN
-        RAISE NOTICE '% WALK NodeID % GOTO PARENT %', _Visited, _NodeID, _ParentNodeID;
-        UPDATE Programs SET NodeID = _ParentNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-        PERFORM Set_Visited(_ParentNodeID, _Visited);
-        RETURN TRUE;
-    END IF;
-
-    RAISE NOTICE '% WALK NodeID % EVAL', _Visited, _NodeID;
-
-    PERFORM Eval_Node(_NodeID);
-
-    IF (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) = _NodeID THEN
-        SELECT ChildNodeID
-        INTO  _ChildNodeID
-        FROM Edges
-        WHERE ParentNodeID = _NodeID;
-        IF FOUND THEN
-            RAISE NOTICE '% WALK TO CHILD NODE %', _Visited, _ChildNodeID;
-            UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-        ELSE
-            RETURN FALSE;
-        END IF;
-    ELSE
-        RAISE NOTICE '% WALK NEXT NODE SET BY EVAL %', _Visited, (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID);
-    END IF;
-
+IF _NodeID IS NULL THEN
+    UPDATE Programs SET NodeID = Get_Program_Node(_ProgramID) RETURNING NodeID INTO STRICT _NodeID;
+    PERFORM Enter_Node(_NodeID);
     RETURN TRUE;
-ELSE
-    RAISE NOTICE '% WALK NODE % IS A VALUE OF TYPE %, cannot eval', _Visited, _NodeID, _ValueType;
-    RETURN FALSE;
 END IF;
 
-RETURN TRUE;
+SELECT
+    Edges.ParentNodeID
+INTO
+    _ParentNodeID
+FROM Edges
+INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+WHERE Edges.ChildNodeID            = _NodeID
+AND COALESCE(Nodes.EnterPhaseID,0) < _PhaseID
+AND Edges.DeathPhaseID             IS NULL
+AND Nodes.DeathPhaseID             IS NULL
+ORDER BY Edges.EdgeID
+LIMIT 1;
+IF FOUND THEN
+    UPDATE Programs SET NodeID = _ParentNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Enter_Node(_ParentNodeID);
+    RETURN TRUE;
+END IF;
+
+PERFORM Leave_Node(_NodeID);
+
+IF NOT EXISTS (SELECT 1 FROM Nodes WHERE NodeID = _NodeID AND DeathPhaseID IS NULL) THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('NodeID %s died when leaving it', _NodeID)
+    );
+    RETURN TRUE;
+END IF;
+
+SELECT
+    Edges.ChildNodeID
+INTO
+    _ChildNodeID
+FROM Edges
+INNER JOIN Nodes ON Nodes.NodeID   = Edges.ParentNodeID
+WHERE Edges.ParentNodeID           = _NodeID
+AND   Edges.DeathPhaseID           IS NULL
+AND   Nodes.DeathPhaseID           IS NULL
+ORDER BY Edges.EdgeID
+LIMIT 1;
+IF FOUND THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_ChildNodeID), 'MAGENTA'))
+    );
+    UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    RETURN TRUE;
+END IF;
+
+SELECT    PhaseID
+INTO _NextPhaseID
+FROM Phases
+WHERE LanguageID = _LanguageID
+AND      PhaseID > _PhaseID
+ORDER BY PhaseID
+LIMIT 1;
+IF FOUND THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA'))
+    );
+    UPDATE Programs SET PhaseID = _NextPhaseID, NodeID = NULL WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
+    RETURN TRUE;
+END IF;
+
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'DEBUG3',
+    _Message  := format('Final phase %s completed', Colorize(Phase(_PhaseID)))
+);
+RETURN FALSE;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION Walk_Tree(_Program text)
+RETURNS boolean
+LANGUAGE sql
+AS $$
+SELECT Walk_Tree(ProgramID) FROM Programs WHERE Program = $1
 $$;

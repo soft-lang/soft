@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "PARSE"."SOURCE_CODE"(_NodeID integer)
+CREATE OR REPLACE FUNCTION "PARSE"."ENTER_SOURCE_CODE"(_NodeID integer)
 RETURNS boolean
 LANGUAGE plpgsql
 AS $$
@@ -38,6 +38,8 @@ _Parents                    integer;
 _Killed                     integer;
 _LogSeverity                severity;
 _NodeSeverity               severity;
+_ProgramNodePattern         text;
+_ProgramNodeID              integer;
 BEGIN
 
 SELECT
@@ -63,12 +65,16 @@ SELECT string_agg(format('%s%s',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY N
 INTO _Nodes
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-INNER JOIN Edges     ON Edges.ChildNodeID    = Nodes.NodeID
-WHERE Edges.ParentNodeID = _NodeID
+INNER JOIN Edges     ON Edges.ParentNodeID   = Nodes.NodeID
+WHERE Edges.ChildNodeID  = _NodeID
 AND   Nodes.DeathPhaseID IS NULL
 AND   Edges.DeathPhaseID IS NULL;
 
+PERFORM Kill_Edge(EdgeID) FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NodeID;
+
 SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
+
+_ProgramNodePattern := format('^%s(\d+)$',_ProgramNodeType);
 
 PERFORM Log(
     _NodeID   := _NodeID,
@@ -127,12 +133,15 @@ LOOP
             _GrowIntoNodeType   := NULL;
             _GrandChildNodeID   := NULL;
             CONTINUE;
-        ELSIF _Nodes ~ format('^%s\d+$',_ProgramNodeType) THEN
+        ELSIF _Nodes ~ _ProgramNodePattern THEN
+            _ProgramNodeID := Get_Capturing_Group(_String := _Nodes, _Pattern := _ProgramNodePattern, _Strict := TRUE)::integer;
             PERFORM Log(
                 _NodeID   := _NodeID,
                 _Severity := 'INFO',
-                _Message  := format('OK, %s children born with %s valuable parents and killed %s valueless parents', _Children, _Parents, _Killed)
+                _Message  := format('OK, %s children born with %s valuable parents and killed %s valueless parents. Setting current NodeID to %s', _Children, _Parents, _Killed, _ProgramNodeID)
             );
+            UPDATE Programs SET NodeID = _ProgramNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+            PERFORM Kill_Node(_NodeID);
             RETURN TRUE;
         ELSE
             _IllegalNodePatterns  := NULL;
@@ -226,9 +235,8 @@ LOOP
             );
             _Parents := _Parents + 1;
         ELSIF _GrowIntoNodeType IS NOT NULL THEN
-            SELECT Kill_Edge(EdgeID)                           INTO STRICT _OK                   FROM Edges WHERE ChildNodeID = _ParentNodeID;
-            SELECT Kill_Node(NodeID)                           INTO STRICT _OK                   FROM Nodes WHERE NodeID      = _ParentNodeID;
-            SELECT _SourceCodeCharacters||SourceCodeCharacters INTO STRICT _SourceCodeCharacters FROM Nodes WHERE NodeID      = _ParentNodeID;
+            SELECT Kill_Node(NodeID)                           INTO STRICT _OK                   FROM Nodes WHERE NodeID = _ParentNodeID;
+            SELECT _SourceCodeCharacters||SourceCodeCharacters INTO STRICT _SourceCodeCharacters FROM Nodes WHERE NodeID = _ParentNodeID;
             _Killed := _Killed + 1;
         ELSE
             RAISE EXCEPTION 'How did we end up here?!';
