@@ -33,6 +33,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/get_parent_nodes.sql
 \ir soft/FUNCTIONS/one_line.sql
 \ir soft/FUNCTIONS/set_edge_parent.sql
+\ir soft/FUNCTIONS/set_edge_child.sql
 \ir soft/FUNCTIONS/node.sql
 \ir soft/FUNCTIONS/phase.sql
 \ir soft/FUNCTIONS/set_node_type.sql
@@ -42,6 +43,9 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/leave_node.sql
 \ir soft/FUNCTIONS/run.sql
 \ir soft/FUNCTIONS/find_node.sql
+\ir soft/FUNCTIONS/copy_node.sql
+\ir soft/FUNCTIONS/push_node.sql
+\ir soft/FUNCTIONS/pop_node.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql
@@ -60,6 +64,7 @@ CREATE SCHEMA "MAP_VARIABLES";
 \ir MAP_VARIABLES/ENTER_GET_VARIABLE.sql
 
 CREATE SCHEMA "EVAL";
+\ir EVAL/ENTER_ALLOCA.sql
 \ir EVAL/ADD.sql
 \ir EVAL/DIVIDE.sql
 \ir EVAL/EQUAL.sql

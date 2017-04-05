@@ -4,17 +4,23 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _NewNodeID integer;
-_OK boolean;
+_OK        boolean;
 BEGIN
-IF NOT EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _VariableNodeID) THEN
+
+IF NOT EXISTS (SELECT 1 FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _VariableNodeID) THEN
     RAISE EXCEPTION 'Unable to pop % since it has no parents', _VariableNodeID;
 END IF;
-DELETE FROM Edges WHERE ChildNodeID = _VariableNodeID RETURNING ParentNodeID INTO STRICT _NewNodeID;
+
+SELECT Kill_Edge(EdgeID), ParentNodeID INTO STRICT _OK, _NewNodeID FROM Edges WHERE ChildNodeID = _VariableNodeID;
+
 PERFORM Copy_Node(_NewNodeID, _VariableNodeID);
-IF EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _NewNodeID) THEN
-    UPDATE Edges SET ChildNodeID = _VariableNodeID WHERE ChildNodeID = _NewNodeID RETURNING TRUE INTO STRICT _OK;
+
+IF EXISTS (SELECT 1 FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NewNodeID) THEN
+    SELECT Set_Edge_Child(_EdgeID := EdgeID, _ChildNodeID := _VariableNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NewNodeID;
 END IF;
-DELETE FROM Nodes WHERE NodeID = _NewNodeID RETURNING TRUE INTO STRICT _OK;
+
+PERFORM Kill_Node(_NewNodeID);
+
 RETURN TRUE;
 END;
 $$;

@@ -7,12 +7,8 @@ _OK boolean;
 BEGIN
 
 UPDATE Nodes AS CopyTo SET
-    ValueType    = CopyFrom.ValueType,
-    NameValue    = CopyFrom.NameValue,
-    BooleanValue = CopyFrom.BooleanValue,
-    NumericValue = CopyFrom.NumericValue,
-    IntegerValue = CopyFrom.IntegerValue,
-    TextValue    = CopyFrom.TextValue
+    TerminalType    = CopyFrom.TerminalType,
+    TerminalValue   = CopyFrom.TerminalValue
 FROM Nodes AS CopyFrom
 WHERE CopyFrom.NodeID = _FromNodeID
 AND     CopyTo.NodeID = _ToNodeID

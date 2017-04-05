@@ -375,30 +375,6 @@ RETURN;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION "ALLOCA"(VARIADIC name[]) RETURNS void
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_CurrentNodeID integer;
-_VariableNodeID integer;
-_NewNodeID integer;
-_OK boolean;
-BEGIN
-
-SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-
-RAISE NOTICE 'Allocating at %', _CurrentNodeID;
-
-FOR _VariableNodeID IN
-SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID
-LOOP
-    PERFORM Push_Node(_VariableNodeID);
-END LOOP;
-
-RETURN;
-END;
-$$;
-
 CREATE OR REPLACE FUNCTION Find_Variable_Node(_NodeID integer, _NameValue name DEFAULT NULL) RETURNS integer
 LANGUAGE plpgsql
 AS $$
