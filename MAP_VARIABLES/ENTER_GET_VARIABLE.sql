@@ -2,14 +2,18 @@ CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_GET_VARIABLE"(_NodeID integer)
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_ProgramID      integer;
 _Name           text;
 _VariableNodeID integer;
+_ChildNodeID    integer;
 _OK             boolean;
 BEGIN
 
 SELECT
+    Nodes.ProgramID,
     Nodes.TerminalValue
 INTO STRICT
+    _ProgramID,
     _Name
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
@@ -38,7 +42,9 @@ IF _VariableNodeID IS NULL THEN
     RETURN FALSE;
 END IF;
 
-SELECT Set_Edge_Parent(EdgeID, _ParentNodeID := _VariableNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
+SELECT Set_Edge_Parent(EdgeID, _ParentNodeID := _VariableNodeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
+
+UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 
 PERFORM Kill_Node(_NodeID);
 

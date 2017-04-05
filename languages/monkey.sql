@@ -14,7 +14,8 @@ SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
 let x = 1+2*3-(4/--2);
-let y = 100*x;
+let y = 100*x+x;
+let z = x*y+5;
 $SRC$);
 
 
