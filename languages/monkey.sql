@@ -8,14 +8,40 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
-SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+-- SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = 1--2+-3*(4--5+6)*7-8*9;
-let y = 10*-x*x;
+let x = 1+2*3-(4/--2);
+let y = 100*x;
 $SRC$);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- SELECT "TOKENIZE"."SOURCE_CODE"(1);
 -- UPDATE Programs SET PhaseID = 2 WHERE ProgramID = 1;
@@ -42,41 +68,6 @@ SELECT New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'CUT_NAVEL_CORD
 CREATE SCHEMA IF NOT EXISTS "BLOCK_BRANCHES";
 SELECT New_Bonsai_Schema(_Language := 'monkey', _BonsaiSchema := 'BLOCK_BRANCHES');
 
-
-CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_LET_STATEMENT"() RETURNS void
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_NodeTypeID integer;
-_CurrentNodeID integer;
-_Visited integer;
-_VariableNodeID integer;
-_OK boolean;
-_NameValue name;
-BEGIN
-SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-SELECT NodeTypeID INTO STRICT _NodeTypeID FROM NodeTypes WHERE NodeType = 'VARIABLE';
-SELECT
-    ChildNode.Visited,
-    ParentNode.NameValue,
-    ParentNode.NodeID
-INTO STRICT
-    _Visited,
-    _NameValue,
-    _VariableNodeID
-FROM Nodes AS ChildNode
-INNER JOIN Edges ON Edges.ChildNodeID = ChildNode.NodeID
-INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID = Edges.ParentNodeID
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = ParentNode.NodeTypeID
-WHERE ChildNode.NodeID = _CurrentNodeID
-AND NodeTypes.NodeType = 'SET_VARIABLE';
-SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
-UPDATE Nodes SET NodeTypeID = _NodeTypeID WHERE NodeID = _VariableNodeID RETURNING TRUE INTO STRICT _OK;
-RAISE NOTICE 'MAP_VARIABLES.LEAVE_LET_STATEMENT _CurrentNodeID % _NameValue % -> _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
-PERFORM Set_Visited(_VariableNodeID, _Visited);
-RETURN;
-END;
-$$;
 
 CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_FUNCTION_DECLARATION"() RETURNS void
 LANGUAGE plpgsql
@@ -129,30 +120,6 @@ DELETE FROM Edges WHERE EdgeID = (
 )
 RETURNING TRUE INTO STRICT _OK;
 RAISE NOTICE 'CUT_NAVEL_CORDS.LEAVE_FUNCTION_LABEL _CurrentNodeID %', _CurrentNodeID;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_GET_VARIABLE"() RETURNS void
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_CurrentNodeID integer;
-_Visited integer;
-_VariableNodeID integer;
-_OK boolean;
-_NameValue name;
-_ChildNodeID integer;
-BEGIN
-SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-RAISE NOTICE 'GET_VARIABLE _CurrentNodeID %', _CurrentNodeID;
-SELECT Visited, NameValue INTO STRICT _Visited, _NameValue FROM Nodes WHERE NodeID = _CurrentNodeID AND ValueType = 'name'::regtype;
-_VariableNodeID := Find_Variable_Node(_CurrentNodeID, _NameValue);
-SELECT ChildNodeID INTO STRICT _ChildNodeID FROM Edges WHERE ParentNodeID = _CurrentNodeID;
-UPDATE Programs SET NodeID = _ChildNodeID WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
-UPDATE Edges SET ParentNodeID = _VariableNodeID WHERE ParentNodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
-DELETE FROM Nodes WHERE NodeID = _CurrentNodeID RETURNING TRUE INTO STRICT _OK;
-RAISE NOTICE 'MAP_VARIABLES ENTER_GET_VARIABLE _CurrentNodeID % _NameValue % <- _VariableNodeID %', _CurrentNodeID, _NameValue, _VariableNodeID;
-RETURN;
 END;
 $$;
 

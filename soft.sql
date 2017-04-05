@@ -40,6 +40,8 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/walk_tree.sql
 \ir soft/FUNCTIONS/enter_node.sql
 \ir soft/FUNCTIONS/leave_node.sql
+\ir soft/FUNCTIONS/run.sql
+\ir soft/FUNCTIONS/find_node.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql
@@ -54,6 +56,8 @@ CREATE SCHEMA "REDUCE";
 \ir REDUCE/ENTER_PROGRAM.sql
 
 CREATE SCHEMA "MAP_VARIABLES";
+\ir MAP_VARIABLES/LEAVE_LET_STATEMENT.sql
+\ir MAP_VARIABLES/ENTER_GET_VARIABLE.sql
 
 CREATE SCHEMA "EVAL";
 \ir EVAL/ADD.sql
@@ -65,6 +69,7 @@ CREATE SCHEMA "EVAL";
 \ir EVAL/NOT_EQUAL.sql
 \ir EVAL/SUBTRACT.sql
 \ir EVAL/UNARY_MINUS.sql
+\ir EVAL/BLOCK_STATEMENT.sql
 
 -- \ir soft/FUNCTIONS/tokenize.sql
 -- \ir soft/FUNCTIONS/parse.sql

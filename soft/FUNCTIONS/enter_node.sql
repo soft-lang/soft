@@ -42,7 +42,7 @@ IF EXISTS (
 ELSE
     PERFORM Log(
         _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
+        _Severity := 'DEBUG5',
         _Message  := format('Enter %s', Colorize(_NodeType||_NodeID::text, 'GREEN'))
     );
 END IF;

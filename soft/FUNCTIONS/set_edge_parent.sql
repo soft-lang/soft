@@ -5,6 +5,7 @@ AS $$
 DECLARE
 _OK boolean;
 BEGIN
+RAISE NOTICE 'EdgeID % ParentNodeID %', _EdgeID, _ParentNodeID;
 UPDATE Edges
 SET ParentNodeID = _ParentNodeID
 WHERE     EdgeID = _EdgeID

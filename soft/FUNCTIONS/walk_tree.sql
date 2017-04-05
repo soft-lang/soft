@@ -68,7 +68,7 @@ LIMIT 1;
 IF FOUND THEN
     PERFORM Log(
         _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
+        _Severity := 'DEBUG5',
         _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_ChildNodeID), 'MAGENTA'))
     );
     UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
