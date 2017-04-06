@@ -2,8 +2,7 @@ CREATE OR REPLACE FUNCTION New_Node(
 _ProgramID            integer,
 _NodeTypeID           integer,
 _TerminalType         regtype   DEFAULT NULL,
-_TerminalValue        text      DEFAULT NULL,
-_SourceCodeCharacters integer[] DEFAULT NULL
+_TerminalValue        text      DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -27,8 +26,8 @@ IF _TerminalValue IS NOT NULL AND _TerminalType IS NOT NULL THEN
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  TerminalType,  TerminalValue,  SourceCodeCharacters)
-VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _TerminalType, _TerminalValue, _SourceCodeCharacters)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  TerminalType,  TerminalValue)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _TerminalType, _TerminalValue)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 
@@ -40,8 +39,7 @@ CREATE OR REPLACE FUNCTION New_Node(
 _Program              text,
 _NodeType             text,
 _TerminalType         regtype   DEFAULT NULL,
-_TerminalValue        text      DEFAULT NULL,
-_SourceCodeCharacters integer[] DEFAULT NULL
+_TerminalValue        text      DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -66,8 +64,7 @@ RETURN New_Node(
     _ProgramID            := _ProgramID,
     _NodeTypeID           := _NodeTypeID,
     _TerminalType         := _TerminalType,
-    _TerminalValue        := _TerminalValue,
-    _SourceCodeCharacters := _SourceCodeCharacters
+    _TerminalValue        := _TerminalValue
 );
 END;
 $$;

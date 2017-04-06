@@ -26,8 +26,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/get_dot.sql
 \ir soft/FUNCTIONS/log.sql
 \ir soft/FUNCTIONS/colorize.sql
-\ir soft/FUNCTIONS/highlight_code.sql
-\ir soft/FUNCTIONS/get_source_code.sql
+\ir soft/FUNCTIONS/highlight_characters.sql
 \ir soft/FUNCTIONS/get_source_code_node.sql
 \ir soft/FUNCTIONS/get_source_code_fragment.sql
 \ir soft/FUNCTIONS/get_parent_nodes.sql

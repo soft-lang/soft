@@ -23,7 +23,6 @@ _ChildNodeID                integer;
 _ChildNodeString            text;
 _MatchedNodes               text;
 _PrologueNodeID             integer;
-_SourceCodeCharacters       integer[];
 _MatchedNode                text;
 _ParentNodeID               integer;
 _EpilogueNodeID             integer;
@@ -40,6 +39,7 @@ _LogSeverity                severity;
 _NodeSeverity               severity;
 _ProgramNodePattern         text;
 _ProgramNodeID              integer;
+_EdgeID                     integer;
 BEGIN
 
 SELECT
@@ -145,29 +145,9 @@ LOOP
             RETURN TRUE;
         ELSE
             _IllegalNodePatterns  := NULL;
-            _SourceCodeCharacters := NULL;
-            FOREACH _IllegalNodePattern IN ARRAY regexp_split_to_array(_Nodes, format('(^| )%s\d+( |$)',_ProgramNodeType)) LOOP
-                IF _IllegalNodePattern = '' THEN
-                    CONTINUE;
-                END IF;
-                _IllegalNodePatterns := _IllegalNodePatterns || _IllegalNodePattern;
-                SELECT _SourceCodeCharacters || ARRAY(
-                    SELECT unnest(SourceCodeCharacters)
-                    FROM Nodes
-                    WHERE SourceCodeCharacters IS NOT NULL
-                    AND NodeID IN (
-                        SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID FROM regexp_matches(_IllegalNodePattern,_AnyNodePattern,'g')
-                    )
-                ) INTO STRICT _SourceCodeCharacters;
-            END LOOP;
-            RAISE EXCEPTION E'Illegal node patterns (%): %\n%',
+            RAISE EXCEPTION E'Illegal node patterns (%): %',
                 array_length(_IllegalNodePatterns,1),
-                array_to_string(_IllegalNodePatterns, ', '),
-                Highlight_Code(
-                    _Text                 := Get_Source_Code(_ProgramID),
-                    _SourceCodeCharacters := _SourceCodeCharacters,
-                    _Color                := 'RED'
-                )
+                array_to_string(_IllegalNodePatterns, ', ')
             USING HINT = 'Define a node type with a catch-all node pattern with NodeSeverity e.g. ERROR and a suitable name e.g. UNPARSEABLE';
         END IF;
     END IF;
@@ -223,20 +203,19 @@ LOOP
         _Parents := _Parents + 1;
     END IF;
 
-    _SourceCodeCharacters := NULL;
     FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
         _ParentNodeID := Get_Capturing_Group(_String := _MatchedNode, _Pattern := _SingleNodePattern, _Strict := TRUE)::integer;
 
+        _EdgeID := New_Edge(
+            _ProgramID    := _ProgramID,
+            _ParentNodeID := _ParentNodeID,
+            _ChildNodeID  := _ChildNodeID
+        );
         IF _GrowIntoNodeType IS NULL OR _MatchedNode ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
-            PERFORM New_Edge(
-                _ProgramID    := _ProgramID,
-                _ParentNodeID := _ParentNodeID,
-                _ChildNodeID  := _ChildNodeID
-            );
             _Parents := _Parents + 1;
         ELSIF _GrowIntoNodeType IS NOT NULL THEN
-            SELECT Kill_Node(NodeID)                           INTO STRICT _OK                   FROM Nodes WHERE NodeID = _ParentNodeID;
-            SELECT _SourceCodeCharacters||SourceCodeCharacters INTO STRICT _SourceCodeCharacters FROM Nodes WHERE NodeID = _ParentNodeID;
+            PERFORM Kill_Edge(_EdgeID);
+            PERFORM Kill_Node(_ParentNodeID);
             _Killed := _Killed + 1;
         ELSE
             RAISE EXCEPTION 'How did we end up here?!';
@@ -255,9 +234,6 @@ LOOP
         );
         _Parents := _Parents + 1;
     END IF;
-
-    UPDATE Nodes SET SourceCodeCharacters = _SourceCodeCharacters WHERE NodeID IN (_PrologueNodeID, _ChildNodeID, _EpilogueNodeID);
-
 END LOOP;
 
 RETURN TRUE;

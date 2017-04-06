@@ -17,13 +17,13 @@ _Literal              text;
 _LiteralLength        integer;
 _LiteralPattern       text;
 _Matches              text[];
-_SourceCodeCharacters integer[];
 _IllegalCharacters    integer[];
 _TokenNodeID          integer;
 _OK                   boolean;
 _Tokens               integer;
 _LogSeverity          severity;
 _NodeSeverity         severity;
+_RecreatedSourceCode  text;
 BEGIN
 
 SELECT
@@ -98,14 +98,11 @@ LOOP
         END IF;
     END IF;
 
-    SELECT array_agg(Chars.C) INTO STRICT _SourceCodeCharacters FROM generate_series(_AtChar, _AtChar+_LiteralLength-1) AS Chars(C);
-
     _TokenNodeID := New_Node(
         _ProgramID            := _ProgramID,
         _NodeTypeID           := _NodeTypeID,
         _TerminalType         := _TerminalType,
-        _TerminalValue        := _Literal,
-        _SourceCodeCharacters := _SourceCodeCharacters
+        _TerminalValue        := _Literal
     );
     _Tokens := _Tokens + 1;
 
@@ -113,7 +110,7 @@ LOOP
         _NodeID   := _NodeID,
         _Severity := COALESCE(_NodeSeverity, 'DEBUG2'),
         _Message  := format('%s <- %s',
-            Colorize(_NodeType, 'CYAN'),
+            Colorize(Node(_TokenNodeID), 'CYAN'),
             Colorize(One_Line(_Literal), 'MAGENTA')
         )
     );
@@ -128,12 +125,27 @@ LOOP
 END LOOP;
 
 IF _IllegalCharacters IS NOT NULL THEN
-    RAISE EXCEPTION E'Illegal characters:\n%', Highlight_Code(
-        _Text                 := Get_Source_Code(_ProgramID),
-        _SourceCodeCharacters := _IllegalCharacters,
-        _Color                := 'RED'
+    RAISE EXCEPTION E'Illegal characters:\n%', Highlight_Characters(
+        _Text       := _SourceCode,
+        _Characters := _IllegalCharacters,
+        _Color      := 'RED'
     )
     USING HINT = 'Define a catch-all node type e.g. LiteralPattern (.) with e.g. node severity ERROR as the last LiteralPattern node type';
+END IF;
+
+SELECT array_to_string(array_agg(TerminalValue ORDER BY NodeID),'')
+INTO STRICT _RecreatedSourceCode
+FROM Nodes
+WHERE ProgramID  = _ProgramID
+AND BirthPhaseID = _PhaseID
+AND NodeID       > _NodeID
+AND DeathPhaseID IS NULL;
+
+IF _RecreatedSourceCode IS DISTINCT FROM _SourceCode THEN
+    RAISE EXCEPTION E'Unable to recreate source code from created token nodes.\nSourceCode "%"\nIS DISTINCT FROM\nRecreatedSourceCode "%"',
+        Colorize(_SourceCode, 'CYAN'),
+        Colorize(_RecreatedSourceCode, 'MAGENTA')
+    ;
 END IF;
 
 PERFORM Log(

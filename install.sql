@@ -7,8 +7,6 @@ DROP SCHEMA "PARSE" CASCADE;
 DROP SCHEMA "REDUCE" CASCADE;
 DROP SCHEMA "MAP_VARIABLES" CASCADE;
 DROP SCHEMA "EVAL" CASCADE;
-\ir public/FUNCTIONS/is_not_distinct_from.sql
-\ir public/OPERATORS/is_not_distinct_from.sql
 \set AUTOCOMMIT OFF
 BEGIN;
 \ir soft.sql
