@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_GET_VARIABLE"(_NodeID integer) RETURNS boolean
+CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_IDENTIFIER"(_NodeID integer) RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -8,6 +8,18 @@ _VariableNodeID integer;
 _ChildNodeID    integer;
 _OK             boolean;
 BEGIN
+
+IF (SELECT NodeTypes.NodeType = 'VARIABLE'
+    FROM Edges
+    INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ChildNodeID
+    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    WHERE Edges.ParentNodeID = _NodeID
+    AND   Edges.DeathPhaseID IS NULL
+    AND   Nodes.DeathPhaseID IS NULL)
+THEN
+    -- This is the identifier where the variable is declared by LEAVE_LET_STATEMENT
+    RETURN FALSE;
+END IF;
 
 SELECT
     Nodes.ProgramID,
@@ -22,7 +34,7 @@ INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'MAP_VARIABLES'
-AND NodeTypes.NodeType = 'GET_VARIABLE'
+AND NodeTypes.NodeType = 'IDENTIFIER'
 AND Nodes.TerminalType = 'name'::regtype
 AND Nodes.DeathPhaseID IS NULL;
 

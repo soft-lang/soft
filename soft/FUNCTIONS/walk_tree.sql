@@ -25,6 +25,12 @@ IF _NodeID IS NULL THEN
     RETURN TRUE;
 END IF;
 
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'DEBUG4',
+    _Message  := format('Visiting %s', Colorize(Node(_NodeID)))
+);
+
 SELECT
     Edges.ParentNodeID
 INTO
@@ -59,11 +65,12 @@ SELECT
 INTO
     _ChildNodeID
 FROM Edges
-INNER JOIN Nodes ON Nodes.NodeID   = Edges.ParentNodeID
+INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID   = Edges.ParentNodeID
+INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID    = Edges.ChildNodeID
 WHERE Edges.ParentNodeID           = _NodeID
 AND   Edges.DeathPhaseID           IS NULL
-AND   Nodes.DeathPhaseID           IS NULL
-ORDER BY Edges.EdgeID
+AND   ParentNode.DeathPhaseID      IS NULL
+ORDER BY ChildNode.EnterPhaseID DESC
 LIMIT 1;
 IF FOUND THEN
     PERFORM Log(

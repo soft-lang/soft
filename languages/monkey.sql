@@ -1,6 +1,6 @@
 SET search_path TO soft, public;
 
-SELECT New_Language(_Language := 'monkey');
+SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG3');
 \ir monkey/node_types.sql
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
@@ -8,15 +8,39 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
--- SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = 1+2*3-(4/--2);
-let y = 100*x+x;
-let z = x*y+5;
+let x = 1*2-3/4;
+let y = x;
 $SRC$);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -332,39 +356,6 @@ RETURN;
 END;
 $$;
 
-
-CREATE OR REPLACE FUNCTION "STORE_ARGS"() RETURNS void
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_CurrentNodeID integer;
-_FunctionArgsNodeID integer;
-_CopyFromNodeIDs integer[];
-_CopyToNodeIDs integer[];
-_OK boolean;
-BEGIN
-
-SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-
-_FunctionArgsNodeID := Find_Node(_CurrentNodeID, '-> FUNCTION_DECLARATION <- RET <- CALL <- ARGS');
-
-SELECT array_agg(ParentNodeID ORDER BY EdgeID) INTO STRICT _CopyFromNodeIDs FROM Edges WHERE ChildNodeID = _FunctionArgsNodeID;
-SELECT array_agg(ParentNodeID ORDER BY EdgeID) INTO STRICT _CopyToNodeIDs   FROM Edges WHERE ChildNodeID = _CurrentNodeID;
-
-IF (array_length(_CopyFromNodeIDs,1) = array_length(_CopyToNodeIDs,1)) IS NOT TRUE THEN
-    RAISE EXCEPTION 'Number of function arguments differ between call args and the declared functions args: CurrentNodeID % FunctionArgsNodeID % CopyFromNodeIDs % CopyToNodeIDs %', _CurrentNodeID, _FunctionArgsNodeID, _CopyFromNodeIDs, _CopyToNodeIDs;
-END IF;
-
-RAISE NOTICE 'Store function args at % from node %', _CurrentNodeID, _FunctionArgsNodeID;
-
-FOR _i IN 1..array_length(_CopyFromNodeIDs,1) LOOP
-    RAISE NOTICE 'Copying node % to %', _CopyFromNodeIDs[_i], _CopyToNodeIDs[_i];
-    PERFORM Copy_Node(_CopyFromNodeIDs[_i], _CopyToNodeIDs[_i]);
-END LOOP;
-
-RETURN;
-END;
-$$;
 
 CREATE OR REPLACE FUNCTION "ALLOCA"() RETURNS void
 LANGUAGE plpgsql

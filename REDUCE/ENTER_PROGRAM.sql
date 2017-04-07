@@ -16,6 +16,7 @@ _ChildNodeID      integer;
 _ProgramNodeID    integer;
 _OK               boolean;
 _Killed           integer;
+_NodePattern      text;
 BEGIN
 
 SELECT
@@ -44,13 +45,14 @@ PERFORM Log(
 _Killed := 0;
 LOOP
     _DidWork := FALSE;
-    FOR      _NOPNodeID,      _NodeTypeID,          _NodeType,          _TerminalType IN
-    SELECT Nodes.NodeID, Nodes.NodeTypeID, NodeTypes.NodeType, NodeTypes.TerminalType
+    FOR      _NOPNodeID,      _NodeTypeID,          _NodeType,          _TerminalType,          _NodePattern IN
+    SELECT Nodes.NodeID, Nodes.NodeTypeID, NodeTypes.NodeType, NodeTypes.TerminalType, NodeTypes.NodePattern
     FROM Nodes
     INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
     WHERE Nodes.ProgramID = _ProgramID
-    AND   Nodes.DeathPhaseID IS NULL
-    AND   Nodes.TerminalType IS NULL
+    AND Nodes.DeathPhaseID     IS NULL
+    AND Nodes.TerminalType     IS NULL
+    AND NodeTypes.TerminalType IS NULL
     AND NOT EXISTS (
         SELECT 1 FROM pg_proc
         INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
@@ -73,7 +75,7 @@ LOOP
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG2',
-            _Message  := format('%s <- %s <- %s',
+            _Message  := format('%s -> %s -> %s',
                 Colorize(Node(_ParentNodeID),'GREEN'),
                 Colorize(Node(_NOPNodeID),'RED'),
                 Colorize(Node(_ChildNodeID),'GREEN')

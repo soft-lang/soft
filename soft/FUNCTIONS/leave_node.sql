@@ -9,10 +9,12 @@ _Phase     text;
 _NodeType  text;
 _Function  text;
 _OK        boolean;
+_EnterPhaseID integer;
+_LeavePhaseID integer;
 BEGIN
 
-SELECT Programs.ProgramID, Programs.PhaseID, Phases.Phase, NodeTypes.NodeType
-INTO STRICT    _ProgramID,         _PhaseID,       _Phase,          _NodeType
+SELECT Programs.ProgramID, Programs.PhaseID, Phases.Phase, NodeTypes.NodeType, Nodes.EnterPhaseID, Nodes.LeavePhaseID
+INTO STRICT    _ProgramID,         _PhaseID,       _Phase,          _NodeType,      _EnterPhaseID,      _LeavePhaseID
 FROM Nodes
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID

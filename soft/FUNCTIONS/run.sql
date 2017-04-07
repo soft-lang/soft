@@ -10,9 +10,14 @@ DECLARE
 _Ret boolean;
 BEGIN
 LOOP
-    IF NOT Walk_Tree(_ProgramID) THEN
+    BEGIN
+        IF NOT Walk_Tree(_ProgramID) THEN
+            EXIT;
+        END IF;
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE '%', SQLERRM;
         EXIT;
-    END IF;
+    END;
 END LOOP;
 SELECT
     Nodes.TerminalType,
