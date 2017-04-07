@@ -13,7 +13,10 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = 1+2*3;
+let x = fn(a,b,c) {
+    a+b*c;
+    3*c
+};
 $SRC$);
 
 
