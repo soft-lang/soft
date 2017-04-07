@@ -86,6 +86,13 @@ _Children := 0;
 _Parents  := 0;
 _Killed   := 0;
 LOOP
+
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG5',
+        _Message  := format('Parsing %s', _Nodes)
+    );
+
     SELECT
         NodeTypes.NodeTypeID,
         NodeTypes.NodeType,

@@ -1,6 +1,6 @@
 SET search_path TO soft, public;
 
-SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG3');
+SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG5');
 \ir monkey/node_types.sql
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
@@ -13,8 +13,11 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = 1*2-3/4;
-let y = x;
+let x = if (2 < 3) {
+    4+5
+} else {
+    6*7
+};
 $SRC$);
 
 
