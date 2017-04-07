@@ -232,7 +232,7 @@ LOOP
     IF _EpilogueNodeTypeID IS NOT NULL THEN
         _EpilogueNodeID := New_Node(
             _ProgramID  := _ProgramID,
-            _NodeTypeID := _PrologueNodeTypeID
+            _NodeTypeID := _EpilogueNodeTypeID
         );
         PERFORM New_Edge(
             _ProgramID    := _ProgramID,

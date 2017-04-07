@@ -13,11 +13,7 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = if (2 < 3) {
-    4+5
-} else {
-    6*7
-};
+let x = 1+2*3;
 $SRC$);
 
 
