@@ -77,7 +77,8 @@ CREATE SCHEMA "EVAL";
 \ir EVAL/NOT_EQUAL.sql
 \ir EVAL/SUBTRACT.sql
 \ir EVAL/UNARY_MINUS.sql
-\ir EVAL/BLOCK_STATEMENT.sql
+\ir EVAL/STORE_ARGS.sql
+\ir EVAL/CALL.sql
 
 -- \ir soft/FUNCTIONS/tokenize.sql
 -- \ir soft/FUNCTIONS/parse.sql

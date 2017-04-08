@@ -1,0 +1,67 @@
+CREATE OR REPLACE FUNCTION "EVAL"."CALL"(name) RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_ProgramID                 integer;
+_NodeID                    integer;
+_RetNodeID                 integer;
+_FunctionDeclarationNodeID integer;
+_RetEdgeID                 integer;
+_LastNodeID                integer;
+_AllocaNodeID              integer;
+_VariableNodeID            integer;
+_OK                        boolean;
+BEGIN
+
+SELECT ProgramID, NodeID INTO STRICT _ProgramID, _NodeID FROM Programs;
+
+_RetNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> RET');
+IF _RetNodeID IS NULL THEN
+    _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- VARIABLE <- FUNCTION_DECLARATION');
+    _RetNodeID                 := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- VARIABLE <- FUNCTION_DECLARATION <- RET');
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_FunctionDeclarationNodeID),'MAGENTA'))
+    );
+    UPDATE Programs SET NodeID = _FunctionDeclarationNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM New_Edge(
+        _ProgramID    := _ProgramID,
+        _ParentNodeID := _NodeID,
+        _ChildNodeID  := _RetNodeID
+    );
+ELSE
+    SELECT EdgeID INTO STRICT _RetEdgeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND ChildNodeID = _RetNodeID;
+
+    _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> RET -> FUNCTION_DECLARATION');
+
+    SELECT     ParentNodeID
+    INTO STRICT _LastNodeID
+    FROM Edges
+    WHERE ChildNodeID = _FunctionDeclarationNodeID
+    AND DeathPhaseID IS NULL
+    ORDER BY EdgeID DESC
+    OFFSET 1
+    LIMIT 1;
+
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Returning function call at %s value from last node %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_LastNodeID),'MAGENTA'))
+    );
+
+    PERFORM Copy_Node(_FromNodeID := _LastNodeID, _ToNodeID := _NodeID);
+    PERFORM Kill_Edge(_RetEdgeID);
+
+    _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- VARIABLE <- FUNCTION_DECLARATION <- ALLOCA');
+
+    FOR _VariableNodeID IN
+    SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _AllocaNodeID ORDER BY EdgeID
+    LOOP
+        PERFORM Pop_Node(_VariableNodeID);
+    END LOOP;
+END IF;
+
+RETURN;
+END;
+$$;

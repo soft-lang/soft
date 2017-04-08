@@ -9,16 +9,32 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
-SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+-- SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let foo = fn(a,b,c) {
-    let hehe = 123;
-    let hoho = a+b*(c-hehe);
+let a = 1+2*(3-4);
+let b = c;
+let c = a*(b+5);
+let d = fn() {};
+let e = fn() {
+    let f = 6;
 };
-let baz = foo(1,2,3);
+let f = fn(g) {
+    let h = 7+g;
+};
+let h = fn(i,j) {
+    let k = i*j;
+};
+let l = fn(m,n,o) {
+    m+n*o;
+};
+d();
+e();
+let ff = f(8);
+let hh = h(9,10);
+let ll = l(11,12,13);
 $SRC$);
 
 
@@ -278,55 +294,6 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-RETURN;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION "CALL"(name) RETURNS void
-LANGUAGE plpgsql
-AS $$
-DECLARE
-_Visited integer;
-_OK boolean;
-_CurrentNodeID integer;
-_FunctionNameNodeID integer;
-_FunctionDeclarationNodeID integer;
-_RetNodeID integer;
-_RetEdgeID integer;
-_LastNodeID integer;
-_AllocaNodeID integer;
-_VariableNodeID integer;
-BEGIN
-
-SELECT NodeID INTO STRICT _CurrentNodeID FROM Programs;
-
-SELECT Visited INTO STRICT _Visited FROM Nodes WHERE NodeID = _CurrentNodeID;
-
-SELECT EdgeID, ChildNodeID INTO _RetEdgeID, _RetNodeID FROM Edges WHERE ParentNodeID = _CurrentNodeID ORDER BY EdgeID OFFSET 1 LIMIT 1;
-IF NOT FOUND THEN
-    RAISE NOTICE 'Outgoing function call at %', _CurrentNodeID;
-    SELECT ParentNodeID INTO STRICT _FunctionNameNodeID        FROM Edges WHERE ChildNodeID = _CurrentNodeID ORDER BY EdgeID LIMIT 1;
-    SELECT ParentNodeID INTO STRICT _FunctionDeclarationNodeID FROM Edges WHERE ChildNodeID = _FunctionNameNodeID;
-    SELECT ParentNodeID INTO STRICT _RetNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID DESC LIMIT 1;
-    UPDATE Nodes SET Visited = Visited+1 WHERE NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
-    PERFORM Set_Visited(_CurrentNodeID, _Visited-1);
-    UPDATE Programs SET NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
-    INSERT INTO Edges (ParentNodeID, ChildNodeID) VALUES (_CurrentNodeID, _RetNodeID) RETURNING TRUE INTO STRICT _OK;
-ELSE
-    PERFORM Set_Visited(_CurrentNodeID, _Visited+1);
-    SELECT ChildNodeID INTO STRICT _FunctionDeclarationNodeID FROM Edges WHERE ParentNodeID = _RetNodeID;
-    SELECT ParentNodeID INTO STRICT _LastNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID DESC OFFSET 1 LIMIT 1;
-    RAISE NOTICE 'Returning function call at % copying value from %', _CurrentNodeID, _LastNodeID;
-    PERFORM Copy_Node(_LastNodeID, _CurrentNodeID);
-    DELETE FROM Edges WHERE EdgeID = _RetEdgeID RETURNING TRUE INTO STRICT _OK;
-    SELECT ParentNodeID INTO STRICT _AllocaNodeID FROM Edges WHERE ChildNodeID = _FunctionDeclarationNodeID ORDER BY EdgeID LIMIT 1;
-    FOR _VariableNodeID IN
-    SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _AllocaNodeID ORDER BY EdgeID
-    LOOP
-        PERFORM Pop_Node(_VariableNodeID);
-    END LOOP;
-END IF;
-
 RETURN;
 END;
 $$;
