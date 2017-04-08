@@ -16,6 +16,11 @@ _k           integer;
 _FoundNodeID integer;
 _Count       bigint;
 BEGIN
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'DEBUG3',
+    _Message  := format('Find node %s %s %s %s', _NodeID, _Descend, _Strict, _Paths)
+);
 LOOP
     _JOINs := '';
     _WHEREs := '';
@@ -96,11 +101,27 @@ LOOP
         IF NOT EXISTS (SELECT 1 FROM Edges WHERE ParentNodeID = _NodeID) THEN
             EXIT;
         END IF;
+        IF EXISTS (
+            SELECT 1 FROM Edges
+            INNER JOIN Nodes ON Nodes.NodeID = Edges.ChildNodeID
+            WHERE Edges.ParentNodeID = _NodeID
+            AND Edges.DeathPhaseID  IS NULL
+            AND Nodes.DeathPhaseID  IS NULL
+            AND Nodes.TerminalValue IS NOT NULL
+        ) THEN
+            EXIT;
+        END IF;
+        RAISE NOTICE '%', _NodeID;
         SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
     ELSE
         EXIT;
     END IF;
 END LOOP;
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'DEBUG3',
+    _Message  := format('Node not found %s %s %s %s', _NodeID, _Descend, _Strict, _Paths)
+);
 RETURN NULL;
 END;
 $$;

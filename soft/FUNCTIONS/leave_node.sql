@@ -22,6 +22,15 @@ INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 WHERE Nodes.NodeID = _NodeID
 FOR UPDATE OF Nodes, Programs;
 
+IF _PhaseID <= _LeavePhaseID THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := Colorize(format('Already left %s', Node(_NodeID)), 'YELLOW')
+    );
+    RETURN FALSE;
+END IF;
+
 UPDATE Nodes SET LeavePhaseID = _PhaseID
 WHERE NodeID = _NodeID
 AND (_PhaseID <= LeavePhaseID) IS NOT TRUE

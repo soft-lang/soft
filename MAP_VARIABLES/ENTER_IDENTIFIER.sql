@@ -2,22 +2,19 @@ CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_IDENTIFIER"(_NodeID integer) R
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID      integer;
-_Name           text;
-_VariableNodeID integer;
-_ChildNodeID    integer;
-_OK             boolean;
+_ProgramID                 integer;
+_Name                      text;
+_FunctionNameNodeID        integer;
+_FunctionDeclarationNodeID integer;
+_VariableNodeID            integer;
+_ChildNodeID               integer;
+_OK                        boolean;
 BEGIN
 
-IF (SELECT NodeTypes.NodeType = 'VARIABLE'
-    FROM Edges
-    INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ChildNodeID
-    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-    WHERE Edges.ParentNodeID = _NodeID
-    AND   Edges.DeathPhaseID IS NULL
-    AND   Nodes.DeathPhaseID IS NULL)
+IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> VARIABLE')      IS NOT NULL
+OR Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> FUNCTION_NAME') IS NOT NULL
+OR Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> STORE_ARGS')    IS NOT NULL
 THEN
-    -- This is the identifier where the variable is declared by LEAVE_LET_STATEMENT
     RETURN FALSE;
 END IF;
 
@@ -44,20 +41,24 @@ _VariableNodeID := Find_Node(
     _Strict  := FALSE,
     _Paths   := ARRAY['<- LET_STATEMENT <- VARIABLE', _Name]
 );
-
 IF _VariableNodeID IS NULL THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'ERROR',
-        _Message  := format('Undefined variable %s', Colorize(_Name, 'RED'))
+    _VariableNodeID := Find_Node(
+        _NodeID  := _NodeID,
+        _Descend := TRUE,
+        _Strict  := FALSE,
+        _Paths   := ARRAY['<- STORE_ARGS <- IDENTIFIER', _Name]
     );
-    RETURN FALSE;
+    IF _VariableNodeID IS NULL THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'ERROR',
+            _Message  := format('Undefined variable %s', Colorize(_Name, 'RED'))
+        );
+        RETURN FALSE;
+    END IF;
 END IF;
-
 SELECT Set_Edge_Parent(EdgeID, _ParentNodeID := _VariableNodeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
-
 UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-
 PERFORM Kill_Node(_NodeID);
 
 RETURN TRUE;
