@@ -15,16 +15,9 @@ SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
 let foo = fn(a,b,c) {
-    let i = 1;
-    let j = 2*i;
-    a+b*c-j
+    let hoho = a+b*c;
 };
-let z = foo(1,2,3);
-let bar = 2*z;
-let hehe = fn(d,e) {
-    d+e
-}
-let hoho = hehe(10,20);
+let baz = foo(1,2,3);
 $SRC$);
 
 

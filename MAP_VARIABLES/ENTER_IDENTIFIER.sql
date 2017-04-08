@@ -13,7 +13,6 @@ BEGIN
 
 IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> VARIABLE')      IS NOT NULL
 OR Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> FUNCTION_NAME') IS NOT NULL
-OR Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> STORE_ARGS')    IS NOT NULL
 THEN
     RETURN FALSE;
 END IF;
@@ -46,7 +45,7 @@ IF _VariableNodeID IS NULL THEN
         _NodeID  := _NodeID,
         _Descend := TRUE,
         _Strict  := FALSE,
-        _Paths   := ARRAY['<- STORE_ARGS <- IDENTIFIER', _Name]
+        _Paths   := ARRAY['<- STORE_ARGS <- VARIABLE', _Name]
     );
     IF _VariableNodeID IS NULL THEN
         PERFORM Log(
