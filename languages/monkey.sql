@@ -14,27 +14,12 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let a = 1+2*(3-4);
-let b = c;
-let c = a*(b+5);
-let d = fn() {};
-let e = fn() {
-    let f = 6;
+let f = fn(a,b,c) {
+    let d = a+b+c;
+    d
 };
-let f = fn(g) {
-    let h = 7+g;
-};
-let h = fn(i,j) {
-    let k = i*j;
-};
-let l = fn(m,n,o) {
-    m+n*o;
-};
-d();
-e();
-let ff = f(8);
-let hh = h(9,10);
-let ll = l(11,12,13);
+let x = 10;
+let y = f(10,20,30)+x;
 $SRC$);
 
 

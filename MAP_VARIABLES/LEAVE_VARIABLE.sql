@@ -2,16 +2,20 @@ CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_VARIABLE"(_NodeID integer) RET
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_ProgramID        integer;
 _IdentifierNodeID integer;
 _EdgeID           integer;
 _VariableNodeID   integer;
+_AllocaNodeID     integer;
 _OK               boolean;
 BEGIN
 
 SELECT
+    Nodes.ProgramID,
     IdentifierNode.NodeID,
     Edges.EdgeID
 INTO STRICT
+    _ProgramID,
     _IdentifierNodeID,
     _EdgeID
 FROM Nodes
@@ -26,6 +30,14 @@ AND IdentifierNode.DeathPhaseID IS NULL;
 PERFORM Copy_Node(_FromNodeID := _IdentifierNodeID, _ToNodeID := _NodeID);
 PERFORM Kill_Edge(_EdgeID);
 PERFORM Kill_Node(_IdentifierNodeID);
+
+_AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := TRUE, _Path := '<- ALLOCA');
+
+PERFORM New_Edge(
+    _ProgramID    := _ProgramID,
+    _ParentNodeID := _NodeID,
+    _ChildNodeID  := _AllocaNodeID
+);
 
 PERFORM Log(
     _NodeID   := _NodeID,

@@ -87,13 +87,9 @@ LOOP
         _NodeID,
         _WHEREs
     );
-    IF _Strict THEN
-        EXECUTE _SQL INTO STRICT _FoundNodeID, _Count;
-    ELSE
-        EXECUTE _SQL INTO _FoundNodeID, _Count;
-        IF _Count > 1 THEN
-            RAISE too_many_rows USING MESSAGE = format('query returned more than one row: NodeID %s Paths "%s" Count %s SQL "%s"', _NodeID, array_to_string(_Paths,','), _Count, _SQL);
-        END IF;
+    EXECUTE _SQL INTO _FoundNodeID, _Count;
+    IF _Count > 1 THEN
+        RAISE too_many_rows USING MESSAGE = format('query returned more than one row: NodeID %s Paths "%s" Count %s SQL "%s"', _NodeID, array_to_string(_Paths,','), _Count, _SQL);
     END IF;
     IF _FoundNodeID IS NOT NULL THEN
         RETURN _FoundNodeID;
@@ -117,6 +113,9 @@ LOOP
         EXIT;
     END IF;
 END LOOP;
+IF _Strict THEN
+    RAISE EXCEPTION 'Query did not return exactly one row: NodeID % Paths "%" Count % SQL "%"', _NodeID, array_to_string(_Paths,','), _Count, _SQL;
+END IF;
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG3',
