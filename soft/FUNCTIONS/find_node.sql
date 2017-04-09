@@ -108,7 +108,7 @@ LOOP
             EXIT;
         END IF;
         RAISE NOTICE '%', _NodeID;
-        SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
+        SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID ORDER BY EdgeID LIMIT 1;
     ELSE
         EXIT;
     END IF;

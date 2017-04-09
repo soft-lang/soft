@@ -10,7 +10,8 @@ _Prologue       text     DEFAULT NULL,
 _Epilogue       text     DEFAULT NULL,
 _GrowFrom       text     DEFAULT NULL,
 _GrowInto       text     DEFAULT NULL,
-_NodeSeverity   severity DEFAULT NULL
+_NodeSeverity   severity DEFAULT NULL,
+_Walkable       boolean  DEFAULT TRUE
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -30,8 +31,8 @@ IF _Epilogue IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _EpilogueNodeTypeID 
 IF _GrowFrom IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _GrowFromNodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = _GrowFrom; END IF;
 IF _GrowInto IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _GrowIntoNodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = _GrowInto; END IF;
 
-INSERT INTO NodeTypes ( LanguageID,  NodeType,  TerminalType,  NodeGroup,  Literal, LiteralLength,           LiteralPattern,       NodePattern,  PrologueNodeTypeID,  EpilogueNodeTypeID,  GrowFromNodeTypeID,  GrowIntoNodeTypeID,  NodeSeverity)
-VALUES                (_LanguageID, _NodeType, _TerminalType, _NodeGroup, _Literal, length(_Literal), '^('||_LiteralPattern||')', _NodePattern, _PrologueNodeTypeID, _EpilogueNodeTypeID, _GrowFromNodeTypeID, _GrowIntoNodeTypeID, _NodeSeverity)
+INSERT INTO NodeTypes ( LanguageID,  NodeType,  TerminalType,  NodeGroup,  Literal, LiteralLength,           LiteralPattern,       NodePattern,  PrologueNodeTypeID,  EpilogueNodeTypeID,  GrowFromNodeTypeID,  GrowIntoNodeTypeID,  NodeSeverity,  Walkable)
+VALUES                (_LanguageID, _NodeType, _TerminalType, _NodeGroup, _Literal, length(_Literal), '^('||_LiteralPattern||')', _NodePattern, _PrologueNodeTypeID, _EpilogueNodeTypeID, _GrowFromNodeTypeID, _GrowIntoNodeTypeID, _NodeSeverity, _Walkable)
 RETURNING    NodeTypeID
 INTO STRICT _NodeTypeID;
 

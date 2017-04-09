@@ -1,9 +1,8 @@
-CREATE OR REPLACE FUNCTION "EVAL"."CALL"(name) RETURNS void
+CREATE OR REPLACE FUNCTION "EVAL"."ENTER_CALL"(_NodeID integer) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
-_NodeID                    integer;
 _RetNodeID                 integer;
 _FunctionDeclarationNodeID integer;
 _RetEdgeID                 integer;
@@ -13,12 +12,12 @@ _VariableNodeID            integer;
 _OK                        boolean;
 BEGIN
 
-SELECT ProgramID, NodeID INTO STRICT _ProgramID, _NodeID FROM Programs;
+SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
 _RetNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> RET');
 IF _RetNodeID IS NULL THEN
-    _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- VARIABLE <- FUNCTION_DECLARATION');
-    _RetNodeID                 := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- VARIABLE <- FUNCTION_DECLARATION <- RET');
+    _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_LABEL <- FUNCTION_DECLARATION');
+    _RetNodeID                 := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_LABEL <- FUNCTION_DECLARATION <- RET');
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
@@ -30,7 +29,10 @@ IF _RetNodeID IS NULL THEN
         _ParentNodeID := _NodeID,
         _ChildNodeID  := _RetNodeID
     );
+    UPDATE Nodes SET Visited = Visited + 1 WHERE NodeID = _FunctionDeclarationNodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Nodes SET Visited = Visited - 1 WHERE NodeID = _NodeID                    RETURNING TRUE INTO STRICT _OK;
 ELSE
+    UPDATE Nodes SET Visited = Visited + 1 WHERE NodeID = _NodeID                    RETURNING TRUE INTO STRICT _OK;
     SELECT EdgeID INTO STRICT _RetEdgeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND ChildNodeID = _RetNodeID;
 
     _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> RET -> FUNCTION_DECLARATION');
@@ -53,7 +55,7 @@ ELSE
     PERFORM Copy_Node(_FromNodeID := _LastNodeID, _ToNodeID := _NodeID);
     PERFORM Kill_Edge(_RetEdgeID);
 
-    _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- VARIABLE <- FUNCTION_DECLARATION <- ALLOCA');
+    _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_LABEL <- FUNCTION_DECLARATION <- ALLOCA');
 
     FOR _VariableNodeID IN
     SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _AllocaNodeID ORDER BY EdgeID

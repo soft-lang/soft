@@ -20,10 +20,7 @@ INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 WHERE Nodes.NodeID = _NodeID
 FOR UPDATE OF Nodes, Programs;
 
-UPDATE Nodes SET EnterPhaseID = _PhaseID
-WHERE NodeID = _NodeID
-AND (_PhaseID <= EnterPhaseID) IS NOT TRUE
-RETURNING TRUE INTO STRICT _OK;
+UPDATE Nodes SET Visited = Visited + 1 WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 
 _Function := 'ENTER_' || _NodeType;
 

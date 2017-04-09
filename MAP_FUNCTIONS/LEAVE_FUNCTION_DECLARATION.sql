@@ -17,6 +17,11 @@ SELECT Set_Edge_Child(_EdgeID := EdgeID, _ChildNodeID := _VariableNodeID) INTO S
 SELECT Set_Edge_Parent(_EdgeID := EdgeID, _ParentNodeID := _VariableNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _LetStatementNodeID;
 PERFORM Kill_Node(_LetStatementNodeID);
 
+PERFORM Set_Node_Type(
+    _NodeID     := _VariableNodeID,
+    _NodeTypeID := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'FUNCTION_LABEL')
+);
+
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG2',

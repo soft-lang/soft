@@ -6,7 +6,6 @@ _ProgramID        integer;
 _IdentifierNodeID integer;
 _EdgeID           integer;
 _VariableNodeID   integer;
-_AllocaNodeID     integer;
 _OK               boolean;
 BEGIN
 
@@ -30,14 +29,6 @@ AND IdentifierNode.DeathPhaseID IS NULL;
 PERFORM Copy_Node(_FromNodeID := _IdentifierNodeID, _ToNodeID := _NodeID);
 PERFORM Kill_Edge(_EdgeID);
 PERFORM Kill_Node(_IdentifierNodeID);
-
-_AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := TRUE, _Path := '<- ALLOCA');
-
-PERFORM New_Edge(
-    _ProgramID    := _ProgramID,
-    _ParentNodeID := _NodeID,
-    _ChildNodeID  := _AllocaNodeID
-);
 
 PERFORM Log(
     _NodeID   := _NodeID,

@@ -56,7 +56,7 @@ LOOP
     AND NOT EXISTS (
         SELECT 1 FROM pg_proc
         INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
-        WHERE pg_proc.proname      = NodeTypes.NodeType
+        WHERE pg_proc.proname      IN (NodeTypes.NodeType, 'ENTER_'||NodeTypes.NodeType, 'LEAVE_'||NodeTypes.NodeType)
         AND   pg_namespace.nspname = 'EVAL'
     )
     AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ParentNodeID = Nodes.NodeID)  = 1

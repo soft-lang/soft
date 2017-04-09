@@ -1,6 +1,6 @@
 SET search_path TO soft, public;
 
-SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG5');
+SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG4');
 \ir monkey/node_types.sql
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
@@ -9,17 +9,17 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
--- SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_ALLOCA');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let f = fn(a,b,c) {
-    let d = a+b+c;
-    d
+let add_two = fn(a,b) {
+    a+b
 };
-let x = 10;
-let y = f(10,20,30)+x;
+let foo = 100;
+let x = add_two(1,(foo+2)*3);
 $SRC$);
 
 

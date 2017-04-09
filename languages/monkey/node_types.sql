@@ -1,7 +1,7 @@
 SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'SOURCE_CODE');
 SELECT New_Node_Type(_Language := 'monkey', _TerminalType := 'void'::regtype,                                                                                            _NodeType := 'ALLOCA');
 SELECT New_Node_Type(_Language := 'monkey', _TerminalType := 'void'::regtype,                                                                                            _NodeType := 'RET');
-SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'FUNCTION_LABEL');
+SELECT New_Node_Type(_Language := 'monkey', _Walkable := FALSE,                                                                                                          _NodeType := 'FUNCTION_LABEL');
 SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'FREE_STATEMENT');
 SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'ARGS');
 SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'EQ',                   _Literal         := '=');

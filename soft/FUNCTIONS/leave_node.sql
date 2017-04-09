@@ -9,32 +9,16 @@ _Phase     text;
 _NodeType  text;
 _Function  text;
 _OK        boolean;
-_EnterPhaseID integer;
-_LeavePhaseID integer;
 BEGIN
 
-SELECT Programs.ProgramID, Programs.PhaseID, Phases.Phase, NodeTypes.NodeType, Nodes.EnterPhaseID, Nodes.LeavePhaseID
-INTO STRICT    _ProgramID,         _PhaseID,       _Phase,          _NodeType,      _EnterPhaseID,      _LeavePhaseID
+SELECT Programs.ProgramID, Programs.PhaseID, Phases.Phase, NodeTypes.NodeType
+INTO STRICT    _ProgramID,         _PhaseID,       _Phase,          _NodeType
 FROM Nodes
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 WHERE Nodes.NodeID = _NodeID
 FOR UPDATE OF Nodes, Programs;
-
-IF _PhaseID <= _LeavePhaseID THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
-        _Message  := Colorize(format('Already left %s', Node(_NodeID)), 'YELLOW')
-    );
-    RETURN FALSE;
-END IF;
-
-UPDATE Nodes SET LeavePhaseID = _PhaseID
-WHERE NodeID = _NodeID
-AND (_PhaseID <= LeavePhaseID) IS NOT TRUE
-RETURNING TRUE INTO STRICT _OK;
 
 _Function := 'LEAVE_' || _NodeType;
 
