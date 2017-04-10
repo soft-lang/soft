@@ -17,10 +17,12 @@ SELECT New_Program(_Language := 'monkey', _Program := 'test');
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
 let foo = fn(a,b) {
     let x = a*b;
-    x
+    let c = 123;
+    return x;
 };
 let y = foo(2,3)+foo(4,5);
-return y;
+let z = y*6;
+return z;
 $SRC$);
 
 
