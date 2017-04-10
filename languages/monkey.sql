@@ -10,8 +10,7 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_ALLOCA');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
--- SELECT New_Phase(_Language := 'monkey', _Phase := 'BLOCK_PATHS');
--- SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
@@ -21,7 +20,7 @@ let foo = fn(a,b) {
     x
 };
 let y = foo(2,3)+foo(4,5);
-y;
+return y;
 $SRC$);
 
 
