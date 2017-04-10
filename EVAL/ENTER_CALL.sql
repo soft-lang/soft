@@ -34,7 +34,6 @@ IF _RetNodeID IS NULL THEN
 ELSE
     UPDATE Nodes SET Visited = Visited + 1 WHERE NodeID = _NodeID                    RETURNING TRUE INTO STRICT _OK;
     SELECT EdgeID INTO STRICT _RetEdgeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND ChildNodeID = _RetNodeID;
-
     _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> RET -> FUNCTION_DECLARATION');
 
     SELECT     ParentNodeID

@@ -3,37 +3,36 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_FunctionName name;
-_ReturnType regtype;
-_SQL text;
-_NameValue text;
-_TextValue text;
-_IntegerValue integer;
-_NumericValue numeric;
-_BooleanValue boolean;
-_OK boolean;
+_Phase            text;
+_FunctionName     name;
+_ArgTypes         oidvector;
+_ReturnType       regtype;
+_InputArgTypes    regtype[];
+_SQL              text;
 _ParentValueTypes regtype[];
-_ArgTypes oidvector;
-_InputArgTypes regtype[];
-_Count integer;
+_ReturnValue      text;
+_CastTest         text;
 BEGIN
 
 SELECT
+    Phases.Phase,
     pg_proc.proname,
     pg_proc.proargtypes,
     pg_proc.prorettype::regtype
 INTO
+    _Phase,
     _FunctionName,
     _ArgTypes,
     _ReturnType
 FROM Nodes
 INNER JOIN NodeTypes    ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN pg_proc      ON pg_proc.proname      = NodeTypes.NodeType
-INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
-WHERE pg_namespace.nspname = 'soft'
+INNER JOIN pg_namespace ON pg_namespace.oid     = pg_proc.pronamespace
+INNER JOIN Programs     ON Programs.ProgramID   = Nodes.ProgramID
+INNER JOIN Phases       ON Phases.PhaseID       = Programs.PhaseID
+WHERE pg_namespace.nspname = Phases.Phase
 AND   Nodes.NodeID         = _NodeID;
 IF NOT FOUND THEN
-    RAISE NOTICE 'No function found for NodeID %', _NodeID;
     RETURN FALSE;
 END IF;
 
@@ -44,68 +43,45 @@ FROM (
 ) AS TypeOIDs
 INNER JOIN pg_type ON pg_type.oid = TypeOIDs.TypeOID;
 
-RAISE NOTICE 'ReturnType % InputArgTypes %', _ReturnType, _InputArgTypes;
+RAISE DEBUG 'FunctionName % ArgTypes % ReturnType % InputArgTypes %', _FunctionName, _ArgTypes, _ReturnType, _InputArgTypes;
 
 SELECT
-    format('SELECT %I(%s)', _FunctionName, string_agg(COALESCE(
-        quote_literal(Nodes.NameValue)||'::name',
-        quote_literal(Nodes.TextValue)||'::text',
-        Nodes.NumericValue::text||'::numeric',
-        Nodes.IntegerValue::text||'::integer',
-        Nodes.BooleanValue::text||'::boolean'
-    ),',' ORDER BY Edges.EdgeID)),
-    array_agg(COALESCE(Nodes.ValueType,NodeTypes.ValueType) ORDER BY Edges.EdgeID)
+    format('SELECT %I.%I(%s)::text',
+        _Phase,
+        _FunctionName,
+        string_agg(
+            quote_literal(Nodes.TerminalValue)||'::'||Nodes.TerminalType::text,
+            ','
+        ORDER BY Edges.EdgeID)
+    ),
+    array_agg(Nodes.TerminalType ORDER BY Edges.EdgeID)
 INTO STRICT
     _SQL,
     _ParentValueTypes
 FROM Edges
-INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ParentNodeID
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-WHERE Edges.ChildNodeID = _NodeID;
+INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+WHERE Edges.ChildNodeID = _NodeID
+AND Edges.DeathPhaseID IS NULL
+AND Nodes.DeathPhaseID IS NULL;
 
-RAISE NOTICE 'SQL % ParentValueTypes %', _SQL, _ParentValueTypes;
+RAISE DEBUG 'SQL % ParentValueTypes %', _SQL, _ParentValueTypes;
 
 IF _ReturnType = 'anyelement'::regtype THEN
-    SELECT (array_agg(unnest))[1]
-    INTO _ReturnType
-    FROM (
-        SELECT unnest(_ParentValueTypes)
-        EXCEPT
-        SELECT unnest(_InputArgTypes)
-    ) AS InferredType
-    HAVING COUNT(*) = 1;
-    RAISE NOTICE 'Derived1 ReturnType % from ParentValueTypes % InputArgTypes %', _ReturnType, _ParentValueTypes, _InputArgTypes;
-    IF NOT FOUND THEN
-        SELECT DISTINCT unnest INTO STRICT _ReturnType
-        FROM (
-            SELECT * FROM unnest(_InputArgTypes)
-        ) AS X WHERE unnest <> 'anyelement';
-        RAISE NOTICE 'Derived2 ReturnType % from ParentValueTypes % InputArgTypes %', _ReturnType, _ParentValueTypes, _InputArgTypes;
-    END IF;
+    _ReturnType := Determine_Return_Type(_InputArgTypes, _ParentValueTypes);
 END IF;
 
-IF _ReturnType = 'name'::regtype THEN
-    EXECUTE _SQL INTO STRICT _NameValue;
-    UPDATE Nodes SET NameValue = _NameValue, ValueType = _ReturnType WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-ELSIF _ReturnType = 'text'::regtype THEN
-    EXECUTE _SQL INTO STRICT _TextValue;
-    UPDATE Nodes SET TextValue = _TextValue, ValueType = _ReturnType WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-ELSIF _ReturnType = 'numeric'::regtype THEN
-    EXECUTE _SQL INTO STRICT _NumericValue;
-    UPDATE Nodes SET NumericValue = _NumericValue, ValueType = _ReturnType WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-ELSIF _ReturnType = 'integer'::regtype THEN
-    EXECUTE _SQL INTO STRICT _IntegerValue;
-    UPDATE Nodes SET IntegerValue = _IntegerValue, ValueType = _ReturnType WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-ELSIF _ReturnType = 'boolean'::regtype THEN
-    EXECUTE _SQL INTO STRICT _BooleanValue;
-    UPDATE Nodes SET BooleanValue = _BooleanValue, ValueType = _ReturnType WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-ELSIF _ReturnType = 'void'::regtype THEN
-    EXECUTE _SQL;
-ELSE
-    RAISE NOTICE 'Unsupported type % % %', _FunctionName, _ReturnType, _ParentValueTypes;
+EXECUTE _SQL INTO STRICT _ReturnValue;
+
+RAISE DEBUG 'ReturnType % ReturnValue %', _ReturnType, _ReturnValue;
+
+EXECUTE format('SELECT %L::%s::text', _ReturnValue, _ReturnType) INTO STRICT _CastTest;
+IF _ReturnValue IS DISTINCT FROM _CastTest THEN
+    RAISE EXCEPTION 'ReturnValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _ReturnValue, _CastTest, _ReturnType;
 END IF;
 
-RAISE NOTICE 'Computed NodeID %, ReturnType % Value %', _NodeID, _ReturnType, COALESCE(_TextValue,_NameValue::text,_NumericValue::text,_IntegerValue::text,_BooleanValue::text);
+PERFORM Set_Node_Value(_NodeID := _NodeID, _TerminalType := _ReturnType, _TerminalValue := _ReturnValue);
+
+RAISE DEBUG 'Computed NodeID %, ReturnType % ReturnValue %', _NodeID, _ReturnType, _ReturnValue;
 
 RETURN TRUE;
 END;

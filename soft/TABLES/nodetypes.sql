@@ -2,7 +2,6 @@ CREATE TABLE NodeTypes (
 NodeTypeID         serial  NOT NULL,
 NodeType           text    NOT NULL,
 LanguageID         integer NOT NULL REFERENCES Languages(LanguageID),
-Walkable           boolean NOT NULL DEFAULT TRUE,
 TerminalType       regtype,
 NodeGroup          text,
 Literal            text,

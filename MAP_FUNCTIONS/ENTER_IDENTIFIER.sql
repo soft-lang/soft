@@ -23,6 +23,16 @@ IF _FunctionNameNodeID IS NULL THEN
 END IF;
 
 SELECT
+    Edges.ChildNodeID
+INTO STRICT
+    _ChildNodeID
+FROM Edges
+INNER JOIN Nodes AS ChildNode ON ChildNode.NodeID = Edges.ChildNodeID
+WHERE Edges.ParentNodeID      = _FunctionNameNodeID
+AND   Edges.DeathPhaseID      IS NULL
+AND   ChildNode.DeathPhaseID  IS NULL;
+
+SELECT
     Nodes.ProgramID,
     Nodes.TerminalValue
 INTO STRICT
@@ -45,9 +55,14 @@ _FunctionDeclarationNodeID := Find_Node(
     _Strict  := FALSE,
     _Paths   := ARRAY['<- FUNCTION_LABEL', _Name, '<- FUNCTION_DECLARATION']
 );
+
+RAISE NOTICE 'Found _FunctionDeclarationNodeID %', _FunctionDeclarationNodeID;
+
 SELECT ChildNodeID INTO STRICT _FunctionLabelNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _FunctionDeclarationNodeID;
 SELECT Kill_Edge(EdgeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _FunctionNameNodeID AND ParentNodeID = _NodeID;
-UPDATE Programs SET NodeID = _FunctionLabelNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+
+UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+
 PERFORM Kill_Node(_NodeID);
 SELECT Set_Edge_Parent(_EdgeID := EdgeID, _ParentNodeID := _FunctionLabelNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _FunctionNameNodeID;
 PERFORM Kill_Node(_FunctionNameNodeID);

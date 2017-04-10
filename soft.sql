@@ -45,6 +45,9 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/copy_node.sql
 \ir soft/FUNCTIONS/push_node.sql
 \ir soft/FUNCTIONS/pop_node.sql
+\ir soft/FUNCTIONS/determine_return_type.sql
+\ir soft/FUNCTIONS/set_node_value.sql
+\ir soft/FUNCTIONS/eval_node.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql
@@ -59,7 +62,8 @@ CREATE SCHEMA "REDUCE";
 \ir REDUCE/ENTER_PROGRAM.sql
 
 CREATE SCHEMA "MAP_VARIABLES";
-\ir MAP_VARIABLES/LEAVE_VARIABLE.sql
+\ir MAP_VARIABLES/LEAVE_LET_STATEMENT.sql
+\ir MAP_VARIABLES/LEAVE_STORE_ARGS.sql
 \ir MAP_VARIABLES/ENTER_IDENTIFIER.sql
 
 CREATE SCHEMA "MAP_FUNCTIONS";
@@ -68,6 +72,9 @@ CREATE SCHEMA "MAP_FUNCTIONS";
 
 CREATE SCHEMA "MAP_ALLOCA";
 \ir MAP_ALLOCA/ENTER_VARIABLE.sql
+
+CREATE SCHEMA "BLOCK_PATHS";
+\ir BLOCK_PATHS/LEAVE_FUNCTION_LABEL.sql
 
 CREATE SCHEMA "EVAL";
 \ir EVAL/ENTER_ALLOCA.sql
@@ -83,6 +90,9 @@ CREATE SCHEMA "EVAL";
 \ir EVAL/SUBTRACT.sql
 \ir EVAL/UNARY_MINUS.sql
 \ir EVAL/STORE_ARGS.sql
+\ir EVAL/LEAVE_PROGRAM.sql
+\ir EVAL/LEAVE_BLOCK_EXPRESSION.sql
+\ir EVAL/LEAVE_LET_STATEMENT.sql
 
 -- \ir soft/FUNCTIONS/tokenize.sql
 -- \ir soft/FUNCTIONS/parse.sql
@@ -97,7 +107,6 @@ CREATE SCHEMA "EVAL";
 -- \ir soft/FUNCTIONS/function_declarations.sql
 -- \ir soft/FUNCTIONS/find_node.sql
 -- \ir soft/FUNCTIONS/copy_node.sql
--- \ir soft/FUNCTIONS/set_node_value.sql
 -- \ir soft/FUNCTIONS/push_node.sql
 -- \ir soft/FUNCTIONS/pop_node.sql
 -- \ir soft/FUNCTIONS/execute_bonsai_functions.sql

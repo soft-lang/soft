@@ -39,13 +39,12 @@ SELECT
 INTO
     _ParentNodeID
 FROM Edges
-INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ParentNodeID
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
 WHERE Edges.ChildNodeID = _NodeID
 AND Nodes.Visited       < _Visited
 AND Edges.DeathPhaseID  IS NULL
 AND Nodes.DeathPhaseID  IS NULL
-AND NodeTypes.Walkable
+AND Nodes.Walkable      IS TRUE
 ORDER BY Edges.EdgeID
 LIMIT 1;
 IF FOUND THEN
@@ -54,6 +53,8 @@ IF FOUND THEN
     RETURN TRUE;
 END IF;
 
+PERFORM Eval_Node(_NodeID);
+
 PERFORM Leave_Node(_NodeID);
 
 IF NOT EXISTS (SELECT 1 FROM Nodes WHERE NodeID = _NodeID AND DeathPhaseID IS NULL) THEN
@@ -61,6 +62,13 @@ IF NOT EXISTS (SELECT 1 FROM Nodes WHERE NodeID = _NodeID AND DeathPhaseID IS NU
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
         _Message  := format('NodeID %s died when leaving it', _NodeID)
+    );
+    RETURN TRUE;
+ELSIF _NodeID <> (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Current program node moved by function', _NodeID)
     );
     RETURN TRUE;
 END IF;
@@ -72,11 +80,10 @@ INTO
 FROM Edges
 INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
 INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
-INNER JOIN NodeTypes           ON NodeTypes.NodeTypeID = ChildNode.NodeTypeID
 WHERE Edges.ParentNodeID      = _NodeID
 AND   Edges.DeathPhaseID      IS NULL
 AND   ParentNode.DeathPhaseID IS NULL
-AND   NodeTypes.Walkable
+AND   ChildNode.Walkable      IS TRUE
 ORDER BY ChildNode.Visited DESC
 LIMIT 1;
 IF FOUND THEN

@@ -6,6 +6,11 @@ _ProgramID    integer;
 _AllocaNodeID integer;
 BEGIN
 
+IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> LET_STATEMENT <- FUNCTION_DECLARATION') IS NOT NULL
+THEN
+    RETURN FALSE;
+END IF;
+
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
 _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := TRUE, _Path := '<- ALLOCA');

@@ -11,7 +11,7 @@ IF NOT EXISTS (SELECT 1 FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = 
     RAISE EXCEPTION 'Unable to pop % since it has no parents', _VariableNodeID;
 END IF;
 
-SELECT Kill_Edge(EdgeID), ParentNodeID INTO STRICT _OK, _NewNodeID FROM Edges WHERE ChildNodeID = _VariableNodeID;
+SELECT Kill_Edge(EdgeID), ParentNodeID INTO STRICT _OK, _NewNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _VariableNodeID;
 
 PERFORM Copy_Node(_NewNodeID, _VariableNodeID);
 

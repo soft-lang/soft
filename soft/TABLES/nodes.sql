@@ -7,6 +7,7 @@ DeathPhaseID         integer            REFERENCES Phases(PhaseID),
 TerminalType         regtype,
 TerminalValue        text,
 Visited              integer   NOT NULL DEFAULT 0,
+Walkable             boolean   NOT NULL DEFAULT TRUE,
 PRIMARY KEY (NodeID),
 CHECK (BirthPhaseID <= DeathPhaseID)
 );
