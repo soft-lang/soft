@@ -211,6 +211,7 @@ LOOP
     END IF;
 
     FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
+        RAISE NOTICE '_MatchedNodes % _MatchedNode %', _MatchedNodes, _MatchedNode;
         _ParentNodeID := Get_Capturing_Group(_String := _MatchedNode, _Pattern := _SingleNodePattern, _Strict := TRUE)::integer;
 
         _EdgeID := New_Edge(

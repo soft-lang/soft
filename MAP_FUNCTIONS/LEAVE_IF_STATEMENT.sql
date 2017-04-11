@@ -17,7 +17,10 @@ AND   ParentNode.DeathPhaseID IS NULL
 AND   ChildNode.DeathPhaseID  IS NULL;
 
 UPDATE Nodes SET Walkable = FALSE WHERE NodeID = _ParentNodes[2] RETURNING TRUE INTO STRICT _OK;
-UPDATE Nodes SET Walkable = FALSE WHERE NodeID = _ParentNodes[3] RETURNING TRUE INTO STRICT _OK;
+
+IF _ParentNodes[3] IS NOT NULL THEN
+    UPDATE Nodes SET Walkable = FALSE WHERE NodeID = _ParentNodes[3] RETURNING TRUE INTO STRICT _OK;
+END IF;
 
 RETURN TRUE;
 END;

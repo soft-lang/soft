@@ -77,7 +77,17 @@ THEN
 
 ELSIF _Condition           IS NOT TRUE
 AND   _TrueBranchReturning IS FALSE
-AND   _ElseBranchReturning IS NOT TRUE
+AND   _ElseBranchReturning IS NULL
+THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('No else branch, skipping ahead')
+    );
+
+ELSIF _Condition           IS NOT TRUE
+AND   _TrueBranchReturning IS FALSE
+AND   _ElseBranchReturning IS FALSE
 THEN
     PERFORM Log(
         _NodeID   := _NodeID,

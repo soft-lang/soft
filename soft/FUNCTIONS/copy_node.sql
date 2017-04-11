@@ -6,7 +6,11 @@ DECLARE
 _OK boolean;
 BEGIN
 
-RAISE NOTICE 'Copy % to %', _FromNodeID, _ToNodeID;
+PERFORM Log(
+    _NodeID   := _FromNodeID,
+    _Severity := 'DEBUG3',
+    _Message  := format('Copy node %s to %s', Node(_FromNodeID), Node(_ToNodeID))
+);
 
 UPDATE Nodes AS CopyTo SET
     TerminalType    = CopyFrom.TerminalType,
