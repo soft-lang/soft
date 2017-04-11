@@ -53,6 +53,7 @@ LOOP
     AND Nodes.DeathPhaseID     IS NULL
     AND Nodes.TerminalType     IS NULL
     AND NodeTypes.TerminalType IS NULL
+    AND NodeTypes.NodeSeverity IS NULL
     AND NOT EXISTS (
         SELECT 1 FROM pg_proc
         INNER JOIN pg_namespace ON pg_namespace.oid  = pg_proc.pronamespace

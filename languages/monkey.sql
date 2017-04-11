@@ -15,6 +15,6 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = 1+2+3-4**5+6*(8+9*10);
+let x = 1+2+3-4+++++5+6*(8+9*10);
 let y = 4+5*(6-7);
 $SRC$);
