@@ -6,6 +6,8 @@ DECLARE
 _OK boolean;
 BEGIN
 
+RAISE NOTICE 'Copy % to %', _FromNodeID, _ToNodeID;
+
 UPDATE Nodes AS CopyTo SET
     TerminalType    = CopyFrom.TerminalType,
     TerminalValue   = CopyFrom.TerminalValue

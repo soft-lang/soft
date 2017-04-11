@@ -27,7 +27,6 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/log.sql
 \ir soft/FUNCTIONS/colorize.sql
 \ir soft/FUNCTIONS/highlight_characters.sql
-\ir soft/FUNCTIONS/get_source_code_node.sql
 \ir soft/FUNCTIONS/get_source_code_fragment.sql
 \ir soft/FUNCTIONS/get_parent_nodes.sql
 \ir soft/FUNCTIONS/one_line.sql
@@ -48,6 +47,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/determine_return_type.sql
 \ir soft/FUNCTIONS/set_node_value.sql
 \ir soft/FUNCTIONS/eval_node.sql
+\ir soft/FUNCTIONS/set_program_node.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql
@@ -87,7 +87,6 @@ CREATE SCHEMA "EVAL";
 \ir EVAL/NOT_EQUAL.sql
 \ir EVAL/SUBTRACT.sql
 \ir EVAL/UNARY_MINUS.sql
-\ir EVAL/STORE_ARGS.sql
 \ir EVAL/LEAVE_PROGRAM.sql
 \ir EVAL/LEAVE_BLOCK_EXPRESSION.sql
 \ir EVAL/LEAVE_BLOCK_STATEMENT.sql

@@ -16,10 +16,10 @@ SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
 let x = 10;
-if (x > 20) {
-    x = 30;
-} else {
-    x = 40;
-}
-return x;
+let foo = fn(a) {
+    return 2*a+5;
+    a+5;
+};
+let y = foo(20);
+y;
 $SRC$);

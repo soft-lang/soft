@@ -35,7 +35,18 @@ PERFORM Log(
     _Message  := format('Visiting %s', Colorize(Node(_NodeID)))
 );
 
-PERFORM Eval_Node(_NodeID);
+IF NOT EXISTS (
+    SELECT 1
+    FROM Edges
+    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+    WHERE Edges.ChildNodeID = _NodeID
+    AND Edges.DeathPhaseID  IS NULL
+    AND Nodes.DeathPhaseID  IS NULL
+    AND Nodes.TerminalType  IS NULL
+    AND Nodes.Walkable      IS TRUE
+) THEN
+    PERFORM Eval_Node(_NodeID);
+END IF;
 
 SELECT
     Edges.ParentNodeID
