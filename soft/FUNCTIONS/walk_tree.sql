@@ -23,6 +23,7 @@ FOR UPDATE OF Programs;
 
 IF _NodeID IS NULL THEN
     UPDATE Programs SET NodeID = Get_Program_Node(_ProgramID) RETURNING NodeID INTO STRICT _NodeID;
+    UPDATE Nodes SET Visited = 1 WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
     PERFORM Enter_Node(_NodeID);
     _Visited := 1;
     RETURN TRUE;
@@ -33,6 +34,8 @@ PERFORM Log(
     _Severity := 'DEBUG4',
     _Message  := format('Visiting %s', Colorize(Node(_NodeID)))
 );
+
+PERFORM Eval_Node(_NodeID);
 
 SELECT
     Edges.ParentNodeID
@@ -49,11 +52,10 @@ ORDER BY Edges.EdgeID
 LIMIT 1;
 IF FOUND THEN
     UPDATE Programs SET NodeID = _ParentNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Nodes SET Visited = _Visited WHERE NodeID = _ParentNodeID RETURNING TRUE INTO STRICT _OK;
     PERFORM Enter_Node(_ParentNodeID);
     RETURN TRUE;
 END IF;
-
-PERFORM Eval_Node(_NodeID);
 
 PERFORM Leave_Node(_NodeID);
 
@@ -83,7 +85,6 @@ INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
 WHERE Edges.ParentNodeID      = _NodeID
 AND   Edges.DeathPhaseID      IS NULL
 AND   ParentNode.DeathPhaseID IS NULL
-AND   ChildNode.Walkable      IS TRUE
 ORDER BY ChildNode.Visited DESC
 LIMIT 1;
 IF FOUND THEN

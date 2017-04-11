@@ -69,12 +69,10 @@ CREATE SCHEMA "MAP_VARIABLES";
 CREATE SCHEMA "MAP_FUNCTIONS";
 \ir MAP_FUNCTIONS/ENTER_IDENTIFIER.sql
 \ir MAP_FUNCTIONS/LEAVE_FUNCTION_DECLARATION.sql
+\ir MAP_FUNCTIONS/LEAVE_IF_STATEMENT.sql
 
 CREATE SCHEMA "MAP_ALLOCA";
 \ir MAP_ALLOCA/ENTER_VARIABLE.sql
-
-CREATE SCHEMA "BLOCK_PATHS";
-\ir BLOCK_PATHS/LEAVE_FUNCTION_LABEL.sql
 
 CREATE SCHEMA "EVAL";
 \ir EVAL/ENTER_ALLOCA.sql
@@ -94,22 +92,6 @@ CREATE SCHEMA "EVAL";
 \ir EVAL/LEAVE_BLOCK_EXPRESSION.sql
 \ir EVAL/LEAVE_BLOCK_STATEMENT.sql
 \ir EVAL/LEAVE_LET_STATEMENT.sql
+\ir EVAL/LEAVE_IF_STATEMENT.sql
+\ir EVAL/LEAVE_ASSIGNMENT_STATEMENT.sql
 \ir EVAL/LEAVE_RETURN_STATEMENT.sql
-
--- \ir soft/FUNCTIONS/tokenize.sql
--- \ir soft/FUNCTIONS/parse.sql
--- \ir soft/FUNCTIONS/get_dot.sql
--- \ir soft/FUNCTIONS/shortcut_nops.sql
--- \ir soft/FUNCTIONS/eval_node.sql
--- \ir soft/FUNCTIONS/matching_arguments.sql
--- \ir soft/FUNCTIONS/walk_tree.sql
--- \ir soft/FUNCTIONS/find_last_edge.sql
--- \ir soft/FUNCTIONS/free_variables.sql
--- \ir soft/FUNCTIONS/if_statements.sql
--- \ir soft/FUNCTIONS/function_declarations.sql
--- \ir soft/FUNCTIONS/find_node.sql
--- \ir soft/FUNCTIONS/copy_node.sql
--- \ir soft/FUNCTIONS/push_node.sql
--- \ir soft/FUNCTIONS/pop_node.sql
--- \ir soft/FUNCTIONS/execute_bonsai_functions.sql
--- \ir soft/FUNCTIONS/set_visited.sql
