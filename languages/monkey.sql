@@ -1,6 +1,6 @@
 SET search_path TO soft, public;
 
-SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG3');
+SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG5');
 \ir monkey/node_types.sql
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
@@ -16,6 +16,16 @@ SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
 let foo = fn(x) {
+    return x;
+};
+let y = foo(10)+foo(20);
+return y;
+$SRC$);
+
+/*
+
+
+let foo = fn(x) {
     if (x == 10) {
         return x;
     } else {
@@ -24,9 +34,6 @@ let foo = fn(x) {
 };
 let z = foo(0);
 return z;
-$SRC$);
-
-/*
 
 let foo = fn(x) {
     if (x == 3) {
