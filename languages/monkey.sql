@@ -15,27 +15,19 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let x = 10;
-let foo = fn(a,b) {
-    let c = a+b;
-    return c;
-    let d = 10;
-    return d;
+let foo = fn(x) {
+    if (x == 3) {
+        return x;
+    } else {
+        return foo(x+1);
+    }
 };
-let y = 2*x*foo(20,30);
+let y = foo(0);
 return y;
 $SRC$);
 
 /*
 
-let rec = fn(i,max,value) {
-    if (i == max) {
-        return value;
-    } else {
-        return rec(i+1,max,value*i);
-    }
-};
-let x = rec(0,10,0);
 
 let fibonacci = fn(x) {
     if (x == 1) {

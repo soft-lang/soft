@@ -5,6 +5,7 @@ AS $$
 DECLARE
 _ProgramID integer;
 _NewNodeID integer;
+_EdgeID    integer;
 _OK        boolean;
 BEGIN
 
@@ -30,9 +31,7 @@ WHERE NodeID = _VariableNodeID
 AND DeathPhaseID IS NULL
 RETURNING TRUE INTO STRICT _OK;
 
-IF EXISTS (SELECT 1 FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _VariableNodeID) THEN
-    SELECT Set_Edge_Child(_EdgeID := EdgeID, _ChildNodeID := _NewNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _VariableNodeID;
-END IF;
+PERFORM Set_Edge_Child(_EdgeID := EdgeID, _ChildNodeID := _NewNodeID) FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _VariableNodeID;
 
 PERFORM New_Edge(
     _ProgramID    := _ProgramID,

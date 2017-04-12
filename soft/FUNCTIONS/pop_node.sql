@@ -15,9 +15,7 @@ SELECT Kill_Edge(EdgeID), ParentNodeID INTO STRICT _OK, _NewNodeID FROM Edges WH
 
 PERFORM Copy_Node(_NewNodeID, _VariableNodeID);
 
-IF EXISTS (SELECT 1 FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NewNodeID) THEN
-    SELECT Set_Edge_Child(_EdgeID := EdgeID, _ChildNodeID := _VariableNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NewNodeID;
-END IF;
+PERFORM Set_Edge_Child(_EdgeID := EdgeID, _ChildNodeID := _VariableNodeID) FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NewNodeID;
 
 PERFORM Kill_Node(_NewNodeID);
 
