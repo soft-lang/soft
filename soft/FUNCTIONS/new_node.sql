@@ -13,9 +13,6 @@ _NodeID       integer;
 _OK           boolean;
 _CastTest     text;
 BEGIN
-IF (SELECT TerminalType FROM NodeTypes WHERE NodeTypeID = _NodeTypeID) <> _TerminalType THEN
-    RAISE EXCEPTION 'TerminalType % is different from NodeTypes.TerminalType', _TerminalType;
-END IF;
 
 SELECT PhaseID INTO STRICT _BirthPhaseID FROM Programs WHERE ProgramID = _ProgramID;
 

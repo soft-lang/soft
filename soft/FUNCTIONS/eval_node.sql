@@ -81,7 +81,11 @@ END IF;
 
 PERFORM Set_Node_Value(_NodeID := _NodeID, _TerminalType := _ReturnType, _TerminalValue := _ReturnValue);
 
-RAISE DEBUG 'Computed NodeID %, ReturnType % ReturnValue %', _NodeID, _ReturnType, _ReturnValue;
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'DEBUG3',
+    _Message  := format('Computed node "%s" to value "%s" of type "%s"', Colorize(Node(_NodeID)), Colorize(_ReturnValue,'CYAN'), Colorize(_ReturnType::text,'MAGENTA'))
+);
 
 RETURN TRUE;
 END;

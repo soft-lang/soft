@@ -3,14 +3,8 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_OK boolean;
+_TerminalValue text;
 BEGIN
-
-PERFORM Log(
-    _NodeID   := _FromNodeID,
-    _Severity := 'DEBUG3',
-    _Message  := format('Copy node %s to %s', Node(_FromNodeID), Node(_ToNodeID))
-);
 
 UPDATE Nodes AS CopyTo SET
     TerminalType    = CopyFrom.TerminalType,
@@ -18,7 +12,13 @@ UPDATE Nodes AS CopyTo SET
 FROM Nodes AS CopyFrom
 WHERE CopyFrom.NodeID = _FromNodeID
 AND     CopyTo.NodeID = _ToNodeID
-RETURNING TRUE INTO STRICT _OK;
+RETURNING CopyTo.TerminalValue INTO STRICT _TerminalValue;
+
+PERFORM Log(
+    _NodeID   := _FromNodeID,
+    _Severity := 'DEBUG3',
+    _Message  := format('Copied "%s" from node %s to %s', Colorize(_TerminalValue), Colorize(Node(_FromNodeID),'CYAN'), Colorize(Node(_ToNodeID),'CYAN'))
+);
 
 RETURN TRUE;
 END;

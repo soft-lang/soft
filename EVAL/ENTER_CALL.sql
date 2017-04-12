@@ -6,7 +6,6 @@ _ProgramID                 integer;
 _RetNodeID                 integer;
 _FunctionDeclarationNodeID integer;
 _RetEdgeID                 integer;
-_LastNodeID                integer;
 _AllocaNodeID              integer;
 _VariableNodeID            integer;
 _OK                        boolean;
@@ -36,22 +35,12 @@ ELSE
     SELECT EdgeID INTO STRICT _RetEdgeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND ChildNodeID = _RetNodeID;
     _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> RET -> FUNCTION_DECLARATION');
 
-    SELECT     ParentNodeID
-    INTO STRICT _LastNodeID
-    FROM Edges
-    WHERE ChildNodeID = _FunctionDeclarationNodeID
-    AND DeathPhaseID IS NULL
-    ORDER BY EdgeID DESC
-    OFFSET 1
-    LIMIT 1;
-
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := format('Returning function call at %s value from last node %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_LastNodeID),'MAGENTA'))
+        _Message  := format('Returning function call at %s', Colorize(Node(_NodeID),'CYAN'))
     );
 
-    PERFORM Copy_Node(_FromNodeID := _LastNodeID, _ToNodeID := _NodeID);
     PERFORM Kill_Edge(_RetEdgeID);
 
     _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_LABEL <- FUNCTION_DECLARATION <- ALLOCA');

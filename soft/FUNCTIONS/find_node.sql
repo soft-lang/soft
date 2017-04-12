@@ -92,6 +92,11 @@ LOOP
         RAISE too_many_rows USING MESSAGE = format('query returned more than one row: NodeID %s Paths "%s" Count %s SQL "%s"', _NodeID, array_to_string(_Paths,','), _Count, _SQL);
     END IF;
     IF _FoundNodeID IS NOT NULL THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG3',
+            _Message  := format('Found node %s', Colorize(Node(_FoundNodeID)))
+        );
         RETURN _FoundNodeID;
     ELSIF _Descend THEN
         IF NOT EXISTS (SELECT 1 FROM Edges WHERE ParentNodeID = _NodeID) THEN

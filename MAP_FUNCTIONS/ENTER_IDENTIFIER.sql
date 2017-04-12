@@ -55,10 +55,18 @@ _FunctionDeclarationNodeID := Find_Node(
     _Strict  := FALSE,
     _Paths   := ARRAY['<- FUNCTION_LABEL', _Name, '<- FUNCTION_DECLARATION']
 );
+IF _FunctionDeclarationNodeID IS NOT NULL THEN
+    SELECT ChildNodeID INTO STRICT _FunctionLabelNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _FunctionDeclarationNodeID;
+ELSE
+    -- Handle self-calling recursive calls
+    _FunctionLabelNodeID := Find_Node(
+        _NodeID  := _NodeID,
+        _Descend := TRUE,
+        _Strict  := FALSE,
+        _Paths   := ARRAY['-> FUNCTION_DECLARATION -> FUNCTION_LABEL', _Name]
+    );
+END IF;
 
-RAISE NOTICE 'Found _FunctionDeclarationNodeID %', _FunctionDeclarationNodeID;
-
-SELECT ChildNodeID INTO STRICT _FunctionLabelNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _FunctionDeclarationNodeID;
 SELECT Kill_Edge(EdgeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _FunctionNameNodeID AND ParentNodeID = _NodeID;
 
 UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
