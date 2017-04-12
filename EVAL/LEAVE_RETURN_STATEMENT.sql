@@ -33,7 +33,22 @@ _FunctionDeclarationNodeID := Find_Node(
 );
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
     _RetNodeID  := Find_Node(_NodeID := _FunctionDeclarationNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
-    _CallNodeID := Find_Node(_NodeID := _RetNodeID,                 _Descend := FALSE, _Strict := TRUE, _Path := '<- CALL');
+
+    SELECT      CALL.NodeID
+    INTO STRICT _CallNodeID
+    FROM (
+        SELECT Edges.ParentNodeID AS NodeID
+        FROM Edges
+        WHERE Edges.ChildNodeID  = _RetNodeID
+        AND   Edges.DeathPhaseID IS NULL
+        ORDER BY Edges.EdgeID DESC
+        LIMIT 1
+    ) AS CALL
+    INNER JOIN Nodes     ON Nodes.NodeID         = CALL.NodeID
+    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    WHERE Nodes.DeathPhaseID IS NULL
+    AND   NodeTypes.NodeType = 'CALL';
+
     PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _RetNodeID, _CurrentNodeID := _NodeID);
     UPDATE Nodes SET Visited = Visited + 1 WHERE NodeID = _RetNodeID RETURNING TRUE INTO STRICT _OK;
     PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _CallNodeID);

@@ -56,7 +56,7 @@ IF _SourceCodeCharacters IS NOT NULL THEN
     );
 END IF;
 
-RAISE NOTICE E'NodeID % program "%" phase "%" %: "%"%', _NodeID, _Program, _Phase, Colorize(_Severity::text, _Color), _Message, _Context;
+RAISE NOTICE E'% program "%" phase "%" %: "%"%', Colorize(Node(_NodeID)), _Program, _Phase, Colorize(_Severity::text, _Color), _Message, _Context;
 
 INSERT INTO Log (NodeID, PhaseID,  Severity,  Message,  SourceCodeCharacters,  NodeIDs)
 SELECT          _NodeID, PhaseID, _Severity, _Message, _SourceCodeCharacters, _NodeIDs

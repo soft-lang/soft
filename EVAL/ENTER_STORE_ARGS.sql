@@ -2,12 +2,29 @@ CREATE OR REPLACE FUNCTION "EVAL"."ENTER_STORE_ARGS"(_NodeID integer) RETURNS vo
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_CallNodeID integer;
+_RetNodeID       integer;
+_CallNodeID      integer;
 _CopyFromNodeIDs integer[];
-_CopyToNodeIDs integer[];
-_OK boolean;
+_CopyToNodeIDs   integer[];
+_OK              boolean;
 BEGIN
-_CallNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION <- RET <- CALL');
+
+_RetNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION <- RET');
+
+SELECT      CALL.NodeID
+INTO STRICT _CallNodeID
+FROM (
+    SELECT Edges.ParentNodeID AS NodeID
+    FROM Edges
+    WHERE Edges.ChildNodeID  = _RetNodeID
+    AND   Edges.DeathPhaseID IS NULL
+    ORDER BY Edges.EdgeID DESC
+    LIMIT 1
+) AS CALL
+INNER JOIN Nodes     ON Nodes.NodeID         = CALL.NodeID
+INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+WHERE Nodes.DeathPhaseID IS NULL
+AND   NodeTypes.NodeType = 'CALL';
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT _CopyFromNodeIDs
