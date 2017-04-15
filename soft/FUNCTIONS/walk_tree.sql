@@ -8,7 +8,9 @@ _PhaseID      integer;
 _LanguageID   integer;
 _NextPhaseID  integer;
 _ParentNodeID integer;
+_NextNodeID   integer;
 _ChildNodeID  integer;
+_EdgeID       integer;
 _Visited      integer;
 _OK           boolean;
 BEGIN
@@ -87,8 +89,10 @@ ELSIF _NodeID <> (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) THEN
 END IF;
 
 SELECT
+    Edges.EdgeID,
     Edges.ChildNodeID
 INTO
+    _EdgeID,
     _ChildNodeID
 FROM Edges
 INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
@@ -98,14 +102,41 @@ AND   Edges.DeathPhaseID      IS NULL
 AND   ParentNode.DeathPhaseID IS NULL
 ORDER BY ChildNode.Visited DESC
 LIMIT 1;
+
 IF FOUND THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG5',
-        _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_ChildNodeID), 'MAGENTA'))
-    );
-    UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-    RETURN TRUE;
+    SELECT
+        Edges.ParentNodeID
+    INTO
+        _NextNodeID
+    FROM Edges
+    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+    WHERE Edges.ChildNodeID = _ChildNodeID
+    AND Nodes.Visited       < _Visited
+    AND Edges.EdgeID        > _EdgeID
+    AND Edges.DeathPhaseID  IS NULL
+    AND Nodes.DeathPhaseID  IS NULL
+    AND Nodes.Walkable      IS TRUE
+    ORDER BY Edges.EdgeID
+    LIMIT 1;
+    IF FOUND THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG5',
+            _Message  := format('Walking from %s to next node %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_NextNodeID), 'MAGENTA'))
+        );
+        UPDATE Programs SET NodeID = _NextNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+        UPDATE Nodes SET Visited = _Visited WHERE NodeID = _NextNodeID RETURNING TRUE INTO STRICT _OK;
+        PERFORM Enter_Node(_NextNodeID);
+        RETURN TRUE;
+    ELSE
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG5',
+            _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_ChildNodeID), 'MAGENTA'))
+        );
+        UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+        RETURN TRUE;
+    END IF;
 END IF;
 
 SELECT    PhaseID

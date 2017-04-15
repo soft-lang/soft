@@ -4,6 +4,7 @@ AS $$
 DECLARE
 _ProgramID    integer;
 _AllocaNodeID integer;
+_OK           boolean;
 BEGIN
 
 IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> LET_STATEMENT <- FUNCTION_DECLARATION') IS NOT NULL

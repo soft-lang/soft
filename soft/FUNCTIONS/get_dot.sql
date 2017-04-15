@@ -6,14 +6,15 @@ DECLARE
 BEGIN
 
 RETURN QUERY
-SELECT format(E'"%s" [label="%s\n%s\n%s\n%s"%s];',
+SELECT format(E'"%s" [label="%s\n%s\n%s\n%s\n%s"%s];',
     Nodes.NodeID,
     NodeTypes.NodeType,
     Nodes.TerminalType::text,
     'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.TerminalType::text,'NAN') || ' ' || COALESCE(replace(Nodes.TerminalValue,'"','\"'), 'NULL'),
     Nodes.Visited,
+    (SELECT Phases.Phase FROM Programs INNER JOIN Phases USING (PhaseID)),
     CASE
-    WHEN Nodes.BirthPhaseID > 1 THEN ' style="filled" fillcolor="grey"'
+    WHEN Nodes.NodeID = (SELECT NodeID FROM Programs) THEN ' style="filled" fillcolor="grey"'
     END
 )
 FROM Nodes

@@ -33,7 +33,7 @@ INNER JOIN Phases       ON Phases.PhaseID       = Programs.PhaseID
 WHERE pg_namespace.nspname = Phases.Phase
 AND   Nodes.NodeID         = _NodeID;
 IF NOT FOUND THEN
-    RETURN FALSE;
+    RETURN NULL;
 END IF;
 
 SELECT array_agg(pg_type.typname::regtype ORDER BY TypeOIDs.Ordinality)

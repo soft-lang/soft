@@ -15,18 +15,79 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
-let foo = fn(x) {
-    return x;
-};
-let y = foo(10)+foo(20);
-return y;
+let x = 1+2*3;
+let y = 4;
+let z = 5;
+let abc = x+y+z;
 $SRC$);
 
 /*
 
+let foo = fn(x) {
+    if (x > 3) {
+        return 3;
+    }
+    let a = foo(x+1);
+    let b = foo(x+2);
+    return a+b;
+};
+let y = foo(1);
+return y;
+
+let fibonacci = fn(x) {
+    if (x == 0) {
+        return 0;
+    } else if (x == 1) {
+        return 1;
+    } else {
+        return fibonacci(x - 1) + fibonacci(x - 2);
+    }
+};
+let foo = fibonacci(4);
+
+return foo;
+
+let fibonacci = fn(x) {
+    if (x == 0) {
+        return 0;
+    } else if (x == 1) {
+        return 1;
+    } else {
+        return fibonacci(x - 1) + fibonacci(x - 2);
+    }
+};
+let foo = fibonacci(4);
+
+return foo;
+
+let cd = fn(x) {
+    if (x == 2) {
+        return 100;
+    } else {
+        return cd(x+1);
+    }
+};
+let y = cd(0);
+return y;
+
+
 
 let foo = fn(x) {
-    if (x == 10) {
+    if (x == 1) {
+        return x;
+    } else {
+        let a = foo(1);
+        let b = foo(1);
+        return a+b;
+    }
+};
+let y = foo(2);
+return y;
+
+
+
+let foo = fn(x) {
+    if (x == 3) {
         return x;
     } else {
         return foo(x+1);
@@ -34,6 +95,16 @@ let foo = fn(x) {
 };
 let z = foo(0);
 return z;
+
+let foo = fn(x) {
+    return x;
+};
+let bar = fn(x,y) {
+    return x*y;
+};
+let y = foo(10)+bar(3,2);
+return y;
+
 
 let foo = fn(x) {
     if (x == 3) {
@@ -46,13 +117,6 @@ let y = foo(0);
 return y;
 
 
-let fibonacci = fn(x) {
-    if (x == 1) {
-        1
-    } else {
-        return fibonacci(x - 1) + fibonacci(x - 2)
-    }
-};
 
 
 */

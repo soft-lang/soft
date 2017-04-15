@@ -1,9 +1,5 @@
-CREATE OR REPLACE FUNCTION Run(
-OUT TerminalType  regtype,
-OUT TerminalValue text,
-_ProgramID        integer
-)
-RETURNS record
+CREATE OR REPLACE FUNCTION Run(_ProgramID integer)
+RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -14,9 +10,9 @@ _Step := 0;
 LOOP
     _Step := _Step + 1;
     RAISE NOTICE '%', _Step;
-    -- IF _Step = 349 THEN
-    --     EXIT;
-    -- END IF;
+    IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'EVAL' THEN
+        EXIT;
+    END IF;
     BEGIN
         IF NOT Walk_Tree(_ProgramID) THEN
             EXIT;
@@ -26,16 +22,7 @@ LOOP
         EXIT;
     END;
 END LOOP;
-SELECT
-    Nodes.TerminalType,
-    Nodes.TerminalValue
-INTO STRICT
-    TerminalType,
-    TerminalValue
-FROM Programs
-INNER JOIN Nodes ON Nodes.NodeID = Programs.NodeID
-WHERE Programs.ProgramID = _ProgramID;
-RETURN;
+RETURN TRUE;
 END;
 $$;
 

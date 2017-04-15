@@ -41,6 +41,7 @@ _FunctionDeclarationNodeID := Find_Node(
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
     PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _FunctionDeclarationNodeID, _CurrentNodeID := _NodeID);
     PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _FunctionDeclarationNodeID);
+    PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _NodeID);
 ELSE
     -- Returning from program
     _ProgramNodeID := Get_Program_Node(_ProgramID := _ProgramID);
