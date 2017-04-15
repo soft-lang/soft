@@ -6,8 +6,8 @@ _Visited                   integer;
 _ReturnValueNodeID         integer;
 _ProgramID                 integer;
 _CallNodeID                integer;
-_RetNodeID                 integer;
 _FunctionDeclarationNodeID integer;
+_RetNodeID                 integer;
 _ProgramNodeID             integer;
 _OK                        boolean;
 BEGIN
@@ -39,9 +39,18 @@ _FunctionDeclarationNodeID := Find_Node(
     _Path    := '-> FUNCTION_DECLARATION'
 );
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
-    PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _FunctionDeclarationNodeID, _CurrentNodeID := _NodeID);
+    _RetNodeID := Find_Node(
+        _NodeID  := _FunctionDeclarationNodeID,
+        _Descend := FALSE,
+        _Strict  := TRUE,
+        _Path    := '<- RET'
+    );
+    UPDATE Nodes SET Visited = _Visited WHERE NodeID = _RetNodeID RETURNING TRUE INTO STRICT _OK;
     PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _FunctionDeclarationNodeID);
     PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _NodeID);
+    PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _RetNodeID, _CurrentNodeID := _NodeID);
+    PERFORM "EVAL"."ENTER_RET"(_RetNodeID);
+    RETURN;
 ELSE
     -- Returning from program
     _ProgramNodeID := Get_Program_Node(_ProgramID := _ProgramID);

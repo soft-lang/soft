@@ -135,6 +135,7 @@ IF FOUND THEN
             _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_ChildNodeID), 'MAGENTA'))
         );
         UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+        UPDATE Nodes SET Visited = _Visited WHERE NodeID = _ChildNodeID RETURNING TRUE INTO STRICT _OK;
         RETURN TRUE;
     END IF;
 END IF;
