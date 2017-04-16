@@ -3,27 +3,23 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
-_Visited                   integer;
-_CallEdgeID                integer;
 _CallNodeID                integer;
 _FunctionDeclarationNodeID integer;
 _ProgramNodeID             integer;
 _AllocaNodeID              integer;
 _VariableNodeID            integer;
-_ChildNodeID               integer;
 _OK                        boolean;
 BEGIN
 
-SELECT ProgramID, Visited INTO STRICT _ProgramID, _Visited FROM Nodes WHERE NodeID = _NodeID;
+SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
 _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> FUNCTION_DECLARATION');
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
     _AllocaNodeID := Find_Node(_NodeID := _FunctionDeclarationNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- ALLOCA');
+
     SELECT
-        CALL.EdgeID,
         CALL.NodeID
     INTO STRICT
-        _CallEdgeID,
         _CallNodeID
     FROM (
         SELECT
@@ -40,39 +36,26 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
     WHERE Nodes.DeathPhaseID IS NULL
     AND   NodeTypes.NodeType = 'CALL';
 
-    SELECT Edges.ChildNodeID
-    INTO STRICT _ChildNodeID
-    FROM Edges
-    INNER JOIN Nodes ON Nodes.NodeID = Edges.ChildNodeID
-    WHERE Edges.ParentNodeID = _CallNodeID
-    AND Edges.DeathPhaseID IS NULL
-    AND Nodes.DeathPhaseID IS NULL
-    ORDER BY Edges.EdgeID
-    LIMIT 1;
+    PERFORM Copy_Node(_FromNodeID := _NodeID, _ToNodeID := _CallNodeID);
 
-    PERFORM Copy_Node(_FromNodeID := _FunctionDeclarationNodeID, _ToNodeID := _CallNodeID);
+    UPDATE Nodes SET
+        TerminalType  = NULL,
+        TerminalValue = NULL
+    WHERE NodeID = _NodeID
+    AND DeathPhaseID IS NULL
+    RETURNING TRUE INTO STRICT _OK;
 
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
-    PERFORM Kill_Edge(_CallEdgeID);
 
-    UPDATE Nodes SET Visited = _Visited + 1 WHERE NodeID = _CallNodeID  RETURNING TRUE INTO STRICT _OK;
+    PERFORM Pop_Visited(NodeID) FROM Nodes WHERE ProgramID = _ProgramID AND DeathPhaseID IS NULL;
 
-    UPDATE Nodes SET Visited = _Visited + 1 WHERE NodeID IN (
-        SELECT Edges.ParentNodeID
-        FROM Edges
-        INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
-        WHERE Edges.ChildNodeID = _ChildNodeID
-        AND Edges.DeathPhaseID IS NULL
-        AND Nodes.DeathPhaseID IS NULL
-    );
+    PERFORM Set_Visited(_NodeID, TRUE);
 
-    UPDATE Nodes SET Visited = _Visited + 1 WHERE NodeID = _ChildNodeID RETURNING TRUE INTO STRICT _OK;
-
-    UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Programs SET NodeID = _CallNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 ELSE
     _ProgramNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> PROGRAM');
     _AllocaNodeID := Find_Node(_NodeID := _ProgramNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- ALLOCA');

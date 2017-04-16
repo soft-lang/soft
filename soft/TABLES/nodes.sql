@@ -6,7 +6,7 @@ BirthPhaseID         integer   NOT NULL REFERENCES Phases(PhaseID),
 DeathPhaseID         integer            REFERENCES Phases(PhaseID),
 TerminalType         regtype,
 TerminalValue        text,
-Visited              integer   NOT NULL DEFAULT 0,
+Visited              boolean[] NOT NULL DEFAULT ARRAY[FALSE],
 Walkable             boolean   NOT NULL DEFAULT TRUE,
 PRIMARY KEY (NodeID),
 CHECK (BirthPhaseID <= DeathPhaseID)

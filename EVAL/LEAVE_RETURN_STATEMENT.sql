@@ -2,7 +2,6 @@ CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_RETURN_STATEMENT"(_NodeID integer) RETU
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Visited                   integer;
 _ReturnValueNodeID         integer;
 _ProgramID                 integer;
 _CallNodeID                integer;
@@ -13,10 +12,8 @@ _OK                        boolean;
 BEGIN
 
 SELECT
-    Nodes.Visited,
     Edges.ParentNodeID
 INTO STRICT
-    _Visited,
     _ReturnValueNodeID
 FROM Edges
 INNER JOIN Nodes ON Nodes.NodeID = Edges.ChildNodeID
@@ -45,9 +42,7 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Strict  := TRUE,
         _Path    := '<- RET'
     );
-    UPDATE Nodes SET Visited = _Visited WHERE NodeID = _RetNodeID RETURNING TRUE INTO STRICT _OK;
-    PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _FunctionDeclarationNodeID);
-    PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _NodeID);
+    PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _RetNodeID);
     PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _RetNodeID, _CurrentNodeID := _NodeID);
     PERFORM "EVAL"."ENTER_RET"(_RetNodeID);
     RETURN;

@@ -15,6 +15,22 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
+let fibonacci = fn(x) {
+    if (x == 0) {
+        return 0;
+    } else if (x == 1) {
+        return 1;
+    } else {
+        return fibonacci(x - 2)+fibonacci(x - 1);
+    }
+};
+let foo = fibonacci(3);
+
+return foo;
+$SRC$);
+
+/*
+
 let foo = fn(x) {
     if (x > 3) {
         return 3;
@@ -25,27 +41,25 @@ let foo = fn(x) {
 };
 let y = foo(1);
 return y;
-$SRC$);
 
-/*
+let foo = fn(x) {
+    if (x == 2) {
+        return 10;
+    } else {
+        return foo(x+1);
+    }
+};
+let y = foo(0);
+return y;
+
+
+
 
 let x = 1+2*3;
 let y = 4;
 let z = 5;
 let abc = x+y+z;
 
-let fibonacci = fn(x) {
-    if (x == 0) {
-        return 0;
-    } else if (x == 1) {
-        return 1;
-    } else {
-        return fibonacci(x - 1) + fibonacci(x - 2);
-    }
-};
-let foo = fibonacci(4);
-
-return foo;
 
 let fibonacci = fn(x) {
     if (x == 0) {

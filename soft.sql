@@ -48,6 +48,10 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/set_node_value.sql
 \ir soft/FUNCTIONS/eval_node.sql
 \ir soft/FUNCTIONS/set_program_node.sql
+\ir soft/FUNCTIONS/push_visited.sql
+\ir soft/FUNCTIONS/pop_visited.sql
+\ir soft/FUNCTIONS/get_visited.sql
+\ir soft/FUNCTIONS/set_visited.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql
