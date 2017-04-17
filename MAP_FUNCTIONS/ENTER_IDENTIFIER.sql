@@ -3,11 +3,12 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
+_AllocaNodeID              integer;
 _Name                      text;
 _FunctionNameNodeID        integer;
 _FunctionDeclarationNodeID integer;
 _FunctionLabelNodeID       integer;
-_ChildNodeID               integer;
+_CallNodeID                integer;
 _OK                        boolean;
 BEGIN
 
@@ -18,6 +19,8 @@ _FunctionNameNodeID := Find_Node(
     _Path    := '-> FUNCTION_NAME'
 );
 
+_AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := TRUE, _Path := '<- ALLOCA');
+
 IF _FunctionNameNodeID IS NULL THEN
     RETURN FALSE;
 END IF;
@@ -25,7 +28,7 @@ END IF;
 SELECT
     Edges.ChildNodeID
 INTO STRICT
-    _ChildNodeID
+    _CallNodeID
 FROM Edges
 INNER JOIN Nodes AS ChildNode ON ChildNode.NodeID = Edges.ChildNodeID
 WHERE Edges.ParentNodeID      = _FunctionNameNodeID
@@ -69,11 +72,17 @@ END IF;
 
 SELECT Kill_Edge(EdgeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _FunctionNameNodeID AND ParentNodeID = _NodeID;
 
-UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+UPDATE Programs SET NodeID = _CallNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 
 PERFORM Kill_Node(_NodeID);
 SELECT Set_Edge_Parent(_EdgeID := EdgeID, _ParentNodeID := _FunctionLabelNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _FunctionNameNodeID;
 PERFORM Kill_Node(_FunctionNameNodeID);
+
+PERFORM New_Edge(
+    _ProgramID    := _ProgramID,
+    _ParentNodeID := _CallNodeID,
+    _ChildNodeID  := _AllocaNodeID
+);
 
 RETURN TRUE;
 END;

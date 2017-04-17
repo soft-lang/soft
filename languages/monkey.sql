@@ -25,22 +25,12 @@ let fibonacci = fn(x) {
     }
 };
 let foo = fibonacci(3);
-
 return foo;
 $SRC$);
 
 /*
 
-let foo = fn(x) {
-    if (x > 3) {
-        return 3;
-    }
-    let a = foo(x+1);
-    let b = foo(x+2);
-    return a+b;
-};
-let y = foo(1);
-return y;
+
 
 let foo = fn(x) {
     if (x == 2) {

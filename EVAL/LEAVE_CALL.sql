@@ -44,6 +44,15 @@ IF FOUND THEN
     );
     PERFORM Kill_Edge(_RetEdgeID);
 
+    PERFORM Copy_Node(_FromNodeID := _RetNodeID, _ToNodeID := _NodeID);
+
+    UPDATE Nodes SET
+        TerminalType  = NULL,
+        TerminalValue = NULL
+    WHERE NodeID = _RetNodeID
+    AND DeathPhaseID IS NULL
+    RETURNING TRUE INTO STRICT _OK;
+
     SELECT Edges.ChildNodeID
     INTO _NextNodeID
     FROM Edges

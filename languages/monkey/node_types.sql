@@ -1,4 +1,5 @@
 SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'SOURCE_CODE');
+SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'STACK');
 SELECT New_Node_Type(_Language := 'monkey', _TerminalType := 'void'::regtype,                                                                                            _NodeType := 'ALLOCA');
 SELECT New_Node_Type(_Language := 'monkey', _TerminalType := 'void'::regtype,                                                                                            _NodeType := 'RET');
 SELECT New_Node_Type(_Language := 'monkey',                                                                                                                              _NodeType := 'FUNCTION_LABEL');

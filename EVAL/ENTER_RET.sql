@@ -36,15 +36,6 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
     WHERE Nodes.DeathPhaseID IS NULL
     AND   NodeTypes.NodeType = 'CALL';
 
-    PERFORM Copy_Node(_FromNodeID := _NodeID, _ToNodeID := _CallNodeID);
-
-    UPDATE Nodes SET
-        TerminalType  = NULL,
-        TerminalValue = NULL
-    WHERE NodeID = _NodeID
-    AND DeathPhaseID IS NULL
-    RETURNING TRUE INTO STRICT _OK;
-
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',

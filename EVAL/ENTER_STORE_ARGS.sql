@@ -33,8 +33,9 @@ FROM (
     WHERE ChildNodeID = _CallNodeID
     AND DeathPhaseID IS NULL
     ORDER BY EdgeID
-    OFFSET 1
 ) AS X;
+
+_CopyFromNodeIDs := _CopyFromNodeIDs[2:array_length(_CopyFromNodeIDs,1)-1];
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT _CopyToNodeIDs 
