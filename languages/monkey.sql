@@ -1,6 +1,10 @@
 SET search_path TO soft, public;
 
-SELECT New_Language(_Language := 'monkey', _LogSeverity := 'DEBUG5');
+SELECT New_Language(
+    _Language             := 'monkey',
+    _LogSeverity          := 'DEBUG5',
+    _ImplicitReturnValues := TRUE
+);
 \ir monkey/node_types.sql
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
@@ -14,6 +18,11 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 SELECT New_Program(_Language := 'monkey', _Program := 'test');
 
 SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
+
+$SRC$);
+
+/*
+
 let fibonacci = fn(x) {
     if (x == 0) {
         return 0;
@@ -25,16 +34,9 @@ let fibonacci = fn(x) {
 };
 let foo = fibonacci(7);
 return foo;
-$SRC$);
-
-/*
 
 let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));
 
-let y = 123;
-let z = 234;
-let x = if (1 == 1) { y } else { z };
-return x;
 
 
 let foo = fn(x) {

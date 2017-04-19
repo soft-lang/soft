@@ -44,7 +44,7 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
     );
     PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _RetNodeID);
     PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _RetNodeID, _CurrentNodeID := _NodeID);
-    PERFORM "EVAL"."ENTER_RET"(_RetNodeID);
+    PERFORM "EVAL"."ENTER_RET"(_RetNodeID, _ExplicitReturnValue := TRUE);
     RETURN;
 ELSE
     -- Returning from program
