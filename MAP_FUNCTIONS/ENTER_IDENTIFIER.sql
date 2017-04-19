@@ -4,6 +4,7 @@ AS $$
 DECLARE
 _ProgramID                 integer;
 _AllocaNodeID              integer;
+_AllocaEdgeID              integer;
 _Name                      text;
 _FunctionNameNodeID        integer;
 _FunctionDeclarationNodeID integer;
@@ -78,7 +79,7 @@ PERFORM Kill_Node(_NodeID);
 SELECT Set_Edge_Parent(_EdgeID := EdgeID, _ParentNodeID := _FunctionLabelNodeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _FunctionNameNodeID;
 PERFORM Kill_Node(_FunctionNameNodeID);
 
-PERFORM New_Edge(
+_AllocaEdgeID := New_Edge(
     _ProgramID    := _ProgramID,
     _ParentNodeID := _CallNodeID,
     _ChildNodeID  := _AllocaNodeID

@@ -3,6 +3,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID        integer;
+_AllocaNodeID     integer;
 _IdentifierNodeID integer;
 _EdgeID           integer;
 _VariableNodeID   integer;
@@ -37,6 +38,18 @@ AND IdentifierNode.DeathPhaseID IS NULL;
 PERFORM Copy_Node(_FromNodeID := _IdentifierNodeID, _ToNodeID := _VariableNodeID);
 PERFORM Kill_Edge(_EdgeID);
 PERFORM Kill_Node(_IdentifierNodeID);
+
+IF Find_Node(_NodeID := _VariableNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> LET_STATEMENT <- FUNCTION_DECLARATION') IS NULL
+THEN
+    _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := TRUE, _Path := '<- ALLOCA');
+    PERFORM New_Edge(
+        _ProgramID    := _ProgramID,
+        _ParentNodeID := _VariableNodeID,
+        _ChildNodeID  := _AllocaNodeID
+    );
+END IF;
+
+PERFORM Set_Visited(_VariableNodeID, NULL);
 
 PERFORM Log(
     _NodeID   := _NodeID,

@@ -16,10 +16,10 @@ AND   Edges.DeathPhaseID      IS NULL
 AND   ParentNode.DeathPhaseID IS NULL
 AND   ChildNode.DeathPhaseID  IS NULL;
 
-UPDATE Nodes SET Walkable = FALSE WHERE NodeID = _ParentNodes[2] RETURNING TRUE INTO STRICT _OK;
+PERFORM Set_Visited(_ParentNodes[2], NULL);
 
 IF _ParentNodes[3] IS NOT NULL THEN
-    UPDATE Nodes SET Walkable = FALSE WHERE NodeID = _ParentNodes[3] RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_ParentNodes[3], NULL);
 END IF;
 
 RETURN TRUE;

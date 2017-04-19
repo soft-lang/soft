@@ -25,13 +25,14 @@ SELECT
         _ProgramID     := ProgramID,
         _NodeTypeID    := _StackNodeTypeID,
         _TerminalType  := TerminalType,
-        _TerminalValue := TerminalValue,
-        _Walkable      := FALSE
+        _TerminalValue := TerminalValue
     )
 INTO STRICT
     _ProgramID,
     _StackNodeID
 FROM Nodes WHERE NodeID = _VariableNodeID;
+
+PERFORM Set_Visited(_StackNodeID, NULL);
 
 PERFORM Copy_Node(_VariableNodeID, _StackNodeID);
 

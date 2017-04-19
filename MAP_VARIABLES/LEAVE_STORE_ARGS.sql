@@ -3,11 +3,14 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID        integer;
+_AllocaNodeID     integer;
 _IdentifierNodeID integer;
 _EdgeID           integer;
 _VariableNodeID   integer;
 _OK               boolean;
 BEGIN
+
+_AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION <- ALLOCA');
 
 FOR _VariableNodeID IN
 SELECT   Edges.ParentNodeID
@@ -37,6 +40,14 @@ LOOP
     PERFORM Copy_Node(_FromNodeID := _IdentifierNodeID, _ToNodeID := _VariableNodeID);
     PERFORM Kill_Edge(_EdgeID);
     PERFORM Kill_Node(_IdentifierNodeID);
+
+    PERFORM New_Edge(
+        _ProgramID    := _ProgramID,
+        _ParentNodeID := _VariableNodeID,
+        _ChildNodeID  := _AllocaNodeID
+    );
+
+    PERFORM Set_Visited(_VariableNodeID, NULL);
 
     PERFORM Log(
         _NodeID   := _NodeID,

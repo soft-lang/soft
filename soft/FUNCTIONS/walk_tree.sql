@@ -11,6 +11,7 @@ _ParentNodeID integer;
 _NextNodeID   integer;
 _ChildNodeID  integer;
 _EdgeID       integer;
+_Count        bigint;
 _OK           boolean;
 BEGIN
 
@@ -43,7 +44,6 @@ IF NOT EXISTS (
     AND Edges.DeathPhaseID  IS NULL
     AND Nodes.DeathPhaseID  IS NULL
     AND Nodes.TerminalType  IS NULL
-    AND Nodes.Walkable      IS TRUE
 ) THEN
     PERFORM Eval_Node(_NodeID);
 END IF;
@@ -58,7 +58,6 @@ WHERE Edges.ChildNodeID = _NodeID
 AND Nodes.Visited[1]    IS FALSE
 AND Edges.DeathPhaseID  IS NULL
 AND Nodes.DeathPhaseID  IS NULL
-AND Nodes.Walkable      IS TRUE
 ORDER BY Edges.EdgeID
 LIMIT 1;
 IF FOUND THEN
@@ -88,20 +87,21 @@ END IF;
 
 SELECT
     Edges.EdgeID,
-    Edges.ChildNodeID
+    Edges.ChildNodeID,
+    COUNT(*) OVER ()
 INTO
     _EdgeID,
-    _ChildNodeID
+    _ChildNodeID,
+    _Count
 FROM Edges
 INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
 INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
 WHERE Edges.ParentNodeID      = _NodeID
 AND   Edges.DeathPhaseID      IS NULL
 AND   ParentNode.DeathPhaseID IS NULL
-ORDER BY ChildNode.Visited[1] DESC
-LIMIT 1;
+AND   ChildNode.Visited[1]    IS TRUE;
 
-IF FOUND THEN
+IF _Count = 1 THEN
     SELECT
         Edges.ParentNodeID
     INTO
@@ -112,7 +112,7 @@ IF FOUND THEN
     AND Edges.EdgeID        > _EdgeID
     AND Edges.DeathPhaseID  IS NULL
     AND Nodes.DeathPhaseID  IS NULL
-    AND Nodes.Walkable      IS TRUE
+    AND Nodes.Visited[1]    IS FALSE
     ORDER BY Edges.EdgeID
     LIMIT 1;
     IF FOUND THEN
@@ -135,25 +135,28 @@ IF FOUND THEN
         PERFORM Set_Visited(_ChildNodeID, TRUE);
         RETURN TRUE;
     END IF;
+ELSIF _Count IS NULL THEN
+    SELECT    PhaseID
+    INTO _NextPhaseID
+    FROM Phases
+    WHERE LanguageID = _LanguageID
+    AND      PhaseID > _PhaseID
+    ORDER BY PhaseID
+    LIMIT 1;
+    IF FOUND THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG3',
+            _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA'))
+        );
+        UPDATE Programs SET PhaseID = _NextPhaseID, NodeID = NULL WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
+        PERFORM Set_Visited(NodeID, FALSE) FROM Nodes WHERE ProgramID = _ProgramID AND Visited[1] IS TRUE AND DeathPhaseID IS NULL;
+        RETURN TRUE;
+    END IF;
+ELSE
+    RAISE EXCEPTION 'Multiple % walkable visited children found under NodeID %, one of them is NodeID % via EdgeID %', _Count, _NodeID, _ChildNodeID, _EdgeID;
 END IF;
 
-SELECT    PhaseID
-INTO _NextPhaseID
-FROM Phases
-WHERE LanguageID = _LanguageID
-AND      PhaseID > _PhaseID
-ORDER BY PhaseID
-LIMIT 1;
-IF FOUND THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
-        _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA'))
-    );
-    UPDATE Programs SET PhaseID = _NextPhaseID, NodeID = NULL WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
-    UPDATE Nodes SET Visited = ARRAY[FALSE] WHERE ProgramID = _ProgramID;
-    RETURN TRUE;
-END IF;
 
 PERFORM Log(
     _NodeID   := _NodeID,

@@ -8,7 +8,6 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
-SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_ALLOCA');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
@@ -24,12 +23,18 @@ let fibonacci = fn(x) {
         return fibonacci(x - 2)+fibonacci(x - 1);
     }
 };
-let foo = fibonacci(3);
+let foo = fibonacci(7);
 return foo;
 $SRC$);
 
 /*
 
+let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));
+
+let y = 123;
+let z = 234;
+let x = if (1 == 1) { y } else { z };
+return x;
 
 
 let foo = fn(x) {

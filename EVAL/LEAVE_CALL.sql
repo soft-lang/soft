@@ -75,6 +75,14 @@ ELSE
         _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_FunctionDeclarationNodeID),'MAGENTA'))
     );
     PERFORM Push_Visited(NodeID) FROM Nodes WHERE ProgramID = _ProgramID AND DeathPhaseID IS NULL;
+
+    _AllocaNodeID := Find_Node(_NodeID := _FunctionDeclarationNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- ALLOCA');
+    FOR _VariableNodeID IN
+    SELECT ParentNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _AllocaNodeID ORDER BY EdgeID
+    LOOP
+        PERFORM Push_Node(_VariableNodeID);
+    END LOOP;
+
     PERFORM Set_Visited(_NodeID := _FunctionDeclarationNodeID, _Visited := TRUE);
     UPDATE Programs SET NodeID = _FunctionDeclarationNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
     PERFORM New_Edge(

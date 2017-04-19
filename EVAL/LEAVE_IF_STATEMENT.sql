@@ -20,9 +20,9 @@ SELECT
     ConditionNode.TerminalType,
     ConditionNode.TerminalValue,
     TrueBranch.NodeID,
-    TrueBranch.Visited[1],
+    TrueBranch.Visited[1] IS TRUE,
     ElseBranch.NodeID,
-    ElseBranch.Visited[1]
+    ElseBranch.Visited[1] IS TRUE
 INTO STRICT
     _ProgramID,
     _ConditionNodeID,
@@ -71,7 +71,7 @@ THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning from true branch %s', Colorize(Node(_TrueBranchNodeID), 'CYAN'))
     );
-    PERFORM Set_Visited(_TrueBranchNodeID, FALSE);
+    PERFORM Set_Visited(_TrueBranchNodeID, NULL);
 
 ELSIF _Condition           IS NOT TRUE
 AND   _TrueBranchReturning IS FALSE
@@ -104,7 +104,7 @@ THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning from else branch %s', Colorize(Node(_ElseBranchNodeID), 'CYAN'))
     );
-    PERFORM Set_Visited(_ElseBranchNodeID, FALSE);
+    PERFORM Set_Visited(_ElseBranchNodeID, NULL);
 
 ELSE
     RAISE EXCEPTION 'Invalid state of if statement: NodeID % Condition % TrueBranchReturning % ElseBranchReturning %', _NodeID, _Condition, _TrueBranchReturning, _ElseBranchReturning;

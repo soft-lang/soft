@@ -31,7 +31,7 @@ IF EXISTS (
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := format('Enter %s and execute function %I.%I', Colorize(_NodeType||_NodeID::text, 'GREEN'), Colorize(_Phase, 'CYAN'), Colorize(_Function, 'MAGENTA'))
+        _Message  := format('Enter %s and execute function %I.%I', Colorize(Node(_NodeID), 'GREEN'), Colorize(_Phase, 'CYAN'), Colorize(_Function, 'MAGENTA'))
     );
     EXECUTE format('SELECT %I.%I(_NodeID := %s::integer)', _Phase, _Function, _NodeID);
     RETURN TRUE;
