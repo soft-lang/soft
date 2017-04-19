@@ -10,6 +10,7 @@ SET search_path TO soft, public;
 \ir soft/TABLES/edges.sql
 \ir soft/TABLES/log.sql
 \ir soft/TABLES/ansiescapecodes.sql
+\ir soft/TABLES/tests.sql
 
 ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 
@@ -17,6 +18,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/new_phase.sql
 \ir soft/FUNCTIONS/new_node_type.sql
 \ir soft/FUNCTIONS/new_program.sql
+\ir soft/FUNCTIONS/new_test.sql
 \ir soft/FUNCTIONS/new_node.sql
 \ir soft/FUNCTIONS/new_edge.sql
 \ir soft/FUNCTIONS/kill_node.sql

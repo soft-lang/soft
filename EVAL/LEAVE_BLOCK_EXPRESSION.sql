@@ -3,10 +3,6 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _LastNodeID integer;
-_CallNodeID integer;
-_CopyFromNodeIDs integer[];
-_CopyToNodeIDs integer[];
-_OK boolean;
 BEGIN
 
 SELECT     ParentNodeID

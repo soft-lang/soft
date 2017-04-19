@@ -3,7 +3,8 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID     integer;
+_ProgramID   integer;
+_ReturnValue text;
 BEGIN
 
 INSERT INTO Programs (Program, PhaseID)

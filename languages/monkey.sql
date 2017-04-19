@@ -1,9 +1,10 @@
 SET search_path TO soft, public;
 
 SELECT New_Language(
-    _Language             := 'monkey',
-    _LogSeverity          := 'DEBUG5',
-    _ImplicitReturnValues := TRUE
+    _Language              := 'monkey',
+    _LogSeverity           := 'DEBUG5',
+    _ImplicitReturnValues  := TRUE,
+    _StatementReturnValues := TRUE
 );
 \ir monkey/node_types.sql
 
@@ -15,11 +16,32 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
-SELECT New_Program(_Language := 'monkey', _Program := 'test');
+SELECT New_Test(
+    _Language   := 'monkey',
+    _Program    := 'TestFunctionApplication1',
+    _SourceCode := $SRC$
+        let identity = fn(x) { x; }; identity(5);
+    $SRC$,
+    _ExpectedTerminalType  := 'integer'::regtype,
+    _ExpectedTerminalValue := '5'
+);
 
-SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
+SELECT New_Test(
+    _Language   := 'monkey',
+    _Program    := 'test',
+    _SourceCode := $SRC$
+        let add = fn(x, y) {
+            x + y;
+        };
+        add(5 + 5, add(5, 5))
+    $SRC$,
+    _ExpectedTerminalType  := 'integer'::regtype,
+    _ExpectedTerminalValue := '20'
+);
 
-$SRC$);
+
+-- SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
+-- $SRC$);
 
 /*
 
