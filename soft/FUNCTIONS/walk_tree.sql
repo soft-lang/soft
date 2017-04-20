@@ -24,7 +24,7 @@ WHERE Programs.ProgramID = _ProgramID
 FOR UPDATE OF Programs;
 
 IF _NodeID IS NULL THEN
-    UPDATE Programs SET NodeID = Get_Program_Node(_ProgramID) RETURNING NodeID INTO STRICT _NodeID;
+    UPDATE Programs SET NodeID = Get_Program_Node(_ProgramID) WHERE ProgramID = _ProgramID RETURNING NodeID INTO STRICT _NodeID;
     PERFORM Set_Visited(_NodeID, TRUE);
     PERFORM Enter_Node(_NodeID);
     RETURN TRUE;

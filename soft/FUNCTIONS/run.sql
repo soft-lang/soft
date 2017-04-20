@@ -9,7 +9,7 @@ BEGIN
 _Step := 0;
 LOOP
     _Step := _Step + 1;
-    RAISE NOTICE '%', _Step;
+    -- RAISE NOTICE '%', _Step;
     -- IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'EVAL' THEN
     --     EXIT;
     -- END IF;
@@ -18,7 +18,7 @@ LOOP
             EXIT;
         END IF;
     EXCEPTION WHEN OTHERS THEN
-        RAISE NOTICE '%', SQLERRM;
+        RAISE WARNING '%', SQLERRM;
         EXIT;
     END;
 END LOOP;

@@ -2,7 +2,7 @@ SET search_path TO soft, public;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'DEBUG5',
+    _LogSeverity           := 'NOTICE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE
 );
@@ -17,26 +17,51 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Test(
-    _Language   := 'monkey',
-    _Program    := 'TestFunctionApplication1',
-    _SourceCode := $SRC$
-        let identity = fn(x) { x; }; identity(5);
-    $SRC$,
-    _ExpectedTerminalType  := 'integer'::regtype,
-    _ExpectedTerminalValue := '5'
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:289',
+    _SourceCode    := $$let identity = fn(x) { x; }; identity(5);$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '5'
 );
 
 SELECT New_Test(
-    _Language   := 'monkey',
-    _Program    := 'test',
-    _SourceCode := $SRC$
-        let add = fn(x, y) {
-            x + y;
-        };
-        add(5 + 5, add(5, 5))
-    $SRC$,
-    _ExpectedTerminalType  := 'integer'::regtype,
-    _ExpectedTerminalValue := '20'
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:290',
+    _SourceCode    := $$let identity = fn(x) { return x; }; identity(5);$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '5'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:291',
+    _SourceCode    := $$let double = fn(x) { x * 2; }; double(5);$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '10'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:292',
+    _SourceCode    := $$let add = fn(x, y) { x + y; }; add(5, 5);$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '10'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:293',
+    _SourceCode    := $$let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '20'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:294',
+    _SourceCode    := $$fn(x) { x; }(5)$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '5'
 );
 
 
