@@ -2,6 +2,7 @@ CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict 
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_LanguageID  integer;
 _Path        text;
 _Name        text;
 _SQL         text;
@@ -21,6 +22,11 @@ PERFORM Log(
     _Severity := 'DEBUG3',
     _Message  := format('Find node %s %s %s %s', _NodeID, _Descend, _Strict, _Paths)
 );
+SELECT NodeTypes.LanguageID
+INTO STRICT     _LanguageID
+FROM Nodes
+INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+WHERE Nodes.NodeID = _NodeID;
 LOOP
     _JOINs := '';
     _WHEREs := '';
@@ -59,11 +65,21 @@ LOOP
             ELSE
                 RAISE EXCEPTION 'Invalid direction %', _Direction;
             END IF;
-            _WHEREs := _WHEREs || format($SQL$
-                AND Edge%1$s.DeathPhaseID IS NULL
-                AND Node%2$s.DeathPhaseID IS NULL
-                AND Node%2$s.NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = %3$L)
-            $SQL$, _k, _k+1, _NodeType);
+            IF _NodeType LIKE '%|%' THEN
+                _WHEREs := _WHEREs || format($SQL$
+                    AND Edge%1$s.DeathPhaseID IS NULL
+                    AND Node%2$s.DeathPhaseID IS NULL
+                    AND Node%2$s.NodeTypeID IN (SELECT NodeTypeID FROM NodeTypes WHERE LanguageID = %3$s AND NodeType IN (%4$s))
+                $SQL$, _k, _k+1, _LanguageID, (
+                    SELECT string_agg(quote_literal,',') FROM (SELECT quote_literal(unnest(regexp_split_to_array(_NodeType,'\|')))) AS X
+                ));
+            ELSE
+                _WHEREs := _WHEREs || format($SQL$
+                    AND Edge%1$s.DeathPhaseID IS NULL
+                    AND Node%2$s.DeathPhaseID IS NULL
+                    AND Node%2$s.NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE LanguageID = %3$s AND NodeType = %4$L)
+                $SQL$, _k, _k+1, _LanguageID, _NodeType);
+            END IF;
             _j := _j + 1;
             _k := _k + 1;
         END LOOP;
