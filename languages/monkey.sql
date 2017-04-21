@@ -2,7 +2,7 @@ SET search_path TO soft, public;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'DEBUG5',
+    _LogSeverity           := 'NOTICE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE
 );
@@ -15,8 +15,6 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
-
-/*
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -57,6 +55,8 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '20'
 );
+
+/*
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -126,14 +126,6 @@ SELECT New_Test(
 );
 
 */
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:291',
-    _SourceCode    := $$let double = fn(x) { x * 2; }; double(5);$$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '10'
-);
 
 
 -- SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$

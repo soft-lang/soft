@@ -33,8 +33,6 @@ PERFORM Log(
 
 PERFORM Run(_ProgramID := _ProgramID);
 
-RETURN _OK;
-
 INSERT INTO Tests (
     ProgramID,
     TerminalType,
