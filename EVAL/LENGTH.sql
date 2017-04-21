@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION "EVAL"."LENGTH" (text) RETURNS integer LANGUAGE sql AS $$ SELECT length($1) $$;

@@ -69,6 +69,14 @@ ELSE
         _Strict  := FALSE,
         _Paths   := ARRAY['-> FUNCTION_DECLARATION -> FUNCTION_LABEL', _Name]
     );
+    IF _FunctionLabelNodeID IS NULL THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'ERROR',
+            _Message  := format('Undeclared function %s', Colorize(_Name, 'RED'))
+        );
+        RETURN FALSE;
+    END IF;
 END IF;
 
 SELECT Kill_Edge(EdgeID) INTO STRICT _OK FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _FunctionNameNodeID AND ParentNodeID = _NodeID;

@@ -66,8 +66,6 @@ SELECT New_Test(
     _ExpectedValue := '5'
 );
 
-*/
-
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:303',
@@ -86,6 +84,55 @@ SELECT New_Test(
     $$,
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '70'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:321',
+    _SourceCode    := $$
+        let newAdder = fn(x) {
+          fn(y) { x + y };
+        };
+        
+        let addTwo = newAdder(2);
+        addTwo(2);
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '4'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:332',
+    _SourceCode    := $$"Hello World!"$$,
+    _ExpectedType  := 'text'::regtype,
+    _ExpectedValue := 'Hello World!'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:346',
+    _SourceCode    := $$"Hello" + " " + "World!"$$,
+    _ExpectedType  := 'text'::regtype,
+    _ExpectedValue := 'Hello World!'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:364',
+    _SourceCode    := $$len("","hehe")$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '0'
+);
+
+*/
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:291',
+    _SourceCode    := $$let double = fn(x) { x * 2; }; double(5);$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '10'
 );
 
 

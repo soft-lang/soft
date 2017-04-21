@@ -23,7 +23,6 @@ _OK                   boolean;
 _Tokens               integer;
 _LogSeverity          severity;
 _NodeSeverity         severity;
-_RecreatedSourceCode  text;
 BEGIN
 
 SELECT
@@ -131,21 +130,6 @@ IF _IllegalCharacters IS NOT NULL THEN
         _Color      := 'RED'
     )
     USING HINT = 'Define a catch-all node type e.g. LiteralPattern (.) with e.g. node severity ERROR as the last LiteralPattern node type';
-END IF;
-
-SELECT array_to_string(array_agg(TerminalValue ORDER BY NodeID),'')
-INTO STRICT _RecreatedSourceCode
-FROM Nodes
-WHERE ProgramID  = _ProgramID
-AND BirthPhaseID = _PhaseID
-AND NodeID       > _NodeID
-AND DeathPhaseID IS NULL;
-
-IF _RecreatedSourceCode IS DISTINCT FROM _SourceCode THEN
-    RAISE EXCEPTION E'Unable to recreate source code from created token nodes.\nSourceCode "%"\nIS DISTINCT FROM\nRecreatedSourceCode "%"',
-        Colorize(_SourceCode, 'CYAN'),
-        Colorize(_RecreatedSourceCode, 'MAGENTA')
-    ;
 END IF;
 
 PERFORM Log(
