@@ -58,8 +58,8 @@ END IF;
 
 RAISE NOTICE E'% program "%" phase "%" %: "%"%', Colorize(Node(_NodeID)), _Program, _Phase, Colorize(_Severity::text, _Color), _Message, _Context;
 
-INSERT INTO Log (NodeID, PhaseID,  Severity,  Message,  SourceCodeCharacters,  NodeIDs)
-SELECT          _NodeID, PhaseID, _Severity, _Message, _SourceCodeCharacters, _NodeIDs
+INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  SourceCodeCharacters,  NodeIDs)
+SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _SourceCodeCharacters, _NodeIDs
 FROM Programs WHERE ProgramID = _ProgramID
 RETURNING LogID INTO STRICT _LogID;
 RETURN _LogID;

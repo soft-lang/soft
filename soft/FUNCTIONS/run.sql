@@ -1,14 +1,18 @@
-CREATE OR REPLACE FUNCTION Run(_ProgramID integer)
-RETURNS boolean
+CREATE OR REPLACE FUNCTION Run(
+OUT OK     boolean,
+OUT Error  text,
+_ProgramID integer
+)
+RETURNS record
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Ret boolean;
-_Step integer;
+-- _Step integer;
 BEGIN
-_Step := 0;
+-- _Step := 0;
+OK := TRUE;
 LOOP
-    _Step := _Step + 1;
+    -- _Step := _Step + 1;
     -- RAISE NOTICE '%', _Step;
     -- IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'MAP_VARIABLES' THEN
     --     EXIT;
@@ -18,17 +22,11 @@ LOOP
             EXIT;
         END IF;
     EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING '%', SQLERRM;
+        OK    := FALSE;
+        Error := SQLERRM;
         EXIT;
     END;
 END LOOP;
-RETURN TRUE;
+RETURN;
 END;
-$$;
-
-CREATE OR REPLACE FUNCTION Run(_Program text)
-RETURNS record
-LANGUAGE sql
-AS $$
-SELECT Run(ProgramID) FROM Programs WHERE Program = $1
 $$;

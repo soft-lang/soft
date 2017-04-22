@@ -118,16 +118,6 @@ LOOP
         IF NOT EXISTS (SELECT 1 FROM Edges WHERE ParentNodeID = _NodeID) THEN
             EXIT;
         END IF;
-        -- IF EXISTS (
-        --     SELECT 1 FROM Edges
-        --     INNER JOIN Nodes ON Nodes.NodeID = Edges.ChildNodeID
-        --     WHERE Edges.ParentNodeID = _NodeID
-        --     AND Edges.DeathPhaseID  IS NULL
-        --     AND Nodes.DeathPhaseID  IS NULL
-        --     AND Nodes.TerminalValue IS NOT NULL
-        -- ) THEN
-        --     EXIT;
-        -- END IF;
         SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID ORDER BY EdgeID LIMIT 1;
     ELSE
         EXIT;

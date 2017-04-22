@@ -23,6 +23,8 @@ _OK                   boolean;
 _Tokens               integer;
 _LogSeverity          severity;
 _NodeSeverity         severity;
+_Wrapping             text[];
+_RecreatedSourceCode  text;
 BEGIN
 
 SELECT
@@ -57,6 +59,7 @@ LOOP
     END IF;
 
     _Remainder := substr(_SourceCode, _AtChar);
+    _Wrapping  := NULL;
 
     SELECT NodeTypeID,  NodeType,  TerminalType,  Literal,  LiteralLength,  NodeSeverity
     INTO  _NodeTypeID, _NodeType, _TerminalType, _Literal, _LiteralLength, _NodeSeverity
@@ -97,6 +100,23 @@ LOOP
         END IF;
     END IF;
 
+    IF _LiteralLength > length(_Literal) THEN
+        _Wrapping := regexp_split_to_array(_Matches[1], _Literal);
+        IF (array_length(_Wrapping,1) <> 2) THEN
+            RAISE EXCEPTION 'Expected exactly two array elements but got: %', _Wrapping;
+        END IF;
+    END IF;
+
+    IF _Wrapping[1] <> '' THEN
+        PERFORM Kill_Node(_NodeID :=  New_Node(
+            _ProgramID            := _ProgramID,
+            _NodeTypeID           := _NodeTypeID,
+            _TerminalType         := _TerminalType,
+            _TerminalValue        := _Wrapping[1]
+        ));
+        _Tokens := _Tokens + 1;
+    END IF;
+
     _TokenNodeID := New_Node(
         _ProgramID            := _ProgramID,
         _NodeTypeID           := _NodeTypeID,
@@ -104,6 +124,16 @@ LOOP
         _TerminalValue        := _Literal
     );
     _Tokens := _Tokens + 1;
+
+    IF _Wrapping[2] <> '' THEN
+        PERFORM Kill_Node(_NodeID :=  New_Node(
+            _ProgramID            := _ProgramID,
+            _NodeTypeID           := _NodeTypeID,
+            _TerminalType         := _TerminalType,
+            _TerminalValue        := _Wrapping[2]
+        ));
+        _Tokens := _Tokens + 1;
+    END IF;
 
     PERFORM Log(
         _NodeID   := _NodeID,
@@ -130,6 +160,20 @@ IF _IllegalCharacters IS NOT NULL THEN
         _Color      := 'RED'
     )
     USING HINT = 'Define a catch-all node type e.g. LiteralPattern (.) with e.g. node severity ERROR as the last LiteralPattern node type';
+END IF;
+
+SELECT array_to_string(array_agg(TerminalValue ORDER BY NodeID),'')
+INTO STRICT _RecreatedSourceCode
+FROM Nodes
+WHERE ProgramID  = _ProgramID
+AND BirthPhaseID = _PhaseID
+AND NodeID       > _NodeID;
+
+IF _RecreatedSourceCode IS DISTINCT FROM _SourceCode THEN
+    RAISE EXCEPTION E'Unable to recreate source code from created token nodes.\nSourceCode "%"\nIS DISTINCT FROM\nRecreatedSourceCode "%"',
+        Colorize(_SourceCode, 'CYAN'),
+        Colorize(_RecreatedSourceCode, 'MAGENTA')
+    ;
 END IF;
 
 PERFORM Log(

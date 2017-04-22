@@ -2,7 +2,7 @@ SET search_path TO soft, public;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'NOTICE',
+    _LogSeverity           := 'DEBUG5',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE
 );
@@ -15,6 +15,27 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+
+/*
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
+        let fibonacci = fn(x) {
+            if (x == 0) {
+                return 0;
+            } else if (x == 1) {
+                return 1;
+            } else {
+                return fibonacci(x - 1) + fibonacci(x - 2);
+            }
+        };
+        fibonacci(3);
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '2'
+);
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -55,8 +76,6 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '20'
 );
-
-/*
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -120,124 +139,82 @@ SELECT New_Test(
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:364',
-    _SourceCode    := $$len("","hehe")$$,
+    _SourceCode    := $$len("")$$,
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '0'
 );
 
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:365',
+    _SourceCode    := $$len("four")$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '4'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:366',
+    _SourceCode    := $$len("hello world")$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '11'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:367',
+    _SourceCode    := $$len(1)$$,
+    _ExpectedError := 'function EVAL.LENGTH(integer) does not exist'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:368',
+    _SourceCode    := $$len("one", "two")$$,
+    _ExpectedLog   := 'PARSE ERROR INVALID_EXPRESSION'
+);
+
 */
 
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'arrays',
+    _SourceCode    := $$
+        let x = [10, 10+5, [2+3,30]];
+        let y = x[1+1];
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '20'
+);
 
--- SELECT New_Node(_Program := 'test', _NodeType := 'SOURCE_CODE', _TerminalType := 'text'::regtype, _TerminalValue := $SRC$
--- $SRC$);
 
 /*
 
-let fibonacci = fn(x) {
-    if (x == 0) {
-        return 0;
-    } else if (x == 1) {
-        return 1;
-    } else {
-        return fibonacci(x - 2)+fibonacci(x - 1);
-    }
-};
-let foo = fibonacci(7);
-return foo;
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:',
+    _SourceCode    := $$
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := ''
+);
 
-let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:',
+    _SourceCode    := $$
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := ''
+);
 
-
-
-let foo = fn(x) {
-    if (x == 2) {
-        return 10;
-    } else {
-        return foo(x+1);
-    }
-};
-let y = foo(0);
-return y;
-
-
-
-
-let x = 1+2*3;
-let y = 4;
-let z = 5;
-let abc = x+y+z;
-
-
-let fibonacci = fn(x) {
-    if (x == 0) {
-        return 0;
-    } else if (x == 1) {
-        return 1;
-    } else {
-        return fibonacci(x - 1) + fibonacci(x - 2);
-    }
-};
-let foo = fibonacci(4);
-
-return foo;
-
-let cd = fn(x) {
-    if (x == 2) {
-        return 100;
-    } else {
-        return cd(x+1);
-    }
-};
-let y = cd(0);
-return y;
-
-
-
-let foo = fn(x) {
-    if (x == 1) {
-        return x;
-    } else {
-        let a = foo(1);
-        let b = foo(1);
-        return a+b;
-    }
-};
-let y = foo(2);
-return y;
-
-
-
-let foo = fn(x) {
-    if (x == 3) {
-        return x;
-    } else {
-        return foo(x+1);
-    }
-};
-let z = foo(0);
-return z;
-
-let foo = fn(x) {
-    return x;
-};
-let bar = fn(x,y) {
-    return x*y;
-};
-let y = foo(10)+bar(3,2);
-return y;
-
-
-let foo = fn(x) {
-    if (x == 3) {
-        return x;
-    } else {
-        return foo(x+1);
-    }
-};
-let y = foo(0);
-return y;
-
-
-
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:',
+    _SourceCode    := $$
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := ''
+);
 
 */

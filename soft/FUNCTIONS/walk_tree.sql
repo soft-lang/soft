@@ -15,6 +15,15 @@ _Count        bigint;
 _OK           boolean;
 BEGIN
 
+IF EXISTS (
+    SELECT 1 FROM Log
+    INNER JOIN Phases ON Phases.PhaseID = Log.PhaseID
+    WHERE Log.ProgramID  = _ProgramID
+    AND   Log.Severity  >= Phases.StopSeverity
+) THEN
+    RETURN FALSE;
+END IF;
+
 SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID
 INTO STRICT          _NodeID,         _PhaseID,       _LanguageID
 FROM Programs

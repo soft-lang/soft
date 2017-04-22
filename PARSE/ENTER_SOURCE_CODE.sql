@@ -170,7 +170,7 @@ LOOP
     _ChildNodeString := COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID;
 
     PERFORM Log(
-        _NodeID   := _NodeID,
+        _NodeID   := _ChildNodeID,
         _Severity := COALESCE(_NodeSeverity,'DEBUG2'),
         _Message  := format('%s <- %s <- %s <- %s',
             Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
