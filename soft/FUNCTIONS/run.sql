@@ -14,7 +14,7 @@ OK := TRUE;
 LOOP
     -- _Step := _Step + 1;
     -- RAISE NOTICE '%', _Step;
-    -- IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'MAP_VARIABLES' THEN
+    -- IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'EVAL' THEN
     --     EXIT;
     -- END IF;
     BEGIN

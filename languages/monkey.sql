@@ -2,7 +2,7 @@ SET search_path TO soft, public;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'DEBUG5',
+    _LogSeverity           := 'NOTICE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE
 );
@@ -15,6 +15,24 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'factorial',
+    _SourceCode    := $$
+        let factorial = fn(n) {
+            if (n == 0) {
+                1
+            } else {
+                n * factorial(n - 1)
+            }
+        };
+        factorial(5);
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '120'
+);
+
 
 /*
 
@@ -84,6 +102,11 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '5'
 );
+
+*/
+
+
+/*
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -174,8 +197,6 @@ SELECT New_Test(
     _ExpectedLog   := 'PARSE ERROR INVALID_EXPRESSION'
 );
 
-*/
-
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'arrays',
@@ -184,8 +205,11 @@ SELECT New_Test(
         let y = x[1+1];
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '20'
+    _ExpectedValue := 
 );
+
+*/
+
 
 
 /*

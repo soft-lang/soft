@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_IF_STATEMENT"(_NodeID integer) RETURNS void
+CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_IF_STATEMENT"(_NodeID integer, _IfExpression boolean DEFAULT FALSE) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -50,20 +50,7 @@ END IF;
 
 _Condition := _ConditionNodeValue::boolean;
 
-IF  _Condition           IS TRUE
-AND _TrueBranchReturning IS FALSE
-AND _ElseBranchReturning IS NOT TRUE
-THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
-        _Message  := format('Goto true branch %s', Colorize(Node(_TrueBranchNodeID), 'CYAN'))
-    );
-    UPDATE Programs SET NodeID = _TrueBranchNodeID WHERE ProgramID = _ProgramID        RETURNING TRUE INTO STRICT _OK;
-    PERFORM Set_Visited(_TrueBranchNodeID, TRUE);
-
-ELSIF _Condition           IS TRUE
-AND   _TrueBranchReturning IS TRUE
+IF    _TrueBranchReturning IS TRUE
 AND   _ElseBranchReturning IS NOT TRUE
 THEN
     PERFORM Log(
@@ -72,6 +59,34 @@ THEN
         _Message  := format('Returning from true branch %s', Colorize(Node(_TrueBranchNodeID), 'CYAN'))
     );
     PERFORM Set_Visited(_TrueBranchNodeID, NULL);
+    IF _IfExpression THEN
+        PERFORM Copy_Node(_FromNodeID := _TrueBranchNodeID, _ToNodeID := _NodeID);
+    END IF;
+
+ELSIF _TrueBranchReturning IS FALSE
+AND   _ElseBranchReturning IS TRUE
+THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Returning from else branch %s', Colorize(Node(_ElseBranchNodeID), 'CYAN'))
+    );
+    PERFORM Set_Visited(_ElseBranchNodeID, NULL);
+    IF _IfExpression THEN
+        PERFORM Copy_Node(_FromNodeID := _ElseBranchNodeID, _ToNodeID := _NodeID);
+    END IF;
+
+ELSIF _Condition           IS TRUE
+AND   _TrueBranchReturning IS FALSE
+AND   _ElseBranchReturning IS NOT TRUE
+THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Goto true branch %s', Colorize(Node(_TrueBranchNodeID), 'CYAN'))
+    );
+    UPDATE Programs SET NodeID = _TrueBranchNodeID WHERE ProgramID = _ProgramID        RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Visited(_TrueBranchNodeID, TRUE);
 
 ELSIF _Condition           IS NOT TRUE
 AND   _TrueBranchReturning IS FALSE
@@ -94,17 +109,6 @@ THEN
     );
     UPDATE Programs SET NodeID = _ElseBranchNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
     PERFORM Set_Visited(_ElseBranchNodeID, TRUE);
-
-ELSIF _Condition           IS NOT TRUE
-AND   _TrueBranchReturning IS FALSE
-AND   _ElseBranchReturning IS TRUE
-THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
-        _Message  := format('Returning from else branch %s', Colorize(Node(_ElseBranchNodeID), 'CYAN'))
-    );
-    PERFORM Set_Visited(_ElseBranchNodeID, NULL);
 
 ELSE
     RAISE EXCEPTION 'Invalid state of if statement: NodeID % Condition % TrueBranchReturning % ElseBranchReturning %', _NodeID, _Condition, _TrueBranchReturning, _ElseBranchReturning;
