@@ -1,0 +1,4 @@
+CREATE TYPE variablebinding AS ENUM (
+'CAPTURE_BY_REFERENCE',
+'CAPTURE_BY_VALUE'
+);

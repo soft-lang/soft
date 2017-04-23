@@ -7,6 +7,8 @@ DeathPhaseID         integer            REFERENCES Phases(PhaseID),
 TerminalType         regtype,
 TerminalValue        text,
 Visited              boolean[] NOT NULL DEFAULT ARRAY[FALSE],
+ClonedFromNodeID     integer            REFERENCES Nodes(NodeID),
+ClonedRootNodeID     integer            REFERENCES Nodes(NodeID),
 PRIMARY KEY (NodeID),
 CHECK (BirthPhaseID <= DeathPhaseID)
 );

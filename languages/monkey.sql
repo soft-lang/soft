@@ -2,9 +2,10 @@ SET search_path TO soft, public;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'NOTICE',
+    _LogSeverity           := 'DEBUG5',
     _ImplicitReturnValues  := TRUE,
-    _StatementReturnValues := TRUE
+    _StatementReturnValues := TRUE,
+    _VariableBinding       := 'CAPTURE_BY_REFERENCE'
 );
 \ir monkey/node_types.sql
 
@@ -15,6 +16,25 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
+        let x = 5;
+        let foo = fn(y) {
+            let z = 10;
+            if (y == 1) {
+                x + z
+            } else {
+                foo(y-1) + z
+            }
+        };
+        foo(2)
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '25'
+);
 
 /*
 
@@ -86,8 +106,6 @@ SELECT New_Test(
     _ExpectedValue := '10'
 );
 
-*/
-
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:293',
@@ -103,8 +121,6 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '5'
 );
-
-/*
 
 SELECT New_Test(
     _Language      := 'monkey',
