@@ -16,6 +16,27 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_FUNCTIONS');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
+/*
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
+        let fibonacci = fn(x) {
+            if (x == 0) {
+                0
+            } else if (x == 1) {
+                1
+            } else {
+                fibonacci(x - 1) + fibonacci(x - 2)
+            }
+        };
+        fibonacci(3);
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '2'
+);
+
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'factorial',
@@ -31,28 +52,6 @@ SELECT New_Test(
     $$,
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '120'
-);
-
-
-/*
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'fibonacci',
-    _SourceCode    := $$
-        let fibonacci = fn(x) {
-            if (x == 0) {
-                return 0;
-            } else if (x == 1) {
-                return 1;
-            } else {
-                return fibonacci(x - 1) + fibonacci(x - 2);
-            }
-        };
-        fibonacci(3);
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '2'
 );
 
 SELECT New_Test(
@@ -87,6 +86,8 @@ SELECT New_Test(
     _ExpectedValue := '10'
 );
 
+*/
+
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:293',
@@ -102,9 +103,6 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '5'
 );
-
-*/
-
 
 /*
 
@@ -187,7 +185,7 @@ SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:367',
     _SourceCode    := $$len(1)$$,
-    _ExpectedError := 'function EVAL.LENGTH(integer) does not exist'
+    _ExpectedError := 'function EVAL.LENGTH_EXPRESSION(integer) does not exist'
 );
 
 SELECT New_Test(
@@ -202,43 +200,10 @@ SELECT New_Test(
     _Program       := 'arrays',
     _SourceCode    := $$
         let x = [10, 10+5, [2+3,30]];
-        let y = x[1+1];
+        x[2-1]
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := 
-);
-
-*/
-
-
-
-/*
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:',
-    _SourceCode    := $$
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := ''
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:',
-    _SourceCode    := $$
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := ''
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:',
-    _SourceCode    := $$
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := ''
+    _ExpectedValue := '15'
 );
 
 */
