@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _ClonedRootNodeID integer DEFAULT NULL, _Depth integer DEFAULT 0, _VisitedNodes integer[] DEFAULT ARRAY[]::integer[])
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _ClonedRootNodeID integer DEFAULT NULL, _VisitedNodes integer[] DEFAULT ARRAY[]::integer[])
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -6,8 +6,6 @@ DECLARE
 _ClonedNodeID    integer;
 _ParentNodeID    integer;
 BEGIN
-
-RAISE NOTICE 'Clone_Node NodeID % ClonedRootNodeID % Depth %', _NodeID, _ClonedRootNodeID, _Depth;
 
 SELECT      NodeID
 INTO _ClonedNodeID
@@ -82,7 +80,6 @@ PERFORM New_Edge(
     _ParentNodeID := Clone_Node(
         _NodeID           := ParentNodeID,
         _ClonedRootNodeID := _ClonedRootNodeID,
-        _Depth            := _Depth + 1,
         _VisitedNodes     := _VisitedNodes || _NodeID
     ),
     _ChildNodeID      := _ClonedNodeID,
@@ -105,7 +102,7 @@ FROM (
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Cloned %s -> %s Depth %s %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_ClonedNodeID),'CYAN'), _Depth, _VisitedNodes)
+    _Message  := format('Cloned %s -> %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_ClonedNodeID),'CYAN'))
 );
 
 RETURN _ClonedNodeID;

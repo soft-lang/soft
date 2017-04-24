@@ -50,18 +50,6 @@ IF FOUND THEN
     _FunctionInstanceNodeID := Find_Node(_NodeID := _RetNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION');
 
     PERFORM Kill_Clone(_FunctionInstanceNodeID);
-
-    -- SELECT Edges.ChildNodeID
-    -- INTO _NextNodeID
-    -- FROM Edges
-    -- INNER JOIN Nodes ON Nodes.NodeID = Edges.ChildNodeID
-    -- WHERE Edges.ParentNodeID = _NodeID
-    -- AND Nodes.DeathPhaseID IS NULL
-    -- AND Edges.DeathPhaseID IS NULL
-    -- ORDER BY Edges.EdgeID
-    -- LIMIT 1;
-    -- UPDATE Programs SET NodeID = _NextNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-    -- PERFORM Set_Visited(_NodeID := _NextNodeID, _Visited := TRUE);
 ELSE
     _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_LABEL <- FUNCTION_DECLARATION');
     _FunctionInstanceNodeID    := Clone_Node(_NodeID := _FunctionDeclarationNodeID);

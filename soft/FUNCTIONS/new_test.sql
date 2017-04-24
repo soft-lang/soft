@@ -34,8 +34,6 @@ _NodeID := New_Node(
     _TerminalValue := _SourceCode
 );
 
-RETURN _TestID;
-
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'NOTICE',
