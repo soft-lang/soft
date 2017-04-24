@@ -19,21 +19,19 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'fibonacci',
+    _Program       := 'factorial',
     _SourceCode    := $$
-        let x = 5;
-        let foo = fn(y) {
-            let z = 10;
-            if (y == 1) {
-                x + z
+        let factorial = fn(n) {
+            if (n == 0) {
+                1
             } else {
-                foo(y-1) + z
+                n * factorial(n - 1)
             }
         };
-        foo(2)
+        factorial(5);
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '25'
+    _ExpectedValue := '120'
 );
 
 /*

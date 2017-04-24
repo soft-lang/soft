@@ -6,7 +6,7 @@ DECLARE
 _OK boolean;
 _Visited boolean;
 BEGIN
-SELECT Visited[1]
+SELECT Visited
 INTO STRICT _Visited
 FROM Nodes
 WHERE NodeID = _NodeID

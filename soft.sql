@@ -24,6 +24,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/new_edge.sql
 \ir soft/FUNCTIONS/kill_node.sql
 \ir soft/FUNCTIONS/kill_edge.sql
+\ir soft/FUNCTIONS/kill_clone.sql
 \ir soft/FUNCTIONS/expand_token_groups.sql
 \ir soft/FUNCTIONS/get_capturing_group.sql
 \ir soft/FUNCTIONS/get_dot.sql

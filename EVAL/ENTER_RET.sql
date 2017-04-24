@@ -41,7 +41,6 @@ END IF;
 
 _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> FUNCTION_DECLARATION');
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
-    _AllocaNodeID := Find_Node(_NodeID := _FunctionDeclarationNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- ALLOCA');
     SELECT
         CALL.NodeID
     INTO STRICT
@@ -65,25 +64,17 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
-    PERFORM Pop_Visited(NodeID) FROM Nodes WHERE ProgramID = _ProgramID AND DeathPhaseID IS NULL;
     PERFORM Set_Visited(_NodeID, TRUE);
     UPDATE Programs SET NodeID = _CallNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
     IF _ReturnValueNodeID IS NOT NULL THEN
         PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _NodeID);
     END IF;
 ELSE
-    _ProgramNodeID := Find_Node(_NodeID := _NodeID,        _Descend := FALSE, _Strict := TRUE, _Path := '-> PROGRAM');
-    _AllocaNodeID  := Find_Node(_NodeID := _ProgramNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- ALLOCA');
+    _ProgramNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> PROGRAM');
     IF _ReturnValueNodeID IS NOT NULL THEN
         PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _ProgramNodeID);
     END IF;
 END IF;
-
-FOR _VariableNodeID IN
-SELECT ParentNodeID FROM Edges WHERE ChildNodeID = _AllocaNodeID ORDER BY EdgeID
-LOOP
-    PERFORM Pop_Node(_VariableNodeID);
-END LOOP;
 
 RETURN;
 END;

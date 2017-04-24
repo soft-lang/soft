@@ -35,7 +35,7 @@ FROM (
     ORDER BY EdgeID
 ) AS X;
 
-_CopyFromNodeIDs := _CopyFromNodeIDs[2:array_length(_CopyFromNodeIDs,1)-1];
+_CopyFromNodeIDs := _CopyFromNodeIDs[2:array_length(_CopyFromNodeIDs,1)];
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT _CopyToNodeIDs 

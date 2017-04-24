@@ -64,7 +64,7 @@ INTO
 FROM Edges
 INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
 WHERE Edges.ChildNodeID = _NodeID
-AND Nodes.Visited[1]    IS FALSE
+AND Nodes.Visited       IS FALSE
 AND Edges.DeathPhaseID  IS NULL
 AND Nodes.DeathPhaseID  IS NULL
 ORDER BY Edges.EdgeID
@@ -108,7 +108,7 @@ INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
 WHERE Edges.ParentNodeID      = _NodeID
 AND   Edges.DeathPhaseID      IS NULL
 AND   ParentNode.DeathPhaseID IS NULL
-AND   ChildNode.Visited[1]    IS TRUE;
+AND   ChildNode.Visited       IS TRUE;
 
 IF _Count = 1 THEN
     SELECT
@@ -121,7 +121,7 @@ IF _Count = 1 THEN
     AND Edges.EdgeID        > _EdgeID
     AND Edges.DeathPhaseID  IS NULL
     AND Nodes.DeathPhaseID  IS NULL
-    AND Nodes.Visited[1]    IS FALSE
+    AND Nodes.Visited       IS FALSE
     ORDER BY Edges.EdgeID
     LIMIT 1;
     IF FOUND THEN
@@ -159,7 +159,7 @@ ELSIF _Count IS NULL THEN
             _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA'))
         );
         UPDATE Programs SET PhaseID = _NextPhaseID, NodeID = NULL WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
-        PERFORM Set_Visited(NodeID, FALSE) FROM Nodes WHERE ProgramID = _ProgramID AND Visited[1] IS TRUE AND DeathPhaseID IS NULL;
+        PERFORM Set_Visited(NodeID, FALSE) FROM Nodes WHERE ProgramID = _ProgramID AND Visited IS TRUE AND DeathPhaseID IS NULL;
         RETURN TRUE;
     END IF;
 ELSE

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _ClonedRootNodeID integer DEFAULT NULL)
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _ClonedRootNodeID integer DEFAULT NULL, _Depth integer DEFAULT 0, _VisitedNodes integer[] DEFAULT ARRAY[]::integer[])
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -6,6 +6,8 @@ DECLARE
 _ClonedNodeID    integer;
 _ParentNodeID    integer;
 BEGIN
+
+RAISE NOTICE 'Clone_Node NodeID % ClonedRootNodeID % Depth %', _NodeID, _ClonedRootNodeID, _Depth;
 
 SELECT      NodeID
 INTO _ClonedNodeID
@@ -17,16 +19,21 @@ IF FOUND THEN
 END IF;
 
 WITH RECURSIVE Parents AS (
-    SELECT Nodes.ClonedFromNodeID AS ParentNodeID
+    SELECT
+        Nodes.ClonedFromNodeID        AS ParentNodeID,
+        ARRAY[Nodes.ClonedFromNodeID] AS ParentNodeIDs
     FROM Nodes
     WHERE Nodes.NodeID = _ClonedRootNodeID
     UNION ALL
-    SELECT Edges.ParentNodeID
+    SELECT
+        Edges.ParentNodeID,
+        Edges.ParentNodeID || Parents.ParentNodeIDs AS ParentNodeIDs
     FROM Edges
     INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
     INNER JOIN Parents             ON Parents.ParentNodeID = Edges.ChildNodeID
     WHERE    Edges.DeathPhaseID IS NULL
     AND ParentNode.DeathPhaseID IS NULL
+    AND NOT Edges.ParentNodeID = ANY(Parents.ParentNodeIDs)
 )
 SELECT
     COALESCE(
@@ -54,6 +61,7 @@ SELECT
             _NodeTypeID       := Nodes.NodeTypeID,
             _TerminalType     := Nodes.TerminalType,
             _TerminalValue    := Nodes.TerminalValue,
+            _Visited          := Nodes.Visited,
             _ClonedFromNodeID := Nodes.NodeID,
             _ClonedRootNodeID := _ClonedRootNodeID
         )
@@ -65,13 +73,20 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
 WHERE NodeID = _NodeID;
 
+IF _ClonedRootNodeID IS NULL THEN
+    _ClonedRootNodeID := _ClonedNodeID;
+END IF;
+
 PERFORM New_Edge(
     _ProgramID    := ProgramID,
     _ParentNodeID := Clone_Node(
         _NodeID           := ParentNodeID,
-        _ClonedRootNodeID := COALESCE(_ClonedRootNodeID,_ClonedNodeID)
+        _ClonedRootNodeID := _ClonedRootNodeID,
+        _Depth            := _Depth + 1,
+        _VisitedNodes     := _VisitedNodes || _NodeID
     ),
-    _ChildNodeID  := _ClonedNodeID
+    _ChildNodeID      := _ClonedNodeID,
+    _ClonedRootNodeID := _ClonedRootNodeID
 )
 FROM (
     SELECT
@@ -80,7 +95,8 @@ FROM (
         Edges.ParentNodeID
     FROM Edges
     INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
-    WHERE Edges.ChildNodeID = _NodeID
+    WHERE Edges.ChildNodeID    = _NodeID
+    AND NOT Edges.ParentNodeID = ANY(_VisitedNodes)
     AND Edges.DeathPhaseID IS NULL
     AND Nodes.DeathPhaseID IS NULL
     ORDER BY Edges.EdgeID
@@ -89,7 +105,7 @@ FROM (
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Cloned %s -> %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_ClonedNodeID),'CYAN'))
+    _Message  := format('Cloned %s -> %s Depth %s %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_ClonedNodeID),'CYAN'), _Depth, _VisitedNodes)
 );
 
 RETURN _ClonedNodeID;

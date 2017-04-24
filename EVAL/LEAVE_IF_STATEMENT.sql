@@ -20,9 +20,9 @@ SELECT
     ConditionNode.TerminalType,
     ConditionNode.TerminalValue,
     TrueBranch.NodeID,
-    TrueBranch.Visited[1] IS TRUE,
+    TrueBranch.Visited IS TRUE,
     ElseBranch.NodeID,
-    ElseBranch.Visited[1] IS TRUE
+    ElseBranch.Visited IS TRUE
 INTO STRICT
     _ProgramID,
     _ConditionNodeID,
