@@ -21,6 +21,20 @@ SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'fibonacci',
     _SourceCode    := $$
+        let x = 5;
+        let y = 10;
+        let z = 20;
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '2'
+);
+
+/*
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
         let fibonacci = fn(x) {
             if (x == 0) {
                 0
@@ -30,14 +44,13 @@ SELECT New_Test(
                 fibonacci(x - 1) + fibonacci(x - 2)
             }
         };
-        fibonacci(3);
+        loop {
+            fibonacci(2);
+        }
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '2'
+    _ExpectedValue := '1'
 );
-
-
-/*
 
 SELECT New_Test(
     _Language      := 'monkey',
