@@ -20,6 +20,10 @@ INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 WHERE Nodes.NodeID = _NodeID
 FOR UPDATE OF Nodes, Programs;
 
+PERFORM Toggle_Visited(_NodeID := _NodeID);
+
+UPDATE Programs SET NodeID = _NodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+
 _Function := 'ENTER_' || _NodeType;
 
 IF EXISTS (

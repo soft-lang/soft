@@ -8,6 +8,7 @@ PERFORM Log(
     _Severity := 'DEBUG3',
     _Message  := format('Exit %s', Colorize(Node(_NodeID),'CYAN'))
 );
+UPDATE Programs SET NodeID = NULL WHERE ProgramID = _NodeID;
 RETURN;
 END;
 $$;

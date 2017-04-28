@@ -2,7 +2,7 @@ SET search_path TO soft, public;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'NOTICE',
+    _LogSeverity           := 'DEBUG5',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE,
     _VariableBinding       := 'CAPTURE_BY_REFERENCE'
@@ -19,14 +19,58 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:294',
-    _SourceCode    := $$fn(x) { x; }(5)$$,
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
+        let fibonacci = fn(x) {
+            if (x == 0) {
+                0
+            } else if (x == 1) {
+                1
+            } else {
+                fibonacci(x - 1) + fibonacci(x - 2)
+            }
+        };
+        fibonacci(3);
+    $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '5'
+    _ExpectedValue := '2'
 );
 
 
 /*
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'anders_grandlund_1',
+    _SourceCode    := $$
+        let f = fn(x) {
+            2*x
+        };
+        let g = fn(x) {
+            x+1
+        };
+        f(g(7));
+        f(g(4))
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '10'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'anders_grandlund_1',
+    _SourceCode    := $$
+        let f = fn(x) {
+            2*x
+        };
+        let g = fn(x) {
+            x+1
+        };
+        f(g(7))
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '20'
+);
 
 SELECT New_Test(
     _Language      := 'monkey',

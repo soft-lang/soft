@@ -64,7 +64,7 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
-    PERFORM Set_Visited(_NodeID, TRUE);
+--    PERFORM Set_Visited(_NodeID, TRUE);
     UPDATE Programs SET NodeID = _CallNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
     IF _ReturnValueNodeID IS NOT NULL THEN
         PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _NodeID);

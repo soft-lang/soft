@@ -12,6 +12,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID     integer;
+_ProgramNodeID integer;
 _TestID        integer;
 _NodeID        integer;
 _ResultType    regtype;
@@ -40,9 +41,15 @@ PERFORM Log(
     _Message  := format('New test %L for language %L', Colorize(_Program,'CYAN'), Colorize(_Language,'MAGENTA'))
 );
 
+_ProgramNodeID := Get_Program_Node(_ProgramID);
+
+PERFORM Enter_Node(_ProgramNodeID);
+
 SELECT       OK,  Error
 INTO STRICT _OK, _Error
 FROM Run(_ProgramID := _ProgramID);
+
+RETURN _TestID;
 
 SELECT     TerminalType, TerminalValue
 INTO STRICT _ResultType,  _ResultValue

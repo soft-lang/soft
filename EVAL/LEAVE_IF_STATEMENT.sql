@@ -20,9 +20,9 @@ SELECT
     ConditionNode.TerminalType,
     ConditionNode.TerminalValue,
     TrueBranch.NodeID,
-    TrueBranch.Visited IS TRUE,
+    (TrueBranch.Visited = Visited(_NodeID)) IS TRUE,
     ElseBranch.NodeID,
-    ElseBranch.Visited IS TRUE
+    (ElseBranch.Visited = Visited(_NodeID)) IS TRUE
 INTO STRICT
     _ProgramID,
     _ConditionNodeID,
@@ -86,7 +86,7 @@ THEN
         _Message  := format('Goto true branch %s', Colorize(Node(_TrueBranchNodeID), 'CYAN'))
     );
     UPDATE Programs SET NodeID = _TrueBranchNodeID WHERE ProgramID = _ProgramID        RETURNING TRUE INTO STRICT _OK;
-    PERFORM Set_Visited(_TrueBranchNodeID, TRUE);
+    PERFORM Set_Visited(_TrueBranchNodeID, Visited(_NodeID));
 
 ELSIF _Condition           IS NOT TRUE
 AND   _TrueBranchReturning IS FALSE
@@ -108,7 +108,7 @@ THEN
         _Message  := format('Goto else branch %s', Colorize(Node(_ElseBranchNodeID), 'CYAN'))
     );
     UPDATE Programs SET NodeID = _ElseBranchNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-    PERFORM Set_Visited(_ElseBranchNodeID, TRUE);
+    PERFORM Set_Visited(_ElseBranchNodeID, Visited(_NodeID));
 
 ELSE
     RAISE EXCEPTION 'Invalid state of if statement: NodeID % Condition % TrueBranchReturning % ElseBranchReturning %', _NodeID, _Condition, _TrueBranchReturning, _ElseBranchReturning;

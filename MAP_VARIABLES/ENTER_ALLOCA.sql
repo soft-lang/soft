@@ -3,6 +3,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
+PERFORM Goto_Child(_NodeID);
 PERFORM Set_Visited(_NodeID, NULL);
 RETURN;
 END;
