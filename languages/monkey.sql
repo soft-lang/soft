@@ -21,12 +21,19 @@ SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'fibonacci',
     _SourceCode    := $$
-        let x = 5;
-        let y = 10;
-        let z = 20;
+        let fibonacci = fn(x) {
+            if (x == 0) {
+                0
+            } else if (x == 1) {
+                1
+            } else {
+                fibonacci(x - 1) + fibonacci(x - 2)
+            }
+        };
+        fibonacci(2);
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '2'
+    _ExpectedValue := '1'
 );
 
 /*
