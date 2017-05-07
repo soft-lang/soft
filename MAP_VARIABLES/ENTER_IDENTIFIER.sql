@@ -40,12 +40,25 @@ _VariableNodeID := Find_Node(
     _Paths   := ARRAY['<- LET_STATEMENT|STORE_ARGS <- VARIABLE', _Name]
 );
 IF _VariableNodeID IS NULL THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'ERROR',
-        _Message  := format('Undefined variable %s', Colorize(_Name, 'RED'))
+    _VariableNodeID := Find_Node(
+        _NodeID  := Find_Node(
+            _NodeID  := _NodeID,
+            _Descend := TRUE,
+            _Strict  := FALSE,
+            _Paths   := ARRAY['-> FUNCTION_DECLARATION -> LET_STATEMENT <- VARIABLE <- IDENTIFIER', _Name]
+        ),
+        _Descend := FALSE,
+        _Strict  := FALSE,
+        _Paths   := ARRAY['-> VARIABLE -> LET_STATEMENT <- FUNCTION_DECLARATION']
     );
-    RETURN FALSE;
+    IF _VariableNodeID IS NULL THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'ERROR',
+            _Message  := format('Undefined variable %s', Colorize(_Name, 'RED'))
+        );
+        RETURN FALSE;
+    END IF;
 END IF;
 SELECT Set_Edge_Parent(EdgeID, _ParentNodeID := _VariableNodeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
 UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;

@@ -2,20 +2,21 @@ CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict 
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_LanguageID  integer;
-_Path        text;
-_Name        text;
-_SQL         text;
-_JOINs       text;
-_WHEREs      text;
-_Tokens      text[];
-_Direction   text;
-_NodeType    text;
-_i           integer;
-_j           integer;
-_k           integer;
-_FoundNodeID integer;
-_Count       bigint;
+_LanguageID     integer;
+_Path           text;
+_Name           text;
+_SQL            text;
+_JOINs          text;
+_WHEREs         text;
+_Tokens         text[];
+_Direction      text;
+_NodeType       text;
+_i              integer;
+_j              integer;
+_k              integer;
+_FoundNodeID    integer;
+_Count          bigint;
+_VisitedNodeIDs integer[];
 BEGIN
 PERFORM Log(
     _NodeID   := _NodeID,
@@ -27,6 +28,7 @@ INTO STRICT     _LanguageID
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.NodeID = _NodeID;
+_VisitedNodeIDs := ARRAY[]::integer[];
 LOOP
     _JOINs := '';
     _WHEREs := '';
@@ -119,6 +121,10 @@ LOOP
             EXIT;
         END IF;
         SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID ORDER BY EdgeID LIMIT 1;
+        IF _NodeID = ANY(_VisitedNodeIDs) THEN
+            EXIT;
+        END IF;
+        _VisitedNodeIDs := _VisitedNodeIDs || _NodeID;
     ELSE
         EXIT;
     END IF;
