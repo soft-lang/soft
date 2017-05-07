@@ -6,7 +6,7 @@ psql -X -f languages/monkey.sql
 rm prog*.pdf
 
 unset FOO
-FRAME=20000
+FRAME=10000
 
 # psql -X -t -A -q -c "SET search_path TO soft; SELECT Run(1)"
 

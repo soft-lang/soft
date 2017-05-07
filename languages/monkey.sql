@@ -19,24 +19,23 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'fibonacci',
+    _Program       := 'foo',
     _SourceCode    := $$
-        let fibonacci = fn(x) {
-            if (x == 0) {
-                0
-            } else if (x == 1) {
-                1
-            } else {
-                fibonacci(x - 1) + fibonacci(x - 2)
-            }
+        let a = 10;
+        let foo = fn(x) {
+            a = a + 1;
+            2*x*a
         };
-        fibonacci(2);
+        loop {
+            foo(3);
+        }
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '1'
+    _ExpectedValue := '80'
 );
 
 /*
+
 
 SELECT New_Test(
     _Language      := 'monkey',

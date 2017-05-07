@@ -11,8 +11,7 @@ _ChildNodeID               integer;
 _OK                        boolean;
 BEGIN
 
-IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> VARIABLE')      IS NOT NULL
-OR Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> FUNCTION_NAME') IS NOT NULL
+IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> VARIABLE') IS NOT NULL
 THEN
     RETURN FALSE;
 END IF;

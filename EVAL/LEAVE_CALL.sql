@@ -3,7 +3,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
-_RetVisited                integer;
+_Visited                   boolean;
 _RetNodeID                 integer;
 _RetEdgeID                 integer;
 _NextNodeID                integer;
@@ -17,10 +17,12 @@ BEGIN
 
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
+_FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_DECLARATION');
+
 SELECT
     RET.NodeID,
     RET.EdgeID,
-    Nodes.Visited = Visited(_NodeID)
+    Nodes.Visited IS NOT NULL
 INTO
     _RetNodeID,
     _RetEdgeID,
@@ -40,9 +42,9 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType = 'RET';
 IF NOT FOUND THEN
-    _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_LABEL <- FUNCTION_DECLARATION');
-    _FunctionInstanceNodeID    := Clone_Node(_NodeID := _FunctionDeclarationNodeID);
-    _RetNodeID                 := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
+    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID);
+    _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
+    PERFORM Set_Visited(_FunctionInstanceNodeID, Visited(_RetNodeID));
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
         _ParentNodeID := _NodeID,
@@ -65,8 +67,8 @@ ELSE
         _Severity := 'DEBUG3',
         _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_FunctionInstanceNodeID),'MAGENTA'))
     );
-    PERFORM Set_Visited(_RetNodeID, Visited) FROM Nodes WHERE NodeID = _FunctionInstanceNodeID;
-    PERFORM Toggle_Visited(_NodeID := _FunctionInstanceNodeID);
+    PERFORM Set_Visited(_RetNodeID, Visited(_FunctionInstanceNodeID));
+    PERFORM Toggle_Visited(_FunctionInstanceNodeID);
     UPDATE Programs SET NodeID = _FunctionInstanceNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 END IF;
 
