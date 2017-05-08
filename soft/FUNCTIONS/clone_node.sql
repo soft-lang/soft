@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _ClonedRootNodeID integer DEFAULT NULL, _VisitedNodes integer[] DEFAULT ARRAY[]::integer[])
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _VisitedNodes integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -6,6 +6,8 @@ DECLARE
 _ClonedNodeID    integer;
 _ParentNodeID    integer;
 BEGIN
+
+RAISE NOTICE 'Input NodeID %', _NodeID;
 
 SELECT      NodeID
 INTO _ClonedNodeID
@@ -73,15 +75,22 @@ WHERE NodeID = _NodeID;
 
 IF _ClonedRootNodeID IS NULL THEN
     _ClonedRootNodeID := _ClonedNodeID;
+    _OriginRootNodeID := _NodeID;
 END IF;
 
 PERFORM New_Edge(
     _ProgramID    := ProgramID,
-    _ParentNodeID := Clone_Node(
-        _NodeID           := ParentNodeID,
-        _ClonedRootNodeID := _ClonedRootNodeID,
-        _VisitedNodes     := _VisitedNodes || _NodeID
-    ),
+    _ParentNodeID := CASE
+        WHEN ParentNodeID = _OriginRootNodeID
+        THEN CASE WHEN _SelfRef THEN _ClonedRootNodeID ELSE _OriginRootNodeID END
+        ELSE Clone_Node(
+            _NodeID           := ParentNodeID,
+            _OriginRootNodeID := _OriginRootNodeID,
+            _ClonedRootNodeID := _ClonedRootNodeID,
+            _VisitedNodes     := _VisitedNodes || _NodeID,
+            _SelfRef          := _SelfRef
+        )
+    END,
     _ChildNodeID      := _ClonedNodeID,
     _ClonedRootNodeID := _ClonedRootNodeID
 )
@@ -93,7 +102,8 @@ FROM (
     FROM Edges
     INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
     WHERE Edges.ChildNodeID    = _NodeID
-    AND NOT Edges.ParentNodeID = ANY(_VisitedNodes)
+    AND (NOT Edges.ParentNodeID = ANY(_VisitedNodes)
+         OR  Edges.ParentNodeID = _OriginRootNodeID)
     AND Edges.DeathPhaseID IS NULL
     AND Nodes.DeathPhaseID IS NULL
     ORDER BY Edges.EdgeID

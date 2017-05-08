@@ -42,7 +42,7 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType = 'RET';
 IF NOT FOUND THEN
-    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID);
+    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := FALSE);
     _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
     PERFORM Set_Visited(_FunctionInstanceNodeID, Visited(_RetNodeID));
     PERFORM New_Edge(

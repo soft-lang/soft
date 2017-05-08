@@ -35,6 +35,8 @@ FROM (
     ORDER BY EdgeID
 ) AS X;
 
+RAISE NOTICE 'ENTER_STORE_ARGS NodeID % _CopyFromNodeIDs %', _NodeID, _CopyFromNodeIDs;
+
 _CopyFromNodeIDs := _CopyFromNodeIDs[2:array_length(_CopyFromNodeIDs,1)];
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
@@ -42,6 +44,8 @@ INTO STRICT _CopyToNodeIDs
 FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
+
+RAISE NOTICE 'ENTER_STORE_ARGS NodeID % _CopyToNodeIDs %', _NodeID, _CopyToNodeIDs;
 
 IF (array_length(_CopyFromNodeIDs,1) = array_length(_CopyToNodeIDs,1)) IS NOT TRUE THEN
     RAISE EXCEPTION 'Number of function arguments differ between call args and the declared functions args: NodeID % CallNodeID % CopyFromNodeIDs % CopyToNodeIDs %', _NodeID, _CallNodeID, _CopyFromNodeIDs, _CopyToNodeIDs;
