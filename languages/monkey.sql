@@ -18,21 +18,12 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'fibonacci',
+    _Program       := 'evaluator_test.go:294',
     _SourceCode    := $$
-        let fibonacci = fn(x) {
-            if (x == 0) {
-                0
-            } else if (x == 1) {
-                1
-            } else {
-                fibonacci(x - 1) + fibonacci(x - 2)
-            }
-        };
-        fibonacci(3);
+        2 * if (3 == 4) { 5 } else { 6 }
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '1'
+    _ExpectedValue := '195'
 );
 
 /*
@@ -89,7 +80,7 @@ SELECT New_Test(
         f(g(7))
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '20'
+    _ExpectedValue := '16'
 );
 
 SELECT New_Test(
