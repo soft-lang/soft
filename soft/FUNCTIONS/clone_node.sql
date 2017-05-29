@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _VisitedNodes integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE)
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _WalkableNodes integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -61,7 +61,7 @@ SELECT
             _NodeTypeID       := Nodes.NodeTypeID,
             _TerminalType     := Nodes.TerminalType,
             _TerminalValue    := Nodes.TerminalValue,
-            _Visited          := Nodes.Visited,
+            _Walkable         := Nodes.Walkable,
             _ClonedFromNodeID := Nodes.NodeID,
             _ClonedRootNodeID := _ClonedRootNodeID
         )
@@ -87,7 +87,7 @@ PERFORM New_Edge(
             _NodeID           := ParentNodeID,
             _OriginRootNodeID := _OriginRootNodeID,
             _ClonedRootNodeID := _ClonedRootNodeID,
-            _VisitedNodes     := _VisitedNodes || _NodeID,
+            _WalkableNodes     := _WalkableNodes || _NodeID,
             _SelfRef          := _SelfRef
         )
     END,
@@ -102,7 +102,7 @@ FROM (
     FROM Edges
     INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
     WHERE Edges.ChildNodeID    = _NodeID
-    AND (NOT Edges.ParentNodeID = ANY(_VisitedNodes)
+    AND (NOT Edges.ParentNodeID = ANY(_WalkableNodes)
          OR  Edges.ParentNodeID = _OriginRootNodeID)
     AND Edges.DeathPhaseID IS NULL
     AND Nodes.DeathPhaseID IS NULL

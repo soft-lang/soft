@@ -3,7 +3,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
-_Visited                   boolean;
+_Walkable                   boolean;
 _RetNodeID                 integer;
 _RetEdgeID                 integer;
 _NextNodeID                integer;
@@ -22,7 +22,7 @@ _FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _
 SELECT
     RET.NodeID,
     RET.EdgeID,
-    Nodes.Visited IS NOT NULL
+    Nodes.Walkable IS NOT NULL
 INTO
     _RetNodeID,
     _RetEdgeID,
@@ -44,7 +44,7 @@ AND   NodeTypes.NodeType = 'RET';
 IF NOT FOUND THEN
     _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := FALSE);
     _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
-    PERFORM Set_Visited(_FunctionInstanceNodeID, Visited(_RetNodeID));
+    PERFORM Set_Walkable(_FunctionInstanceNodeID, TRUE);
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
         _ParentNodeID := _NodeID,
@@ -59,7 +59,7 @@ IF _ReturningCall THEN
         _Message  := format('Returning function call at %s from %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_RetNodeID),'MAGENTA'))
     );
     PERFORM Copy_Node(_FromNodeID := _RetNodeID, _ToNodeID := _NodeID);
-    PERFORM Set_Visited(_RetNodeID, NULL);
+    PERFORM Set_Walkable(_RetNodeID, FALSE);
 ELSE
     _FunctionInstanceNodeID := Find_Node(_NodeID := _RetNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION');
     PERFORM Log(
@@ -67,8 +67,7 @@ ELSE
         _Severity := 'DEBUG3',
         _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_FunctionInstanceNodeID),'MAGENTA'))
     );
-    PERFORM Set_Visited(_RetNodeID, Visited(_FunctionInstanceNodeID));
-    PERFORM Toggle_Visited(_FunctionInstanceNodeID);
+    PERFORM Set_Walkable(_RetNodeID, TRUE);
     UPDATE Programs SET NodeID = _FunctionInstanceNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 END IF;
 

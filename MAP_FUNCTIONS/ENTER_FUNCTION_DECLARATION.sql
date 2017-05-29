@@ -4,7 +4,7 @@ AS $$
 DECLARE
 BEGIN
 PERFORM Goto_Child(_NodeID);
-PERFORM Set_Visited(_NodeID, NULL);
+PERFORM Set_Walkable(_NodeID, FALSE);
 RETURN TRUE;
 END;
 $$;

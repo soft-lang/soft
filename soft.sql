@@ -2,6 +2,7 @@ CREATE SCHEMA soft;
 SET search_path TO soft, public;
 \ir soft/TYPES/severity.sql
 \ir soft/TYPES/variablebinding.sql
+\ir soft/TYPES/direction.sql
 
 \ir soft/TABLES/languages.sql
 \ir soft/TABLES/phases.sql
@@ -47,18 +48,11 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/find_node.sql
 \ir soft/FUNCTIONS/copy_node.sql
 \ir soft/FUNCTIONS/clone_node.sql
-\ir soft/FUNCTIONS/push_node.sql
-\ir soft/FUNCTIONS/pop_node.sql
 \ir soft/FUNCTIONS/determine_return_type.sql
 \ir soft/FUNCTIONS/set_node_value.sql
 \ir soft/FUNCTIONS/eval_node.sql
 \ir soft/FUNCTIONS/set_program_node.sql
-\ir soft/FUNCTIONS/push_visited.sql
-\ir soft/FUNCTIONS/pop_visited.sql
-\ir soft/FUNCTIONS/get_visited.sql
-\ir soft/FUNCTIONS/set_visited.sql
-\ir soft/FUNCTIONS/toggle_visited.sql
-\ir soft/FUNCTIONS/visited.sql
+\ir soft/FUNCTIONS/set_walkable.sql
 \ir soft/FUNCTIONS/goto_child.sql
 \ir soft/FUNCTIONS/goto_parent.sql
 

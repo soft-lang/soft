@@ -47,7 +47,7 @@ LOOP
         _ChildNodeID  := _AllocaNodeID
     );
 
-    PERFORM Set_Visited(_VariableNodeID, NULL);
+    PERFORM Set_Walkable(_VariableNodeID, FALSE);
 
     PERFORM Log(
         _NodeID   := _NodeID,

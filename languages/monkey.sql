@@ -20,7 +20,8 @@ SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:294',
     _SourceCode    := $$
-        2 * if (3 == 4) { 5 } else { 6 }
+        let x = 1+2*(3-4);
+        let y = 1+x*2;
     $$,
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '195'

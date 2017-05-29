@@ -4,6 +4,7 @@ Program    text    NOT NULL,
 PhaseID    integer NOT NULL REFERENCES Phases(PhaseID),
 Running    boolean NOT NULL DEFAULT FALSE,
 NodeID     integer,
+Direction  direction,
 PRIMARY KEY (ProgramID),
 UNIQUE (Program)
 );

@@ -3,7 +3,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-PERFORM Toggle_Visited(_NodeID);
+PERFORM Toggle_Walkable(_NodeID);
 PERFORM Goto_Parent(_NodeID);
 RETURN;
 END;

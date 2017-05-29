@@ -16,7 +16,7 @@ _j              integer;
 _k              integer;
 _FoundNodeID    integer;
 _Count          bigint;
-_VisitedNodeIDs integer[];
+_WalkableNodeIDs integer[];
 BEGIN
 PERFORM Log(
     _NodeID   := _NodeID,
@@ -28,7 +28,7 @@ INTO STRICT     _LanguageID
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.NodeID = _NodeID;
-_VisitedNodeIDs := ARRAY[]::integer[];
+_WalkableNodeIDs := ARRAY[]::integer[];
 LOOP
     _JOINs := '';
     _WHEREs := '';
@@ -121,10 +121,10 @@ LOOP
             EXIT;
         END IF;
         SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID ORDER BY EdgeID LIMIT 1;
-        IF _NodeID = ANY(_VisitedNodeIDs) THEN
+        IF _NodeID = ANY(_WalkableNodeIDs) THEN
             EXIT;
         END IF;
-        _VisitedNodeIDs := _VisitedNodeIDs || _NodeID;
+        _WalkableNodeIDs := _WalkableNodeIDs || _NodeID;
     ELSE
         EXIT;
     END IF;

@@ -12,7 +12,7 @@ _NextNodeID   integer;
 _ChildNodeID  integer;
 _EdgeID       integer;
 _Count        bigint;
-_Visited      boolean;
+_Direction    direction;
 _OK           boolean;
 BEGIN
 
@@ -34,8 +34,8 @@ IF (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) IS NULL THEN
     RETURN FALSE;
 END IF;
 
-SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Nodes.Visited
-INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,      _Visited
+SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction
+INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction
 FROM Programs
 INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
 INNER JOIN Nodes  ON Nodes.NodeID   = Programs.NodeID
@@ -45,7 +45,7 @@ FOR UPDATE OF Programs;
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG4',
-    _Message  := format('Visiting %s', Colorize(Node(_NodeID)))
+    _Message  := format('%s %s', _Direction, Colorize(Node(_NodeID)))
 );
 
 IF NOT EXISTS (
@@ -60,21 +60,29 @@ IF NOT EXISTS (
     PERFORM Eval_Node(_NodeID);
 END IF;
 
-SELECT
-    Edges.ParentNodeID
-INTO
-    _ParentNodeID
-FROM Edges
-INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
-WHERE Edges.ChildNodeID  = _NodeID
-AND Nodes.Visited       <> _Visited
-AND Edges.DeathPhaseID  IS NULL
-AND Nodes.DeathPhaseID  IS NULL
-ORDER BY Edges.EdgeID
-LIMIT 1;
-IF FOUND THEN
-    PERFORM Enter_Node(_ParentNodeID);
-    RETURN TRUE;
+IF _Direction = 'ENTER' THEN
+    SELECT
+        Edges.ParentNodeID
+    INTO
+        _ParentNodeID
+    FROM Edges
+    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+    WHERE Edges.ChildNodeID  = _NodeID
+    AND Nodes.Walkable      IS TRUE
+    AND Edges.DeathPhaseID  IS NULL
+    AND Nodes.DeathPhaseID  IS NULL
+    ORDER BY Edges.EdgeID
+    LIMIT 1;
+    IF FOUND THEN
+        PERFORM Enter_Node(_ParentNodeID);
+        RETURN TRUE;
+    ELSE
+        UPDATE Programs SET Direction = 'LEAVE' WHERE ProgramID = _ProgramID RETURNING Direction INTO STRICT _Direction;
+    END IF;
+END IF;
+
+IF _Direction IS DISTINCT FROM 'LEAVE' THEN
+    RAISE EXCEPTION 'Unexpected Direction %', _Direction;
 END IF;
 
 PERFORM Leave_Node(_NodeID);
@@ -106,10 +114,8 @@ INTO
 FROM Edges
 INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
 INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
-WHERE Edges.ParentNodeID      = _NodeID
-AND   ChildNode.Visited       = _Visited
-AND   Edges.DeathPhaseID      IS NULL
-AND   ParentNode.DeathPhaseID IS NULL;
+WHERE Edges.ParentNodeID = _NodeID
+AND   Edges.DeathPhaseID IS NULL;
 
 IF _Count = 1 THEN
     SELECT
@@ -120,7 +126,7 @@ IF _Count = 1 THEN
     INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
     WHERE Edges.ChildNodeID =  _ChildNodeID
     AND Edges.EdgeID        >  _EdgeID
-    AND Nodes.Visited       <> _Visited
+    AND Nodes.Walkable      IS TRUE
     AND Edges.DeathPhaseID  IS NULL
     AND Nodes.DeathPhaseID  IS NULL
     ORDER BY Edges.EdgeID
@@ -131,6 +137,7 @@ IF _Count = 1 THEN
             _Severity := 'DEBUG5',
             _Message  := format('Walking from %s to next node %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_NextNodeID), 'MAGENTA'))
         );
+        UPDATE Programs SET Direction = 'ENTER' WHERE ProgramID = _ProgramID RETURNING Direction INTO STRICT _Direction;
         PERFORM Enter_Node(_NextNodeID);
         RETURN TRUE;
     ELSE
@@ -140,7 +147,6 @@ IF _Count = 1 THEN
             _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_ChildNodeID), 'MAGENTA'))
         );
         UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
-        PERFORM Set_Visited(_ChildNodeID, _Visited);
         RETURN TRUE;
     END IF;
 ELSIF _Count IS NULL THEN
@@ -157,12 +163,12 @@ ELSIF _Count IS NULL THEN
             _Severity := 'DEBUG3',
             _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA'))
         );
-        UPDATE Programs SET PhaseID = _NextPhaseID WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
+        UPDATE Programs SET PhaseID = _NextPhaseID, Direction = 'ENTER' WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
         PERFORM Enter_Node(_NodeID);
         RETURN TRUE;
     END IF;
 ELSE
-    RAISE EXCEPTION 'Multiple % walkable visited children found under NodeID %, one of them is NodeID % via EdgeID %', _Count, _NodeID, _ChildNodeID, _EdgeID;
+    RAISE EXCEPTION 'Multiple % walkable walkable children found under NodeID %, one of them is NodeID % via EdgeID %', _Count, _NodeID, _ChildNodeID, _EdgeID;
 END IF;
 
 

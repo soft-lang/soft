@@ -8,7 +8,7 @@ rm prog*.pdf
 unset FOO
 FRAME=10000
 
-# psql -X -t -A -q -c "SET search_path TO soft; SELECT Run(1)"
+psql -X -t -A -q -c "SET search_path TO soft; SELECT Run(1)"
 
 echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'SET search_path TO soft; SELECT DISTINCT Get_DOT()' >> prog.dot
 echo '}' >> prog.dot

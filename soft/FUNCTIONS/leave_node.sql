@@ -8,6 +8,7 @@ _PhaseID   integer;
 _Phase     text;
 _NodeType  text;
 _Function  text;
+_Direction direction;
 _OK        boolean;
 BEGIN
 
@@ -17,7 +18,8 @@ FROM Nodes
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
-WHERE Nodes.NodeID = _NodeID
+WHERE Nodes.NodeID       = _NodeID
+AND   Programs.Direction = 'LEAVE'
 FOR UPDATE OF Nodes, Programs;
 
 _Function := 'LEAVE_' || _NodeType;

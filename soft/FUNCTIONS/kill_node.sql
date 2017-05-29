@@ -37,7 +37,7 @@ IF FOUND THEN
 END IF;
 
 UPDATE Nodes
-SET DeathPhaseID = Programs.PhaseID
+SET DeathPhaseID = Programs.PhaseID, DeathTime = clock_timestamp()
 FROM Programs
 WHERE Programs.ProgramID = Nodes.ProgramID
 AND Nodes.NodeID = _NodeID

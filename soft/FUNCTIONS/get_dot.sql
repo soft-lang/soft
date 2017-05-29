@@ -13,11 +13,11 @@ SELECT format(E'"%s" [label="%s\n%s\n%s\n%s"%s];',
     'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.TerminalType::text,'NAN') || ' ' || COALESCE(replace(Nodes.TerminalValue,'"','\"'), 'NULL'),
     (SELECT Phases.Phase FROM Programs INNER JOIN Phases USING (PhaseID)),
     CASE
-        WHEN Nodes.Visited IS NOT NULL
+        WHEN Nodes.Walkable IS NOT NULL
         THEN ' style="filled"'
             || CASE WHEN Nodes.NodeID = (SELECT NodeID FROM Programs) THEN ' penwidth="5"' ELSE '' END
             || ' fillcolor="'
-            || CASE Nodes.Visited WHEN TRUE THEN 'yellow' WHEN FALSE THEN 'cyan' END
+            || CASE WHEN Nodes.NodeID = (SELECT NodeID FROM Programs) THEN CASE (SELECT Direction FROM Programs) WHEN 'ENTER' THEN 'cyan' WHEN 'LEAVE' THEN 'yellow' END ELSE CASE Nodes.Walkable WHEN TRUE THEN 'grey' WHEN FALSE THEN 'white' END END
             || '"'
         ELSE ''
     END

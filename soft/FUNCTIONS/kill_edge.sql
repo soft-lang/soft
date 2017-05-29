@@ -6,7 +6,7 @@ DECLARE
 _OK boolean;
 BEGIN
 UPDATE Edges
-SET DeathPhaseID = Programs.PhaseID
+SET DeathPhaseID = Programs.PhaseID, DeathTime = clock_timestamp()
 FROM Programs
 WHERE Programs.ProgramID = Edges.ProgramID
 AND Edges.EdgeID = _EdgeID

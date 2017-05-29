@@ -17,10 +17,9 @@ FROM Nodes
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
-WHERE Nodes.NodeID = _NodeID
+WHERE Nodes.NodeID       = _NodeID
+AND   Programs.Direction = 'ENTER'
 FOR UPDATE OF Nodes, Programs;
-
-PERFORM Toggle_Visited(_NodeID := _NodeID);
 
 UPDATE Programs SET NodeID = _NodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
 

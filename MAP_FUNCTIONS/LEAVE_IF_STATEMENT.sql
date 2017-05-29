@@ -16,10 +16,10 @@ AND   Edges.DeathPhaseID      IS NULL
 AND   ParentNode.DeathPhaseID IS NULL
 AND   ChildNode.DeathPhaseID  IS NULL;
 
-PERFORM Set_Visited(_ParentNodes[2], NULL);
+PERFORM Set_Walkable(_ParentNodes[2], FALSE);
 
 IF _ParentNodes[3] IS NOT NULL THEN
-    PERFORM Set_Visited(_ParentNodes[3], NULL);
+    PERFORM Set_Walkable(_ParentNodes[3], FALSE);
 END IF;
 
 RETURN TRUE;

@@ -3,7 +3,7 @@ _ProgramID            integer,
 _NodeTypeID           integer,
 _TerminalType         regtype   DEFAULT NULL,
 _TerminalValue        text      DEFAULT NULL,
-_Visited              boolean   DEFAULT FALSE,
+_Walkable             boolean   DEFAULT TRUE,
 _ClonedFromNodeID     integer   DEFAULT NULL,
 _ClonedRootNodeID     integer   DEFAULT NULL
 )
@@ -26,8 +26,8 @@ IF _TerminalValue IS NOT NULL AND _TerminalType IS NOT NULL THEN
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  TerminalType,  TerminalValue,  Visited,  ClonedFromNodeID,  ClonedRootNodeID)
-VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _TerminalType, _TerminalValue, _Visited, _ClonedFromNodeID, _ClonedRootNodeID)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  TerminalType,  TerminalValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _TerminalType, _TerminalValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Pop_Visited(boolean[])
+CREATE OR REPLACE FUNCTION Pop_Walkable(boolean[])
 RETURNS boolean[]
 LANGUAGE sql
 AS $$

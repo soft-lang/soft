@@ -43,6 +43,8 @@ PERFORM Log(
 
 _ProgramNodeID := Get_Program_Node(_ProgramID);
 
+UPDATE Programs SET Direction = 'ENTER' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+
 PERFORM Enter_Node(_ProgramNodeID);
 
 SELECT       OK,  Error

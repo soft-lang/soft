@@ -21,7 +21,7 @@ AND   Edges.DeathPhaseID IS NULL
 AND   Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType <> 'CALL';
 
-PERFORM Set_Visited(_NodeID, NULL);
+PERFORM Set_Walkable(_NodeID, FALSE);
 
 UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 
