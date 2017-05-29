@@ -3,6 +3,10 @@ psql -X -f install.sql
 
 psql -X -f languages/monkey.sql
 
+psql -X -1 -f import_nodetypes.sql
+
+psql -X -1 -f languages/monkey/test.sql
+
 rm prog*.pdf
 
 unset FOO
