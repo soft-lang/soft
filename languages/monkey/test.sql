@@ -4,11 +4,11 @@ SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:294',
     _SourceCode    := $$
-        let x = 1+2*(3-4);
-        let y = 1+x*2;
+        let x = 1+2-3*4/5--6*(7+8);
+        9*x-719
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '195'
+    _ExpectedValue := '100'
 );
 
 /*
