@@ -17,7 +17,20 @@ BEGIN
 
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
-_FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- FUNCTION_DECLARATION');
+SELECT                  X.ParentNodeID
+INTO STRICT _FunctionDeclarationNodeID
+FROM (
+    SELECT ParentNodeID
+    FROM Edges
+    WHERE ChildNodeID  = _NodeID
+    AND   DeathPhaseID IS NULL
+    ORDER BY EdgeID
+    LIMIT 1
+) AS X
+INNER JOIN Nodes     ON Nodes.NodeID         = X.ParentNodeID
+INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+WHERE Nodes.DeathPhaseID IS NULL
+AND   NodeTypes.NodeType = 'FUNCTION_DECLARATION';
 
 SELECT
     RET.NodeID,
@@ -29,12 +42,12 @@ INTO
     _ReturningCall
 FROM (
     SELECT
-        Edges.EdgeID,
-        Edges.ChildNodeID AS NodeID
+        EdgeID,
+        ChildNodeID AS NodeID
     FROM Edges
-    WHERE Edges.ParentNodeID  = _NodeID
-    AND   Edges.DeathPhaseID IS NULL
-    ORDER BY Edges.EdgeID DESC
+    WHERE ParentNodeID  = _NodeID
+    AND   DeathPhaseID IS NULL
+    ORDER BY EdgeID DESC
     LIMIT 1
 ) AS RET
 INNER JOIN Nodes     ON Nodes.NodeID         = RET.NodeID

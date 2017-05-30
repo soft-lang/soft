@@ -6,6 +6,7 @@ _RetNodeID       integer;
 _CallNodeID      integer;
 _CopyFromNodeIDs integer[];
 _CopyToNodeIDs   integer[];
+_ClonedNodeID    integer;
 _OK              boolean;
 BEGIN
 
@@ -58,7 +59,14 @@ IF array_length(_CopyFromNodeIDs,1) IS DISTINCT FROM array_length(_CopyToNodeIDs
 END IF;
 
 FOR _i IN 1..array_length(_CopyFromNodeIDs,1) LOOP
-    PERFORM Copy_Node(_CopyFromNodeIDs[_i], _CopyToNodeIDs[_i]);
+    IF (SELECT TerminalType FROM Nodes WHERE NodeID = _CopyFromNodeIDs[_i]) IS NOT NULL THEN
+        PERFORM Copy_Node(_FromNodeID := _CopyFromNodeIDs[_i], _ToNodeID := _CopyToNodeIDs[_i]);
+    ELSE
+        _ClonedNodeID := Clone_Node(_NodeID := _CopyFromNodeIDs[_i]);
+        UPDATE Edges SET ChildNodeID  = _ClonedNodeID WHERE ChildNodeID  = _CopyToNodeIDs[_i] AND DeathPhaseID IS NULL;
+        UPDATE Edges SET ParentNodeID = _ClonedNodeID WHERE ParentNodeID = _CopyToNodeIDs[_i] AND DeathPhaseID IS NULL;
+        PERFORM Kill_Clone(_CopyToNodeIDs[_i]);
+    END IF;
 END LOOP;
 
 RETURN;
