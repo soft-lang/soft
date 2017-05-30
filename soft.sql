@@ -57,6 +57,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/goto_parent.sql
 \ir soft/FUNCTIONS/quote.sql
 \ir soft/FUNCTIONS/export_node_types.sql
+\ir soft/FUNCTIONS/next_node.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql

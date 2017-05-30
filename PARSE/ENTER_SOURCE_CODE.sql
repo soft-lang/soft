@@ -172,9 +172,9 @@ LOOP
     PERFORM Log(
         _NodeID   := _ChildNodeID,
         _Severity := COALESCE(_NodeSeverity,'DEBUG2'),
-        _Message  := format('%s <- %s <- %s <- %s',
+        _Message  := format('%s%s <- %s <- %s',
             Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
-            Colorize(_NodePattern, 'CYAN'),
+            CASE WHEN _NodeSeverity = 'DEBUG5' THEN ' <- ' || Colorize(_NodePattern, 'CYAN') END,
             Colorize(_MatchedNodes, 'BLUE'),
             One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'MAGENTA'))
         )

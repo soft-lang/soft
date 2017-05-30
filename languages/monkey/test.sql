@@ -2,13 +2,21 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:294',
+    _Program       := 'fibonacci',
     _SourceCode    := $$
-        let x = 1+2-3*4/5--6*(7+8);
-        9*x-719
+        let fibonacci = fn(x) {
+            if (x == 0) {
+                0
+            } else if (x == 1) {
+                1
+            } else {
+                fibonacci(x - 1) + fibonacci(x - 2)
+            }
+        };
+        fibonacci(4);
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '100'
+    _ExpectedValue := '3'
 );
 
 /*

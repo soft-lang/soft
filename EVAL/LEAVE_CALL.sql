@@ -68,7 +68,7 @@ ELSE
         _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_FunctionInstanceNodeID),'MAGENTA'))
     );
     PERFORM Set_Walkable(_RetNodeID, TRUE);
-    UPDATE Programs SET NodeID = _FunctionInstanceNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Programs SET NodeID = _FunctionInstanceNodeID, Direction = 'ENTER' WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 END IF;
 
 RETURN;
