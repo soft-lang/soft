@@ -37,15 +37,11 @@ FROM (
     OFFSET 1
 ) AS X;
 
-RAISE NOTICE 'ENTER_STORE_ARGS NodeID % _CopyFromNodeIDs %', _NodeID, _CopyFromNodeIDs;
-
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT _CopyToNodeIDs 
 FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
-
-RAISE NOTICE 'ENTER_STORE_ARGS NodeID % _CopyToNodeIDs %', _NodeID, _CopyToNodeIDs;
 
 IF  _CopyFromNodeIDs IS NULL
 AND _CopyToNodeIDs   IS NULL

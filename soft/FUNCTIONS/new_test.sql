@@ -51,12 +51,10 @@ SELECT       OK,  Error
 INTO STRICT _OK, _Error
 FROM Run(_ProgramID := _ProgramID);
 
-RETURN _TestID;
-
 SELECT     TerminalType, TerminalValue
 INTO STRICT _ResultType,  _ResultValue
 FROM Nodes
-WHERE NodeID = Get_Program_Node(_ProgramID := _ProgramID);
+WHERE NodeID = (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID);
 
 PERFORM Log(
     _NodeID   := _NodeID,

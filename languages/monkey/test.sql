@@ -2,19 +2,12 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'test',
-    _SourceCode    := $$
-        let foo = fn(z) {
-            2*z
-        };
-        let bar = fn(x,y) {
-            10*x(y+1)
-        };
-        bar(foo,3)
-    $$,
+    _Program       := 'evaluator_test.go:294',
+    _SourceCode    := $$fn(x) { x; }(5)$$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '80'
+    _ExpectedValue := '5'
 );
+
 
 /*
 
@@ -32,9 +25,7 @@ SELECT New_Test(
                 fibonacci(x - 1) + fibonacci(x - 2)
             }
         };
-        loop {
-            fibonacci(2);
-        }
+        fibonacci(2);
     $$,
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '1'

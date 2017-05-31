@@ -45,8 +45,6 @@ AND Nodes.DeathPhaseID IS NULL
 AND NOT EXISTS (SELECT 1 FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Nodes.NodeID IN (Edges.ParentNodeID, Edges.ChildNodeID))
 RETURNING TRUE INTO STRICT _OK;
 
-RAISE NOTICE 'Killed %', Node(_NodeID);
-
 RETURN TRUE;
 END;
 $$;

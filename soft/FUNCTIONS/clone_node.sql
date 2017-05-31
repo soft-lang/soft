@@ -7,8 +7,6 @@ _ClonedNodeID    integer;
 _ParentNodeID    integer;
 BEGIN
 
-RAISE NOTICE 'Input NodeID %', _NodeID;
-
 SELECT      NodeID
 INTO _ClonedNodeID
 FROM Nodes
