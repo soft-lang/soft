@@ -10,7 +10,7 @@ _DidWork          boolean;
 _NOPNodeID        integer;
 _NodeTypeID       integer;
 _NodeType         text;
-_TerminalType     regtype;
+_PrimitiveType     regtype;
 _ParentNodeID     integer;
 _ChildNodeID      integer;
 _ProgramNodeID    integer;
@@ -45,14 +45,14 @@ PERFORM Log(
 _Killed := 0;
 LOOP
     _DidWork := FALSE;
-    FOR      _NOPNodeID,      _NodeTypeID,          _NodeType,          _TerminalType,          _NodePattern IN
-    SELECT Nodes.NodeID, Nodes.NodeTypeID, NodeTypes.NodeType, NodeTypes.TerminalType, NodeTypes.NodePattern
+    FOR      _NOPNodeID,      _NodeTypeID,          _NodeType,          _PrimitiveType,          _NodePattern IN
+    SELECT Nodes.NodeID, Nodes.NodeTypeID, NodeTypes.NodeType, NodeTypes.PrimitiveType, NodeTypes.NodePattern
     FROM Nodes
     INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
     WHERE Nodes.ProgramID = _ProgramID
     AND Nodes.DeathPhaseID     IS NULL
-    AND Nodes.TerminalType     IS NULL
-    AND NodeTypes.TerminalType IS NULL
+    AND Nodes.PrimitiveType     IS NULL
+    AND NodeTypes.PrimitiveType IS NULL
     AND NodeTypes.NodeSeverity IS NULL
     AND NOT EXISTS (
         SELECT 1 FROM pg_proc
@@ -83,7 +83,7 @@ LOOP
                 Colorize(Node(_ChildNodeID),'GREEN')
             )
         );
-        IF _TerminalType IS NOT NULL THEN
+        IF _PrimitiveType IS NOT NULL THEN
             PERFORM Set_Node_Type(_NodeID := _ParentNodeID, _NodeTypeID := _NodeTypeID);
         END IF;
         _DidWork := TRUE;

@@ -7,11 +7,13 @@ _ChildNodeID integer;
 _OK          boolean;
 BEGIN
 
+PERFORM Set_Walkable(_NodeID, FALSE);
+
+SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
+
 SELECT
-    Nodes.ProgramID,
     Edges.ChildNodeID
-INTO STRICT
-    _ProgramID,
+INTO
     _ChildNodeID
 FROM Edges
 INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ChildNodeID
@@ -20,10 +22,9 @@ WHERE Edges.ParentNodeID = _NodeID
 AND   Edges.DeathPhaseID IS NULL
 AND   Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType <> 'CALL';
-
-PERFORM Set_Walkable(_NodeID, FALSE);
-
-UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+IF FOUND THEN
+	UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+END IF;
 
 RETURN TRUE;
 END;

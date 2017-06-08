@@ -3,8 +3,8 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ClonedNodeID    integer;
-_ParentNodeID    integer;
+_ClonedNodeID integer;
+_ParentNodeID integer;
 BEGIN
 
 SELECT      NodeID
@@ -57,8 +57,8 @@ SELECT
         New_Node(
             _ProgramID        := Nodes.ProgramID,
             _NodeTypeID       := Nodes.NodeTypeID,
-            _TerminalType     := Nodes.TerminalType,
-            _TerminalValue    := Nodes.TerminalValue,
+            _PrimitiveType    := Nodes.PrimitiveType,
+            _PrimitiveValue   := Nodes.PrimitiveValue,
             _Walkable         := Nodes.Walkable,
             _ClonedFromNodeID := Nodes.NodeID,
             _ClonedRootNodeID := _ClonedRootNodeID

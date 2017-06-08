@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION New_Node(
 _ProgramID            integer,
 _NodeTypeID           integer,
-_TerminalType         regtype   DEFAULT NULL,
-_TerminalValue        text      DEFAULT NULL,
+_PrimitiveType         regtype   DEFAULT NULL,
+_PrimitiveValue        text      DEFAULT NULL,
 _Walkable             boolean   DEFAULT TRUE,
 _ClonedFromNodeID     integer   DEFAULT NULL,
 _ClonedRootNodeID     integer   DEFAULT NULL
@@ -19,15 +19,15 @@ BEGIN
 
 SELECT PhaseID INTO STRICT _BirthPhaseID FROM Programs WHERE ProgramID = _ProgramID;
 
-IF _TerminalValue IS NOT NULL AND _TerminalType IS NOT NULL THEN
-    EXECUTE format('SELECT %L::%s::text', _TerminalValue, _TerminalType) INTO STRICT _CastTest;
-    IF _TerminalValue IS DISTINCT FROM _CastTest THEN
-        RAISE EXCEPTION 'TerminalValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _TerminalValue, _CastTest, _TerminalType;
+IF _PrimitiveValue IS NOT NULL AND _PrimitiveType IS NOT NULL THEN
+    EXECUTE format('SELECT %L::%s::text', _PrimitiveValue, _PrimitiveType) INTO STRICT _CastTest;
+    IF _PrimitiveValue IS DISTINCT FROM _CastTest THEN
+        RAISE EXCEPTION 'PrimitiveValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _PrimitiveValue, _CastTest, _PrimitiveType;
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  TerminalType,  TerminalValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID)
-VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _TerminalType, _TerminalValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 
@@ -38,8 +38,8 @@ $$;
 CREATE OR REPLACE FUNCTION New_Node(
 _Program              text,
 _NodeType             text,
-_TerminalType         regtype   DEFAULT NULL,
-_TerminalValue        text      DEFAULT NULL
+_PrimitiveType         regtype   DEFAULT NULL,
+_PrimitiveValue        text      DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -63,8 +63,8 @@ AND NodeTypes.NodeType = _NodeType;
 RETURN New_Node(
     _ProgramID            := _ProgramID,
     _NodeTypeID           := _NodeTypeID,
-    _TerminalType         := _TerminalType,
-    _TerminalValue        := _TerminalValue
+    _PrimitiveType         := _PrimitiveType,
+    _PrimitiveValue        := _PrimitiveValue
 );
 END;
 $$;

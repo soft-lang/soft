@@ -5,7 +5,7 @@ SELECT
 NodeTypes.NodeTypeID,
 Languages.Language,
 NodeTypes.NodeType,
-NodeTypes.TerminalType::text,
+NodeTypes.PrimitiveType::text,
 NodeTypes.NodeGroup,
 NodeTypes.Literal,
 regexp_replace(NodeTypes.LiteralPattern, '^\^\((.*)\)$', '\1') AS LiteralPattern,

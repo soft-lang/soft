@@ -16,7 +16,7 @@ _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := TRUE
 
 SELECT
     Nodes.ProgramID,
-    Nodes.TerminalValue,
+    Nodes.PrimitiveValue,
     Edges.ChildNodeID
 INTO STRICT
     _ProgramID,

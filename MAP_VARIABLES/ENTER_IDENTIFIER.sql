@@ -18,7 +18,7 @@ END IF;
 
 SELECT
     Nodes.ProgramID,
-    Nodes.TerminalValue
+    Nodes.PrimitiveValue
 INTO STRICT
     _ProgramID,
     _Name
@@ -27,11 +27,11 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
-WHERE Nodes.NodeID = _NodeID
-AND Phases.Phase       = 'MAP_VARIABLES'
-AND NodeTypes.NodeType = 'IDENTIFIER'
-AND Nodes.TerminalType = 'name'::regtype
-AND Nodes.DeathPhaseID IS NULL;
+WHERE Nodes.NodeID      = _NodeID
+AND Phases.Phase        = 'MAP_VARIABLES'
+AND NodeTypes.NodeType  = 'IDENTIFIER'
+AND Nodes.PrimitiveType = 'name'::regtype
+AND Nodes.DeathPhaseID  IS NULL;
 
 _VariableNodeID := Find_Node(
     _NodeID  := _NodeID,

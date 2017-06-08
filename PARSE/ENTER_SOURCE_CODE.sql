@@ -58,7 +58,7 @@ INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'PARSE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'
-AND Nodes.TerminalType = 'text'::regtype
+AND Nodes.PrimitiveType = 'text'::regtype
 AND Nodes.DeathPhaseID IS NULL;
 
 SELECT string_agg(format('%s%s',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY Nodes.NodeID)
@@ -96,7 +96,7 @@ LOOP
     SELECT
         NodeTypes.NodeTypeID,
         NodeTypes.NodeType,
-        NodeTypes.TerminalType,
+        NodeTypes.PrimitiveType,
         NodeTypes.NodePattern,
         Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID),
         NodeTypes.PrologueNodeTypeID,
@@ -220,12 +220,12 @@ LOOP
         );
         IF _GrowIntoNodeType IS NULL OR _MatchedNode ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
             _Parents := _Parents + 1;
-        ELSIF _GrowIntoNodeType IS NOT NULL THEN
+        ELSIF _GrowIntoNodeType IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _ParentNodeID AND DeathPhaseID IS NULL)
+        THEN
             PERFORM Kill_Edge(_EdgeID);
             PERFORM Kill_Node(_ParentNodeID);
             _Killed := _Killed + 1;
-        ELSE
-            RAISE EXCEPTION 'How did we end up here?!';
         END IF;
     END LOOP;
 

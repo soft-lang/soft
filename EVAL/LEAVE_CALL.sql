@@ -71,7 +71,6 @@ IF _ReturningCall THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s from %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_RetNodeID),'MAGENTA'))
     );
-    PERFORM Copy_Node(_FromNodeID := _RetNodeID, _ToNodeID := _NodeID);
     PERFORM Set_Walkable(_RetNodeID, FALSE);
 ELSE
     _FunctionInstanceNodeID := Find_Node(_NodeID := _RetNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION');

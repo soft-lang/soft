@@ -87,8 +87,8 @@ LOOP
         END LOOP;
         IF _Name IS NOT NULL THEN
             _WHEREs := _WHEREs || format($SQL$
-                AND Node%1$s.TerminalType  = 'name'::regtype
-                AND Node%1$s.TerminalValue = %2$L
+                AND Node%1$s.PrimitiveType  = 'name'::regtype
+                AND Node%1$s.PrimitiveValue = %2$L
             $SQL$, _k, _Name);
         END IF;
     END LOOP;

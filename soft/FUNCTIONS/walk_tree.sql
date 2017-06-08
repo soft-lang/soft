@@ -51,11 +51,11 @@ PERFORM Log(
 IF NOT EXISTS (
     SELECT 1
     FROM Edges
-    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+    INNER JOIN Nodes ON Nodes.NodeID = Dereference(Edges.ParentNodeID)
     WHERE Edges.ChildNodeID = _NodeID
     AND Edges.DeathPhaseID  IS NULL
     AND Nodes.DeathPhaseID  IS NULL
-    AND Nodes.TerminalType  IS NULL
+    AND Nodes.PrimitiveType IS NULL
 ) THEN
     PERFORM Eval_Node(_NodeID);
 END IF;

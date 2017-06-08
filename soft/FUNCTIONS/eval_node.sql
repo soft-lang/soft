@@ -50,11 +50,11 @@ SELECT
         _Phase,
         _FunctionName,
         string_agg(
-            quote_literal(Nodes.TerminalValue)||'::'||Nodes.TerminalType::text,
+            quote_literal(Primitive_Value(Nodes.NodeID))||'::'||Primitive_Type(Nodes.NodeID)::text,
             ','
         ORDER BY Edges.EdgeID)
     ),
-    array_agg(Nodes.TerminalType ORDER BY Edges.EdgeID)
+    array_agg(Primitive_Type(Nodes.NodeID) ORDER BY Edges.EdgeID)
 INTO STRICT
     _SQL,
     _ParentValueTypes
@@ -79,7 +79,7 @@ IF _ReturnValue IS DISTINCT FROM _CastTest THEN
     RAISE EXCEPTION 'ReturnValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _ReturnValue, _CastTest, _ReturnType;
 END IF;
 
-PERFORM Set_Node_Value(_NodeID := _NodeID, _TerminalType := _ReturnType, _TerminalValue := _ReturnValue);
+PERFORM Set_Node_Value(_NodeID := _NodeID, _PrimitiveType := _ReturnType, _PrimitiveValue := _ReturnValue);
 
 PERFORM Log(
     _NodeID   := _NodeID,

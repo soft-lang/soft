@@ -3,9 +3,10 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _LastNodeID integer;
+_OK         boolean;
 BEGIN
 
-SELECT     ParentNodeID
+SELECT Dereference(ParentNodeID)
 INTO STRICT _LastNodeID
 FROM Edges
 WHERE ChildNodeID = _NodeID
@@ -13,7 +14,7 @@ AND DeathPhaseID IS NULL
 ORDER BY EdgeID DESC
 LIMIT 1;
 
-PERFORM Copy_Node(_FromNodeID := _LastNodeID, _ToNodeID := _NodeID);
+UPDATE Nodes SET ReferenceNodeID = _LastNodeID WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 
 RETURN;
 END;

@@ -4,6 +4,7 @@ AS $$
 DECLARE
 _StatementReturnValues boolean;
 _LastNodeID            integer;
+_OK                    boolean;
 BEGIN
 
 SELECT Languages.StatementReturnValues
@@ -21,7 +22,7 @@ IF _StatementReturnValues THEN
     AND DeathPhaseID IS NULL
     ORDER BY EdgeID DESC
     LIMIT 1;
-    PERFORM Copy_Node(_FromNodeID := _LastNodeID, _ToNodeID := _NodeID);
+	UPDATE Nodes SET ReferenceNodeID = _LastNodeID WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 END IF;
 
 RETURN;

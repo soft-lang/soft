@@ -8,7 +8,7 @@ _ProgramID        integer;
 _SourceCodeNodeID integer;
 _TokenizePhaseID  integer;
 _TokenNodeID      integer;
-_TerminalValue    text;
+_PrimitiveValue    text;
 _Fragment         text;
 BEGIN
 _NodeIDs := ARRAY(SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID FROM regexp_matches($1,'(?:^| )[A-Z_]+(\d+)','g') ORDER BY NodeID);
@@ -19,15 +19,15 @@ SELECT NodeID, BirthPhaseID INTO STRICT _SourceCodeNodeID, _TokenizePhaseID FROM
 
 _Fragment := '';
 
-FOR    _TokenNodeID, _TerminalValue IN
-SELECT       NodeID,  TerminalValue
+FOR    _TokenNodeID, _PrimitiveValue IN
+SELECT       NodeID,  PrimitiveValue
 FROM Nodes
 WHERE ProgramID  = _ProgramID
 AND BirthPhaseID = _TokenizePhaseID
 AND NodeID       > _SourceCodeNodeID
 ORDER BY NodeID
 LOOP
-    _Fragment := _Fragment || CASE WHEN _TokenNodeID = ANY(_NodeIDs) THEN Colorize(_TerminalValue, _Color) ELSE _TerminalValue END;
+    _Fragment := _Fragment || CASE WHEN _TokenNodeID = ANY(_NodeIDs) THEN Colorize(_PrimitiveValue, _Color) ELSE _PrimitiveValue END;
 END LOOP;
 
 RETURN _Fragment;

@@ -9,8 +9,8 @@ RETURN QUERY
 SELECT format(E'"%s" [label="%s\n%s\n%s\n%s"%s];',
     Nodes.NodeID,
     NodeTypes.NodeType,
-    Nodes.TerminalType::text,
-    'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.TerminalType::text,'NAN') || ' ' || COALESCE(replace(Nodes.TerminalValue,'"','\"'), 'NULL'),
+    Nodes.PrimitiveType::text,
+    'NodeID ' || Nodes.NodeID || ' : ' || COALESCE(Nodes.PrimitiveType::text,'NAN') || ' ' || COALESCE(replace(Nodes.PrimitiveValue,'"','\"'), 'Ref: '||Nodes.ReferenceNodeID::text, 'NULL'),
     (SELECT Phases.Phase FROM Programs INNER JOIN Phases USING (PhaseID)),
     CASE
         WHEN Nodes.Walkable IS NOT NULL

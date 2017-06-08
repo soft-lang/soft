@@ -12,7 +12,7 @@ SELECT string_agg(
 || COALESCE(', _NodeGroup := ' || NodeGroup, '')
 || ', _NodeType := ' ||  quote(NodeType)
 || COALESCE(', _NodePattern := '    ||  quote(NodePattern), '')
-|| COALESCE(', _TerminalType := '   ||  quote(TerminalType::text), '')
+|| COALESCE(', _PrimitiveType := '   ||  quote(PrimitiveType::text), '')
 || COALESCE(', _Literal := '        ||  quote(Literal), '')
 || COALESCE(', _LiteralPattern := ' ||  quote(LiteralPattern), '')
 || COALESCE(', _Prologue := '       ||  quote((SELECT P.NodeType  FROM NodeTypes AS P  WHERE P.NodeTypeID  = NodeTypes.PrologueNodeTypeID)), '')

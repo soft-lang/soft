@@ -35,7 +35,14 @@ AND Nodes.DeathPhaseID          IS NULL
 AND Edges.DeathPhaseID          IS NULL
 AND IdentifierNode.DeathPhaseID IS NULL;
 
-PERFORM Copy_Node(_FromNodeID := _IdentifierNodeID, _ToNodeID := _VariableNodeID);
+UPDATE Nodes AS CopyTo SET
+    PrimitiveType  = CopyFrom.PrimitiveType,
+    PrimitiveValue = CopyFrom.PrimitiveValue
+FROM Nodes AS CopyFrom
+WHERE CopyFrom.NodeID = _IdentifierNodeID
+AND     CopyTo.NodeID = _VariableNodeID
+RETURNING TRUE INTO STRICT _OK;
+
 PERFORM Kill_Edge(_EdgeID);
 PERFORM Kill_Node(_IdentifierNodeID);
 

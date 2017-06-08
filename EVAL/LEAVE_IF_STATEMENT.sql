@@ -17,8 +17,8 @@ BEGIN
 SELECT
     IfNode.ProgramID,
     ConditionNode.NodeID,
-    ConditionNode.TerminalType,
-    ConditionNode.TerminalValue,
+    Primitive_Type(ConditionNode.NodeID),
+    Primitive_Value(ConditionNode.NodeID),
     TrueBranch.NodeID,
     TrueBranch.Walkable,
     ElseBranch.NodeID,
@@ -35,7 +35,7 @@ INTO STRICT
 FROM (
     SELECT array_agg(ParentNodeID ORDER BY EdgeID) AS ParentNodes
     FROM Edges
-    WHERE ChildNodeID = _NodeID
+    WHERE ChildNodeID = Dereference(_NodeID)
     AND DeathPhaseID IS NULL
     HAVING array_length(array_agg(ParentNodeID ORDER BY EdgeID),1) BETWEEN 2 AND 3
 ) AS E
@@ -60,7 +60,7 @@ THEN
     );
     PERFORM Set_Walkable(_TrueBranchNodeID, FALSE);
     IF _IfExpression THEN
-        PERFORM Copy_Node(_FromNodeID := _TrueBranchNodeID, _ToNodeID := _NodeID);
+        UPDATE Nodes SET ReferenceNodeID = _TrueBranchNodeID WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
     END IF;
 
 ELSIF _TrueBranchReturning IS FALSE
@@ -73,7 +73,7 @@ THEN
     );
     PERFORM Set_Walkable(_ElseBranchNodeID, FALSE);
     IF _IfExpression THEN
-        PERFORM Copy_Node(_FromNodeID := _ElseBranchNodeID, _ToNodeID := _NodeID);
+        UPDATE Nodes SET ReferenceNodeID = _ElseBranchNodeID WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
     END IF;
 
 ELSIF _Condition           IS TRUE

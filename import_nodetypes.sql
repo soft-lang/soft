@@ -7,7 +7,7 @@ RowID          serial NOT NULL,
 NodeTypeID     text,
 Language       text   NOT NULL,
 NodeType       text   NOT NULL,
-TerminalType   text,
+PrimitiveType   text,
 NodeGroup      text,
 Literal        text,
 LiteralPattern text,
@@ -21,13 +21,13 @@ PRIMARY KEY (RowID),
 UNIQUE (Language, NodeType)
 );
 
-\COPY ImportNodeTypes (NodeTypeID, Language, NodeType, TerminalType, NodeGroup, Literal, LiteralPattern, NodePattern, Prologue, Epilogue, GrowFrom, GrowInto, NodeSeverity) FROM ~/src/soft/languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
+\COPY ImportNodeTypes (NodeTypeID, Language, NodeType, PrimitiveType, NodeGroup, Literal, LiteralPattern, NodePattern, Prologue, Epilogue, GrowFrom, GrowInto, NodeSeverity) FROM ~/src/soft/languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
 
 SELECT COUNT(*) FROM (
 	SELECT New_Node_Type(
 		_Language       := Language,
 		_NodeType       := NodeType,
-		_TerminalType   := NULLIF(TerminalType,'')::regtype,
+		_PrimitiveType  := NULLIF(PrimitiveType,'')::regtype,
 		_NodeGroup      := NULLIF(NodeGroup,''),
 		_Literal        := NULLIF(Literal,''),
 		_LiteralPattern := NULLIF(LiteralPattern,''),

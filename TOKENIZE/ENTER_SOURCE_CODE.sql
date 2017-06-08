@@ -12,7 +12,7 @@ _AtChar               integer;
 _Remainder            text;
 _NodeTypeID           integer;
 _NodeType             text;
-_TerminalType         regtype;
+_PrimitiveType         regtype;
 _Literal              text;
 _LiteralLength        integer;
 _LiteralPattern       text;
@@ -30,7 +30,7 @@ BEGIN
 SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID,
-    Nodes.TerminalValue,
+    Nodes.PrimitiveValue,
     Programs.PhaseID,
     Languages.LogSeverity
 INTO STRICT
@@ -47,7 +47,7 @@ INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID = _NodeID
 AND Phases.Phase       = 'TOKENIZE'
 AND NodeTypes.NodeType = 'SOURCE_CODE'
-AND Nodes.TerminalType = 'text'::regtype;
+AND Nodes.PrimitiveType = 'text'::regtype;
 
 _NumChars := length(_SourceCode);
 
@@ -61,16 +61,16 @@ LOOP
     _Remainder := substr(_SourceCode, _AtChar);
     _Wrapping  := NULL;
 
-    SELECT NodeTypeID,  NodeType,  TerminalType,  Literal,  LiteralLength,  NodeSeverity
-    INTO  _NodeTypeID, _NodeType, _TerminalType, _Literal, _LiteralLength, _NodeSeverity
+    SELECT NodeTypeID,  NodeType,  PrimitiveType,  Literal,  LiteralLength,  NodeSeverity
+    INTO  _NodeTypeID, _NodeType, _PrimitiveType, _Literal, _LiteralLength, _NodeSeverity
     FROM NodeTypes
     WHERE LanguageID = _LanguageID
     AND   Literal    = substr(_SourceCode, _AtChar, LiteralLength)
     ORDER BY LiteralLength DESC
     LIMIT 1;
     IF NOT FOUND THEN
-        SELECT  NodeTypeID,  NodeType,  TerminalType,  LiteralPattern,  NodeSeverity
-        INTO   _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern, _NodeSeverity
+        SELECT  NodeTypeID,  NodeType,  PrimitiveType,  LiteralPattern,  NodeSeverity
+        INTO   _NodeTypeID, _NodeType, _PrimitiveType, _LiteralPattern, _NodeSeverity
         FROM NodeTypes
         WHERE LanguageID = _LanguageID
         AND  _Remainder  ~  LiteralPattern
@@ -86,8 +86,8 @@ LOOP
         _LiteralLength := length(_Matches[1]);
 
         IF EXISTS (SELECT 1 FROM NodeTypes WHERE LanguageID = _LanguageID AND GrowFromNodeTypeID = _NodeTypeID AND _Literal ~ LiteralPattern) THEN
-            SELECT       NodeTypeID,  NodeType,  TerminalType,  LiteralPattern,  NodeSeverity
-            INTO STRICT _NodeTypeID, _NodeType, _TerminalType, _LiteralPattern, _NodeSeverity
+            SELECT       NodeTypeID,  NodeType,  PrimitiveType,  LiteralPattern,  NodeSeverity
+            INTO STRICT _NodeTypeID, _NodeType, _PrimitiveType, _LiteralPattern, _NodeSeverity
             FROM NodeTypes
             WHERE LanguageID         = _LanguageID
             AND   GrowFromNodeTypeID = _NodeTypeID
@@ -111,8 +111,8 @@ LOOP
         PERFORM Kill_Node(_NodeID :=  New_Node(
             _ProgramID            := _ProgramID,
             _NodeTypeID           := _NodeTypeID,
-            _TerminalType         := _TerminalType,
-            _TerminalValue        := _Wrapping[1]
+            _PrimitiveType         := _PrimitiveType,
+            _PrimitiveValue        := _Wrapping[1]
         ));
         _Tokens := _Tokens + 1;
     END IF;
@@ -120,8 +120,8 @@ LOOP
     _TokenNodeID := New_Node(
         _ProgramID            := _ProgramID,
         _NodeTypeID           := _NodeTypeID,
-        _TerminalType         := _TerminalType,
-        _TerminalValue        := _Literal
+        _PrimitiveType         := _PrimitiveType,
+        _PrimitiveValue        := _Literal
     );
     _Tokens := _Tokens + 1;
 
@@ -129,8 +129,8 @@ LOOP
         PERFORM Kill_Node(_NodeID :=  New_Node(
             _ProgramID            := _ProgramID,
             _NodeTypeID           := _NodeTypeID,
-            _TerminalType         := _TerminalType,
-            _TerminalValue        := _Wrapping[2]
+            _PrimitiveType         := _PrimitiveType,
+            _PrimitiveValue        := _Wrapping[2]
         ));
         _Tokens := _Tokens + 1;
     END IF;
@@ -162,7 +162,7 @@ IF _IllegalCharacters IS NOT NULL THEN
     USING HINT = 'Define a catch-all node type e.g. LiteralPattern (.) with e.g. node severity ERROR as the last LiteralPattern node type';
 END IF;
 
-SELECT array_to_string(array_agg(TerminalValue ORDER BY NodeID),'')
+SELECT array_to_string(array_agg(PrimitiveValue ORDER BY NodeID),'')
 INTO STRICT _RecreatedSourceCode
 FROM Nodes
 WHERE ProgramID  = _ProgramID

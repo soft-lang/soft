@@ -31,8 +31,8 @@ INTO STRICT _TestID;
 _NodeID := New_Node(
     _Program       := _Program,
     _NodeType      := 'SOURCE_CODE',
-    _TerminalType  := 'text'::regtype,
-    _TerminalValue := _SourceCode
+    _PrimitiveType  := 'text'::regtype,
+    _PrimitiveValue := _SourceCode
 );
 
 PERFORM Log(
@@ -51,10 +51,10 @@ SELECT       OK,  Error
 INTO STRICT _OK, _Error
 FROM Run(_ProgramID := _ProgramID);
 
-SELECT     TerminalType, TerminalValue
-INTO STRICT _ResultType,  _ResultValue
+SELECT     PrimitiveType, PrimitiveValue
+INTO STRICT  _ResultType,   _ResultValue
 FROM Nodes
-WHERE NodeID = (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID);
+WHERE NodeID = Dereference((SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID));
 
 PERFORM Log(
     _NodeID   := _NodeID,

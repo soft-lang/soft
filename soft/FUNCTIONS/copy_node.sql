@@ -3,21 +3,30 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_TerminalValue text;
+_PrimitiveValue text;
+_ClonedNodeID   integer;
+_OK             boolean;
 BEGIN
 
-UPDATE Nodes AS CopyTo SET
-    TerminalType    = CopyFrom.TerminalType,
-    TerminalValue   = CopyFrom.TerminalValue
-FROM Nodes AS CopyFrom
-WHERE CopyFrom.NodeID = _FromNodeID
-AND     CopyTo.NodeID = _ToNodeID
-RETURNING CopyTo.TerminalValue INTO STRICT _TerminalValue;
+IF (SELECT PrimitiveType FROM Nodes WHERE NodeID = Dereference(_FromNodeID)) IS NOT NULL THEN
+	UPDATE Nodes AS CopyTo SET
+	    PrimitiveType  = CopyFrom.PrimitiveType,
+	    PrimitiveValue = CopyFrom.PrimitiveValue
+	FROM Nodes AS CopyFrom
+	WHERE CopyFrom.NodeID = Dereference(_FromNodeID)
+	AND     CopyTo.NodeID = _ToNodeID
+	RETURNING TRUE INTO STRICT _OK;
+ELSE
+	_ClonedNodeID := Clone_Node(_NodeID := _FromNodeID);
+	UPDATE Edges SET ChildNodeID  = _ClonedNodeID WHERE ChildNodeID  = _ToNodeID AND DeathPhaseID IS NULL;
+	UPDATE Edges SET ParentNodeID = _ClonedNodeID WHERE ParentNodeID = _ToNodeID AND DeathPhaseID IS NULL;
+	PERFORM Kill_Clone(_ToNodeID);
+END IF;
 
 PERFORM Log(
     _NodeID   := _FromNodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Copied "%s" from node %s to %s', Colorize(_TerminalValue), Colorize(Node(_FromNodeID),'CYAN'), Colorize(Node(_ToNodeID),'CYAN'))
+    _Message  := format('Copied node %s to %s', Colorize(Node(_FromNodeID),'CYAN'), Colorize(Node(_ToNodeID),'CYAN'))
 );
 
 RETURN TRUE;

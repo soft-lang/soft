@@ -1,10 +1,9 @@
-CREATE OR REPLACE FUNCTION "EVAL"."ENTER_RET"(_NodeID integer, _ExplicitReturnValue boolean DEFAULT FALSE) RETURNS void
+CREATE OR REPLACE FUNCTION "EVAL"."ENTER_RET"(_NodeID integer, _ReturnValueNodeID integer DEFAULT NULL) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
 _ImplicitReturnValues      boolean;
-_ReturnValueNodeID         integer;
 _CallNodeID                integer;
 _FunctionDeclarationNodeID integer;
 _ProgramNodeID             integer;
@@ -24,7 +23,7 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
 WHERE NodeID = _NodeID;
 
-IF _ImplicitReturnValues AND NOT _ExplicitReturnValue THEN
+IF _ImplicitReturnValues AND _ReturnValueNodeID IS NULL THEN
     SELECT         E2.ParentNodeID
     INTO STRICT _ReturnValueNodeID
     FROM Edges       AS E1
@@ -64,14 +63,14 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
-    UPDATE Programs SET NodeID = _CallNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Programs SET NodeID = _CallNodeID, Direction = 'LEAVE' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
     IF _ReturnValueNodeID IS NOT NULL THEN
-        PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _NodeID);
+        UPDATE Nodes SET ReferenceNodeID = _ReturnValueNodeID WHERE NodeID = _CallNodeID RETURNING TRUE INTO STRICT _OK;
     END IF;
 ELSE
     _ProgramNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> PROGRAM');
     IF _ReturnValueNodeID IS NOT NULL THEN
-        PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _ProgramNodeID);
+        UPDATE Nodes SET ReferenceNodeID = _ReturnValueNodeID WHERE NodeID = _ProgramNodeID RETURNING TRUE INTO STRICT _OK;
     END IF;
 END IF;
 

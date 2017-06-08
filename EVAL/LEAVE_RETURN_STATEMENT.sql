@@ -4,7 +4,6 @@ AS $$
 DECLARE
 _ReturnValueNodeID         integer;
 _ProgramID                 integer;
-_CallNodeID                integer;
 _FunctionDeclarationNodeID integer;
 _RetNodeID                 integer;
 _ProgramNodeID             integer;
@@ -42,16 +41,18 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Strict  := TRUE,
         _Path    := '<- RET'
     );
-    PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _RetNodeID);
-    PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _RetNodeID, _CurrentNodeID := _NodeID);
-    PERFORM "EVAL"."ENTER_RET"(_RetNodeID, _ExplicitReturnValue := TRUE);
-    RETURN;
 ELSE
     -- Returning from program
     _ProgramNodeID := Get_Program_Node(_ProgramID := _ProgramID);
-    PERFORM Set_Program_Node(_ProgramID := _ProgramID, _GotoNodeID := _ProgramNodeID, _CurrentNodeID := _NodeID);
-    PERFORM Copy_Node(_FromNodeID := _ReturnValueNodeID, _ToNodeID := _ProgramNodeID);
+    _RetNodeID := Find_Node(
+        _NodeID  := _ProgramNodeID,
+        _Descend := FALSE,
+        _Strict  := TRUE,
+        _Path    := '<- RET'
+    );
 END IF;
+
+PERFORM "EVAL"."ENTER_RET"(_NodeID := _RetNodeID, _ReturnValueNodeID := _ReturnValueNodeID);
 
 RETURN;
 END;
