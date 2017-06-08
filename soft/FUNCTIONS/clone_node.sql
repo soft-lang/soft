@@ -86,7 +86,7 @@ PERFORM New_Edge(
             _NodeID           := ParentNodeID,
             _OriginRootNodeID := _OriginRootNodeID,
             _ClonedRootNodeID := _ClonedRootNodeID,
-            _WalkableNodes     := _WalkableNodes || _NodeID,
+            _WalkableNodes    := _WalkableNodes || _NodeID,
             _SelfRef          := _SelfRef
         )
     END,

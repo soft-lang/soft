@@ -2,6 +2,26 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:375',
+    _SourceCode    := $$
+        last([1, 2, 3])
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '3'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:378',
+    _SourceCode    := $$
+        rest([1, 2, 3])
+    $$,
+    _ExpectedTypes  := ARRAY['integer','integer']::regtype[],
+    _ExpectedValues := ARRAY['2','3']
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
     _Program       := 'fibonacci',
     _SourceCode    := $$
         let fibonacci = fn(x) {
@@ -209,3 +229,5 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '2'
 );
+
+*/
