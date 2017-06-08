@@ -61,7 +61,8 @@ SELECT
             _PrimitiveValue   := Nodes.PrimitiveValue,
             _Walkable         := Nodes.Walkable,
             _ClonedFromNodeID := Nodes.NodeID,
-            _ClonedRootNodeID := _ClonedRootNodeID
+            _ClonedRootNodeID := _ClonedRootNodeID,
+            _ReferenceNodeID  := Nodes.ReferenceNodeID
         )
     )
 INTO STRICT

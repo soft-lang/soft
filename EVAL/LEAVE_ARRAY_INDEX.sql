@@ -54,8 +54,6 @@ IF (_ArrayIndex BETWEEN 1 AND array_length(_ArrayElements,1)) IS NOT TRUE THEN
 	RAISE EXCEPTION 'Array index % is out of bounds', _ArrayIndex;
 END IF;
 
-RAISE NOTICE 'ArrayIndex % ArrayElements % NodeID %', _ArrayIndex, _ArrayElements, _NodeID;
-
 PERFORM Set_Reference_Node(_ReferenceNodeID := _ArrayElements[_ArrayIndex], _NodeID := _NodeID);
 
 RETURN;

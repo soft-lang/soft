@@ -1,8 +1,5 @@
 SET search_path TO soft, public, pg_temp;
 
-
-/*
-
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'fibonacci',
@@ -212,5 +209,3 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '2'
 );
-
-*/

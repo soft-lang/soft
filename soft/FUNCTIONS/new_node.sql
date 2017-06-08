@@ -1,11 +1,12 @@
 CREATE OR REPLACE FUNCTION New_Node(
 _ProgramID            integer,
 _NodeTypeID           integer,
-_PrimitiveType         regtype   DEFAULT NULL,
-_PrimitiveValue        text      DEFAULT NULL,
+_PrimitiveType        regtype   DEFAULT NULL,
+_PrimitiveValue       text      DEFAULT NULL,
 _Walkable             boolean   DEFAULT TRUE,
 _ClonedFromNodeID     integer   DEFAULT NULL,
-_ClonedRootNodeID     integer   DEFAULT NULL
+_ClonedRootNodeID     integer   DEFAULT NULL,
+_ReferenceNodeID      integer   DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -26,8 +27,8 @@ IF _PrimitiveValue IS NOT NULL AND _PrimitiveType IS NOT NULL THEN
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID)
-VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID,  ReferenceNodeID)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 
@@ -36,10 +37,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION New_Node(
-_Program              text,
-_NodeType             text,
-_PrimitiveType         regtype   DEFAULT NULL,
-_PrimitiveValue        text      DEFAULT NULL
+_Program        text,
+_NodeType       text,
+_PrimitiveType  regtype   DEFAULT NULL,
+_PrimitiveValue text      DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -61,10 +62,10 @@ WHERE Programs.Program = _Program
 AND NodeTypes.NodeType = _NodeType;
 
 RETURN New_Node(
-    _ProgramID            := _ProgramID,
-    _NodeTypeID           := _NodeTypeID,
-    _PrimitiveType         := _PrimitiveType,
-    _PrimitiveValue        := _PrimitiveValue
+    _ProgramID      := _ProgramID,
+    _NodeTypeID     := _NodeTypeID,
+    _PrimitiveType  := _PrimitiveType,
+    _PrimitiveValue := _PrimitiveValue
 );
 END;
 $$;
