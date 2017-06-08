@@ -189,14 +189,3 @@ SELECT New_Test(
     _SourceCode    := $$len("one", "two")$$,
     _ExpectedLog   := 'PARSE ERROR INVALID_EXPRESSION'
 );
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'arrays',
-    _SourceCode    := $$
-        let x = [10, 10+5, [2+3,30]];
-        x[2-1]
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '15'
-);

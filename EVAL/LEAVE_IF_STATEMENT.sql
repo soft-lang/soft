@@ -60,7 +60,7 @@ THEN
     );
     PERFORM Set_Walkable(_TrueBranchNodeID, FALSE);
     IF _IfExpression THEN
-        UPDATE Nodes SET ReferenceNodeID = _TrueBranchNodeID WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+        PERFORM Set_Reference_Node(_ReferenceNodeID := _TrueBranchNodeID, _NodeID := _NodeID);
     END IF;
 
 ELSIF _TrueBranchReturning IS FALSE
@@ -73,7 +73,7 @@ THEN
     );
     PERFORM Set_Walkable(_ElseBranchNodeID, FALSE);
     IF _IfExpression THEN
-        UPDATE Nodes SET ReferenceNodeID = _ElseBranchNodeID WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+        PERFORM Set_Reference_Node(_ReferenceNodeID := _ElseBranchNodeID, _NodeID := _NodeID);
     END IF;
 
 ELSIF _Condition           IS TRUE

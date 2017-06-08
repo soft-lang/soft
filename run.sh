@@ -8,6 +8,7 @@ psql -X -1 -f import_nodetypes.sql
 psql -X -1 -f languages/monkey/test.sql
 
 rm prog*.pdf
+rm prog.dot
 
 unset FOO
 FRAME=10000

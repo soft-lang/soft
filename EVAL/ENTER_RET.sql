@@ -65,12 +65,12 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
     );
     UPDATE Programs SET NodeID = _CallNodeID, Direction = 'LEAVE' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
     IF _ReturnValueNodeID IS NOT NULL THEN
-        UPDATE Nodes SET ReferenceNodeID = _ReturnValueNodeID WHERE NodeID = _CallNodeID RETURNING TRUE INTO STRICT _OK;
+        PERFORM Set_Reference_Node(_ReferenceNodeID := _ReturnValueNodeID, _NodeID := _CallNodeID);
     END IF;
 ELSE
     _ProgramNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> PROGRAM');
     IF _ReturnValueNodeID IS NOT NULL THEN
-        UPDATE Nodes SET ReferenceNodeID = _ReturnValueNodeID WHERE NodeID = _ProgramNodeID RETURNING TRUE INTO STRICT _OK;
+        PERFORM Set_Reference_Node(_ReferenceNodeID := _ReturnValueNodeID, _NodeID := _ProgramNodeID);
     END IF;
 END IF;
 

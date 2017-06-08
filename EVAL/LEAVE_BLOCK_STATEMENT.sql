@@ -22,7 +22,7 @@ IF _StatementReturnValues THEN
     AND DeathPhaseID IS NULL
     ORDER BY EdgeID DESC
     LIMIT 1;
-	UPDATE Nodes SET ReferenceNodeID = _LastNodeID WHERE NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+	PERFORM Set_Reference_Node(_ReferenceNodeID := _LastNodeID, _NodeID := _NodeID);
 END IF;
 
 RETURN;
