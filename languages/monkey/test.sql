@@ -1,5 +1,8 @@
 SET search_path TO soft, public, pg_temp;
 
+
+/*
+
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'fibonacci',
@@ -189,3 +192,25 @@ SELECT New_Test(
     _SourceCode    := $$len("one", "two")$$,
     _ExpectedLog   := 'PARSE ERROR INVALID_EXPRESSION'
 );
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:472',
+    _SourceCode    := $$
+        let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '6'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:476',
+    _SourceCode    := $$
+        let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '2'
+);
+
+*/

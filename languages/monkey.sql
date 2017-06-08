@@ -2,10 +2,11 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'NOTICE',
+    _LogSeverity           := 'DEBUG5',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE,
-    _VariableBinding       := 'CAPTURE_BY_REFERENCE'
+    _VariableBinding       := 'CAPTURE_BY_REFERENCE',
+    _ZeroBasedNumbering    := TRUE
 );
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
