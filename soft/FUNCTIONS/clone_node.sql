@@ -38,7 +38,7 @@ SELECT
         CASE WHEN _ClonedRootNodeID IS NULL
         THEN NULL -- create new node, first node
         ELSE
-            CASE Languages.VariableBinding
+            CASE (Language(_NodeID)).VariableBinding
             WHEN 'CAPTURE_BY_VALUE'
             THEN NULL -- create new node, copy value instead of referencing it
             WHEN 'CAPTURE_BY_REFERENCE'
@@ -55,21 +55,19 @@ SELECT
             END
         END,
         New_Node(
-            _ProgramID        := Nodes.ProgramID,
-            _NodeTypeID       := Nodes.NodeTypeID,
-            _PrimitiveType    := Nodes.PrimitiveType,
-            _PrimitiveValue   := Nodes.PrimitiveValue,
-            _Walkable         := Nodes.Walkable,
-            _ClonedFromNodeID := Nodes.NodeID,
+            _ProgramID        := ProgramID,
+            _NodeTypeID       := NodeTypeID,
+            _PrimitiveType    := PrimitiveType,
+            _PrimitiveValue   := PrimitiveValue,
+            _Walkable         := Walkable,
+            _ClonedFromNodeID := NodeID,
             _ClonedRootNodeID := _ClonedRootNodeID,
-            _ReferenceNodeID  := Nodes.ReferenceNodeID
+            _ReferenceNodeID  := ReferenceNodeID
         )
     )
 INTO STRICT
     _ClonedNodeID
 FROM Nodes
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
 WHERE NodeID = _NodeID;
 
 IF _ClonedRootNodeID IS NULL THEN

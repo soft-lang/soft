@@ -62,6 +62,8 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/primitive_type.sql
 \ir soft/FUNCTIONS/primitive_value.sql
 \ir soft/FUNCTIONS/set_reference_node.sql
+\ir soft/FUNCTIONS/language.sql
+\ir soft/FUNCTIONS/programid.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql
@@ -108,7 +110,7 @@ CREATE SCHEMA "EVAL";
 \ir EVAL/UNARY_MINUS.sql
 \ir EVAL/IF_EXPR.sql
 \ir EVAL/LENGTH_EXPRESSION.sql
-\ir EVAL/LEAVE_ARRAY_INDEX.sql
+\ir EVAL/LEAVE_INDEX.sql
 \ir EVAL/LEAVE_CALL.sql
 \ir EVAL/LEAVE_PROGRAM.sql
 \ir EVAL/LEAVE_BLOCK_EXPRESSION.sql

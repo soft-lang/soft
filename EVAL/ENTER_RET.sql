@@ -2,8 +2,6 @@ CREATE OR REPLACE FUNCTION "EVAL"."ENTER_RET"(_NodeID integer, _ReturnValueNodeI
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID                 integer;
-_ImplicitReturnValues      boolean;
 _CallNodeID                integer;
 _FunctionDeclarationNodeID integer;
 _ProgramNodeID             integer;
@@ -12,18 +10,7 @@ _VariableNodeID            integer;
 _OK                        boolean;
 BEGIN
 
-SELECT
-    Nodes.ProgramID,
-    Languages.ImplicitReturnValues
-INTO STRICT
-    _ProgramID,
-    _ImplicitReturnValues
-FROM Nodes
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
-WHERE NodeID = _NodeID;
-
-IF _ImplicitReturnValues AND _ReturnValueNodeID IS NULL THEN
+IF (Language(_NodeID)).ImplicitReturnValues AND _ReturnValueNodeID IS NULL THEN
     SELECT         E2.ParentNodeID
     INTO STRICT _ReturnValueNodeID
     FROM Edges       AS E1
@@ -63,7 +50,7 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
-    UPDATE Programs SET NodeID = _CallNodeID, Direction = 'LEAVE' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Programs SET NodeID = _CallNodeID, Direction = 'LEAVE' WHERE ProgramID = ProgramID(_NodeID) RETURNING TRUE INTO STRICT _OK;
     IF _ReturnValueNodeID IS NOT NULL THEN
         PERFORM Set_Reference_Node(_ReferenceNodeID := _ReturnValueNodeID, _NodeID := _CallNodeID);
     END IF;

@@ -229,5 +229,4 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '2'
 );
-
 */
