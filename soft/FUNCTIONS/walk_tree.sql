@@ -17,6 +17,21 @@ _OK           boolean;
 BEGIN
 
 IF EXISTS (
+    SELECT FuncNode.NodeID
+    FROM Nodes AS FuncNode
+    INNER JOIN Edges ON Edges.ChildNodeID = FuncNode.NodeID
+    INNER JOIN Nodes AS RetNode ON RetNode.NodeID = Edges.ParentNodeID
+    INNER JOIN NodeTypes AS RetNodeType ON RetNodeType.NodeTypeID = RetNode.NodeTypeID
+    INNER JOIN NodeTypes AS FuncNodeType ON FuncNodeType.NodeTypeID = FuncNode.NodeTypeID
+    WHERE FuncNodeType.NodeType = 'FUNCTION_DECLARATION'
+    AND RetNodeType.NodeType = 'RET'
+    GROUP BY FuncNode.NodeID
+    HAVING COUNT(*) > 1
+) THEN
+    RAISE EXCEPTION 'Multipel RET found for same func';
+END IF;
+
+IF EXISTS (
     SELECT 1 FROM Log
     INNER JOIN Phases ON Phases.PhaseID = Log.PhaseID
     WHERE Log.ProgramID  = _ProgramID

@@ -7,16 +7,16 @@ RETURNS record
 LANGUAGE plpgsql
 AS $$
 DECLARE
--- _Step integer;
+_Step integer;
 BEGIN
--- _Step := 0;
+_Step := 0;
 OK := TRUE;
 LOOP
-    -- _Step := _Step + 1;
-    -- RAISE NOTICE '%', _Step;
-    -- IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'EVAL' THEN
-    --     EXIT;
-    -- END IF;
+    _Step := _Step + 1;
+    RAISE NOTICE 'STEP %', _Step;
+    IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'EVAL' THEN
+        EXIT;
+    END IF;
     BEGIN
         IF NOT Walk_Tree(_ProgramID) THEN
             EXIT;

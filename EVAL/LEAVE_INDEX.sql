@@ -7,7 +7,8 @@ _ArrayHashNodeID integer;
 _NodeType        text;
 _IndexNodeID     integer;
 _ArrayIndex      integer;
-_HashKey         text;
+_HashKeyType     regtype;
+_HashKeyValue    text;
 _HashPairNodeID  integer;
 _HashPairNodeIDs integer[];
 _ArrayElements   integer[];
@@ -51,7 +52,8 @@ IF _NodeType = 'ARRAY' THEN
 	END IF;
 	PERFORM Set_Reference_Node(_ReferenceNodeID := _ArrayElements[_ArrayIndex], _NodeID := _NodeID);
 ELSIF _NodeType = 'HASH' THEN
-	_HashKey := Primitive_Value(_IndexNodeID)::text;
+	_HashKeyType  := Primitive_Type(_IndexNodeID);
+	_HashKeyValue := Primitive_Value(_IndexNodeID);
 	FOR _HashPairNodeID IN
 	SELECT ParentNodeID
 	FROM Edges
@@ -67,8 +69,8 @@ ELSIF _NodeType = 'HASH' THEN
 		IF array_length(_HashPairNodeIDs, 1) IS DISTINCT FROM 2 THEN
 		    RAISE EXCEPTION 'HashPairNodeID % does not have exactly two parent nodes HashPairNodeIDs %', _HashPairNodeID, _HashPairNodeIDs;
 		END IF;
-		IF  Primitive_Type(_HashPairNodeIDs[1])  = 'text'::regtype
-		AND Primitive_Value(_HashPairNodeIDs[1]) = _HashKey
+		IF  Primitive_Type(_HashPairNodeIDs[1])  = _HashKeyType
+		AND Primitive_Value(_HashPairNodeIDs[1]) = _HashKeyValue
 		THEN
 			PERFORM Set_Reference_Node(_ReferenceNodeID := _HashPairNodeIDs[2], _NodeID := _NodeID);
 			RETURN;

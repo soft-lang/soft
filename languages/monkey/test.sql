@@ -1,6 +1,135 @@
 SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
+    _Language       := 'monkey',
+    _Program        := 'Test-Driving Arrays',
+    _SourceCode     := $$
+        let map = fn(arr, f) {
+            let iter = fn(arr, accumulated) {
+                if (len(arr) == 0) {
+                    accumulated
+                } else {
+                    iter(rest(arr), push(accumulated, f(first(arr))));
+                }
+            };
+            iter(arr, []);
+        };
+        let a = [1, 2, 3, 4];
+        let double = fn(x) { x * 2 };
+        map(a, double)
+    $$,
+    _ExpectedTypes  := ARRAY['integer','integer','integer','integer']::regtype[],
+    _ExpectedValues := ARRAY['2','4','6','8']::text[]
+);
+
+/*
+
+SELECT New_Test(
+    _Language       := 'monkey',
+    _Program        := 'Test-Driving Arrays',
+    _SourceCode     := $$
+        let map = fn(arr, f) {
+            let iter = fn(arr, accumulated) {
+                if (len(arr) == 0) {
+                    accumulated
+                } else {
+                    iter(rest(arr), push(accumulated, f(first(arr))));
+                }
+            };
+            iter(arr, []);
+        };
+        let a = [1, 2, 3, 4];
+        let double = fn(x) { x * 2 };
+        map(a, double)
+    $$,
+    _ExpectedTypes  := ARRAY['integer','integer','integer','integer']::regtype[],
+    _ExpectedValues := ARRAY['2','4','6','8']::text[]
+);
+
+SELECT New_Test(
+    _Language       := 'monkey',
+    _Program        := 'evaluator_test.go:380',
+    _SourceCode     := $$push([], 1)$$,
+    _ExpectedTypes  := ARRAY['integer']::regtype[],
+    _ExpectedValues := ARRAY['1']::text[]
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:369',
+    _SourceCode    := $$len([1, 2, 3])$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '3'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:364',
+    _SourceCode    := $$len("")$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '0'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:365',
+    _SourceCode    := $$len("four")$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '4'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:366',
+    _SourceCode    := $$len("hello world")$$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '11'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:367',
+    _SourceCode    := $$len(1)$$,
+    _ExpectedError := 'Cannot compute length of type integer'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:368',
+    _SourceCode    := $$len("one", "two")$$,
+    _ExpectedLog   := 'PARSE ERROR INVALID_EXPRESSION'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:372',
+    _SourceCode    := $$
+        first([1, 2, 3])
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '1'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:501',
+    _SourceCode    := $$
+        let two = "two";
+        let h = {
+            "one": 10 - 9,
+            two: 1 + 1,
+            "thr" + "ee": 6 / 2,
+            4: 4,
+            true: 5,
+            false: 6
+        };
+        [h["one"],h["two"],h["three"],h[4],h[true],h[false]]
+    $$,
+    _ExpectedTypes  := ARRAY['integer','integer','integer','integer','integer','integer']::regtype[],
+    _ExpectedValues := ARRAY['1','2','3','4','5','6']::text[]
+);
+
+SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:375',
     _SourceCode    := $$
@@ -170,44 +299,6 @@ SELECT New_Test(
     _SourceCode    := $$"Hello" + " " + "World!"$$,
     _ExpectedType  := 'text'::regtype,
     _ExpectedValue := 'Hello World!'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:364',
-    _SourceCode    := $$len("")$$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '0'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:365',
-    _SourceCode    := $$len("four")$$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '4'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:366',
-    _SourceCode    := $$len("hello world")$$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '11'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:367',
-    _SourceCode    := $$len(1)$$,
-    _ExpectedError := 'function EVAL.LENGTH_EXPRESSION(integer) does not exist'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:368',
-    _SourceCode    := $$len("one", "two")$$,
-    _ExpectedLog   := 'PARSE ERROR INVALID_EXPRESSION'
 );
 
 SELECT New_Test(

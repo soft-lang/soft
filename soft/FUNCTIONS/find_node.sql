@@ -120,7 +120,7 @@ LOOP
         IF NOT EXISTS (SELECT 1 FROM Edges WHERE ParentNodeID = _NodeID) THEN
             EXIT;
         END IF;
-        SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID ORDER BY EdgeID LIMIT 1;
+        SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND (ChildNodeID = ANY(_WalkableNodeIDs)) IS NOT TRUE ORDER BY EdgeID LIMIT 1;
         IF _NodeID = ANY(_WalkableNodeIDs) THEN
             EXIT;
         END IF;
