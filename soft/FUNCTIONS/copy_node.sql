@@ -17,7 +17,7 @@ IF (SELECT PrimitiveType FROM Nodes WHERE NodeID = Dereference(_FromNodeID)) IS 
 	AND     CopyTo.NodeID = _ToNodeID
 	RETURNING TRUE INTO STRICT _OK;
 ELSE
-	_ClonedNodeID := Clone_Node(_NodeID := _FromNodeID, _SelfRef := FALSE);
+	_ClonedNodeID := Clone_Node(_NodeID := _FromNodeID);
 	UPDATE Edges SET ChildNodeID  = _ClonedNodeID WHERE ChildNodeID  = _ToNodeID AND DeathPhaseID IS NULL;
 	UPDATE Edges SET ParentNodeID = _ClonedNodeID WHERE ParentNodeID = _ToNodeID AND DeathPhaseID IS NULL;
 	PERFORM Kill_Clone(_ToNodeID);

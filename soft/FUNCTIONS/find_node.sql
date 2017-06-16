@@ -2,6 +2,7 @@ CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict 
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_InputNodeID    integer;
 _LanguageID     integer;
 _Path           text;
 _Name           text;
@@ -18,10 +19,14 @@ _FoundNodeID    integer;
 _Count          bigint;
 _WalkableNodeIDs integer[];
 BEGIN
+_InputNodeID := _NodeID;
+IF _InputNodeID IS NULL THEN
+    RETURN NULL;
+END IF;
 PERFORM Log(
-    _NodeID   := _NodeID,
+    _NodeID   := _InputNodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Find node %s %s %s %s', _NodeID, _Descend, _Strict, _Paths)
+    _Message  := format('Find node %s %s %s %s', _InputNodeID, _Descend, _Strict, _Paths)
 );
 SELECT NodeTypes.LanguageID
 INTO STRICT     _LanguageID
@@ -111,16 +116,16 @@ LOOP
     END IF;
     IF _FoundNodeID IS NOT NULL THEN
         PERFORM Log(
-            _NodeID   := _NodeID,
+            _NodeID   := _InputNodeID,
             _Severity := 'DEBUG3',
             _Message  := format('Found node %s', Colorize(Node(_FoundNodeID)))
         );
         RETURN _FoundNodeID;
     ELSIF _Descend THEN
-        IF NOT EXISTS (SELECT 1 FROM Edges WHERE ParentNodeID = _NodeID) THEN
+        SELECT ChildNodeID INTO _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND (ChildNodeID = ANY(_WalkableNodeIDs)) IS NOT TRUE ORDER BY EdgeID LIMIT 1;
+        IF NOT FOUND THEN
             EXIT;
         END IF;
-        SELECT ChildNodeID INTO STRICT _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND (ChildNodeID = ANY(_WalkableNodeIDs)) IS NOT TRUE ORDER BY EdgeID LIMIT 1;
         IF _NodeID = ANY(_WalkableNodeIDs) THEN
             EXIT;
         END IF;
@@ -133,9 +138,9 @@ IF _Strict THEN
     RAISE EXCEPTION 'Query did not return exactly one row: NodeID % Paths "%" Count % SQL "%"', _NodeID, array_to_string(_Paths,','), _Count, _SQL;
 END IF;
 PERFORM Log(
-    _NodeID   := _NodeID,
+    _NodeID   := _InputNodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Node not found %s %s %s %s', _NodeID, _Descend, _Strict, _Paths)
+    _Message  := format('Node not found %s %s %s %s', _InputNodeID, _Descend, _Strict, _Paths)
 );
 RETURN NULL;
 END;

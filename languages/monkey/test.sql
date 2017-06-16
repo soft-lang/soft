@@ -1,49 +1,42 @@
 SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
-    _Language       := 'monkey',
-    _Program        := 'Test-Driving Arrays',
-    _SourceCode     := $$
-        let map = fn(arr, f) {
-            let iter = fn(arr, accumulated) {
-                if (len(arr) == 0) {
-                    accumulated
-                } else {
-                    iter(rest(arr), push(accumulated, f(first(arr))));
-                }
-            };
-            iter(arr, []);
+    _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:303',
+    _SourceCode    := $$
+        let first = 10;
+        let second = 10;
+        let third = 10;
+        
+        let ourFunction = fn(first) {
+          let second = 20;
+        
+          first + second + third;
         };
-        let a = [1, 2, 3, 4];
-        let double = fn(x) { x * 2 };
-        map(a, double)
+        
+        ourFunction(20) + first + second;
     $$,
-    _ExpectedTypes  := ARRAY['integer','integer','integer','integer']::regtype[],
-    _ExpectedValues := ARRAY['2','4','6','8']::text[]
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '70'
 );
 
-/*
-
 SELECT New_Test(
-    _Language       := 'monkey',
-    _Program        := 'Test-Driving Arrays',
-    _SourceCode     := $$
-        let map = fn(arr, f) {
-            let iter = fn(arr, accumulated) {
-                if (len(arr) == 0) {
-                    accumulated
-                } else {
-                    iter(rest(arr), push(accumulated, f(first(arr))));
-                }
-            };
-            iter(arr, []);
+    _Language      := 'monkey',
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
+        let fibonacci = fn(x) {
+            if (x == 0) {
+                0
+            } else if (x == 1) {
+                1
+            } else {
+                fibonacci(x - 1) + fibonacci(x - 2)
+            }
         };
-        let a = [1, 2, 3, 4];
-        let double = fn(x) { x * 2 };
-        map(a, double)
+        fibonacci(2);
     $$,
-    _ExpectedTypes  := ARRAY['integer','integer','integer','integer']::regtype[],
-    _ExpectedValues := ARRAY['2','4','6','8']::text[]
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '1'
 );
 
 SELECT New_Test(
@@ -151,25 +144,6 @@ SELECT New_Test(
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'fibonacci',
-    _SourceCode    := $$
-        let fibonacci = fn(x) {
-            if (x == 0) {
-                0
-            } else if (x == 1) {
-                1
-            } else {
-                fibonacci(x - 1) + fibonacci(x - 2)
-            }
-        };
-        fibonacci(2);
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '1'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
     _Program       := 'anders_grandlund_1',
     _SourceCode    := $$
         let f = fn(x) {
@@ -252,26 +226,6 @@ SELECT New_Test(
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:303',
-    _SourceCode    := $$
-        let first = 10;
-        let second = 10;
-        let third = 10;
-        
-        let ourFunction = fn(first) {
-          let second = 20;
-        
-          first + second + third;
-        };
-        
-        ourFunction(20) + first + second;
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '70'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
     _Program       := 'evaluator_test.go:321',
     _SourceCode    := $$
         let newAdder = fn(x) {
@@ -320,4 +274,25 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '2'
 );
-*/
+
+SELECT New_Test(
+    _Language       := 'monkey',
+    _Program        := 'Test-Driving Arrays',
+    _SourceCode     := $$
+        let map = fn(arr, f) {
+            let iter = fn(arr, accumulated) {
+                if (len(arr) == 0) {
+                    accumulated
+                } else {
+                    iter(rest(arr), push(accumulated, f(first(arr))));
+                }
+            };
+            iter(arr, []);
+        };
+        let a = [1, 2, 3, 4];
+        let double = fn(x) { x * 2 };
+        map(a, double)
+    $$,
+    _ExpectedTypes  := ARRAY['integer','integer','integer','integer']::regtype[],
+    _ExpectedValues := ARRAY['2','4','6','8']::text[]
+);

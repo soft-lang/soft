@@ -7,6 +7,8 @@ psql -X -1 -f import_nodetypes.sql
 
 psql -X -1 -f languages/monkey/test.sql
 
+exit
+
 rm prog*.pdf
 rm prog.dot
 
@@ -19,8 +21,6 @@ echo 'digraph {' > prog.dot ; psql -q -E -A -t -X -c 'SET search_path TO soft; S
 echo '}' >> prog.dot
 FRAME=$((FRAME+1));
 dot -Tpdf -o "prog_$FRAME.pdf" prog.dot
-
-exit
 
 while : ; do
     FOO=$(psql -X -t -A -q -c "SET search_path TO soft; SELECT Walk_Tree(1)");
