@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_LAST_EXPRESSION"(_NodeID integer) RETURNS void
+CREATE OR REPLACE FUNCTION "BUILT_IN_FUNCTIONS"."FIRST"(_NodeID integer) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -14,8 +14,8 @@ FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
 
-IF array_length(_ParentNodes, 1) IS DISTINCT FROM 1 THEN
-    RAISE EXCEPTION 'last() takes exactly one array as argument';
+IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
+    RAISE EXCEPTION 'first() takes exactly one array as argument';
 END IF;
 
 SELECT
@@ -23,10 +23,10 @@ SELECT
 INTO STRICT
 	_ArrayElements
 FROM Edges
-WHERE ChildNodeID = _ParentNodes[1]
+WHERE ChildNodeID = _ParentNodes[2]
 AND DeathPhaseID IS NULL;
 
-_ClonedNodeID := Clone_Node(_ArrayElements[array_length(_ArrayElements,1)]);
+_ClonedNodeID := Clone_Node(_ArrayElements[1]);
 
 PERFORM Set_Reference_Node(_ReferenceNodeID := _ClonedNodeID, _NodeID := _NodeID);
 

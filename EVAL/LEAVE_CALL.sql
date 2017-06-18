@@ -12,13 +12,15 @@ _FunctionInstanceNodeID    integer;
 _AllocaNodeID              integer;
 _VariableNodeID            integer;
 _ReturningCall             boolean;
+_NodeType                  text;
+_ImplementationFunction    text;
 _OK                        boolean;
 BEGIN
 
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
-SELECT                  X.ParentNodeID
-INTO STRICT _FunctionDeclarationNodeID
+SELECT                  X.ParentNodeID, NodeTypes.NodeType
+INTO STRICT _FunctionDeclarationNodeID,          _NodeType
 FROM (
     SELECT ParentNodeID
     FROM Edges
@@ -29,8 +31,32 @@ FROM (
 ) AS X
 INNER JOIN Nodes     ON Nodes.NodeID         = X.ParentNodeID
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-WHERE Nodes.DeathPhaseID IS NULL
-AND   NodeTypes.NodeType = 'FUNCTION_DECLARATION';
+WHERE Nodes.DeathPhaseID IS NULL;
+
+IF _NodeType = 'FUNCTION_DECLARATION' THEN
+    -- Normal function
+ELSIF _NodeType = 'IDENTIFIER' THEN
+    -- Built-in function
+    SELECT BuiltInFunctions.ImplementationFunction
+    INTO                   _ImplementationFunction
+    FROM BuiltInFunctions
+    INNER JOIN Nodes     ON Nodes.PrimitiveValue = BuiltInFunctions.Identifier
+    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    WHERE Nodes.NodeID         = _FunctionDeclarationNodeID
+    AND   NodeTypes.LanguageID = BuiltInFunctions.LanguageID;
+
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Execute built-in function %I', Colorize(_ImplementationFunction, 'CYAN'))
+    );
+
+    EXECUTE format('SELECT %I.%I(_NodeID := %s::integer)', 'BUILT_IN_FUNCTIONS', _ImplementationFunction, _NodeID);
+
+    RETURN;
+ELSE
+    RAISE EXCEPTION 'Unexpected NodeType %', _NodeType;
+END IF;
 
 SELECT
     RET.NodeID,

@@ -2,7 +2,7 @@ CREATE TABLE NodeTypes (
 NodeTypeID         serial  NOT NULL,
 NodeType           text    NOT NULL,
 LanguageID         integer NOT NULL REFERENCES Languages(LanguageID),
-PrimitiveType       regtype,
+PrimitiveType      regtype,
 NodeGroup          text,
 Literal            text,
 LiteralLength      integer,

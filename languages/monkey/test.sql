@@ -2,6 +2,13 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := 'monkey',
+    _Program       := 'evaluator_test.go:368',
+    _SourceCode    := $$len("one", "two")$$,
+    _ExpectedError := 'Length does not have exactly one parent node'
+);
+
+SELECT New_Test(
+    _Language      := 'monkey',
     _Program       := 'evaluator_test.go:303',
     _SourceCode    := $$
         let first = 10;
@@ -84,13 +91,6 @@ SELECT New_Test(
     _Program       := 'evaluator_test.go:367',
     _SourceCode    := $$len(1)$$,
     _ExpectedError := 'Cannot compute length of type integer'
-);
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:368',
-    _SourceCode    := $$len("one", "two")$$,
-    _ExpectedLog   := 'PARSE ERROR INVALID_EXPRESSION'
 );
 
 SELECT New_Test(

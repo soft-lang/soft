@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_LENGTH_EXPRESSION"(_NodeID integer) RETURNS void
+CREATE OR REPLACE FUNCTION "BUILT_IN_FUNCTIONS"."LENGTH"(_NodeID integer) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -15,11 +15,11 @@ FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
 
-IF array_length(_ParentNodes, 1) IS DISTINCT FROM 1 THEN
-    RAISE EXCEPTION 'Length does not have exactly one parent nodes NodeID % ParentNodes %', _NodeID, _ParentNodes;
+IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
+    RAISE EXCEPTION 'Length does not have exactly one parent node';
 END IF;
 
-_ParentNodeID := Dereference(_ParentNodes[1]);
+_ParentNodeID := Dereference(_ParentNodes[2]);
 
 SELECT NodeTypes.NodeType INTO STRICT _NodeType
 FROM Nodes

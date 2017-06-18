@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_REST_EXPRESSION"(_NodeID integer) RETURNS void
+CREATE OR REPLACE FUNCTION "BUILT_IN_FUNCTIONS"."REST"(_NodeID integer) RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -15,11 +15,11 @@ FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
 
-IF array_length(_ParentNodes, 1) IS DISTINCT FROM 1 THEN
+IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
     RAISE EXCEPTION 'rest() takes exactly one array as argument';
 END IF;
 
-_ClonedNodeID := Clone_Node(_ParentNodes[1]);
+_ClonedNodeID := Clone_Node(_ParentNodes[2]);
 
 SELECT
 	array_agg(ParentNodeID ORDER BY EdgeID),

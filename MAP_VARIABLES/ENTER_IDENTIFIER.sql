@@ -3,11 +3,13 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
+_LanguageID                integer;
 _Name                      text;
 _FunctionNameNodeID        integer;
 _FunctionDeclarationNodeID integer;
 _VariableNodeID            integer;
 _ChildNodeID               integer;
+_ImplementationFunction    text;
 _OK                        boolean;
 BEGIN
 
@@ -18,10 +20,12 @@ END IF;
 
 SELECT
     Nodes.ProgramID,
-    Nodes.PrimitiveValue
+    Nodes.PrimitiveValue,
+    Languages.LanguageID
 INTO STRICT
     _ProgramID,
-    _Name
+    _Name,
+    _LanguageID
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
@@ -52,6 +56,19 @@ IF _VariableNodeID IS NULL THEN
         _Paths   := ARRAY['-> VARIABLE -> LET_STATEMENT <- FUNCTION_DECLARATION']
     );
     IF _VariableNodeID IS NULL THEN
+        SELECT ImplementationFunction
+        INTO  _ImplementationFunction
+        FROM BuiltInFunctions
+        WHERE LanguageID = _LanguageID
+        AND   Identifier = _Name;
+        IF FOUND THEN
+            PERFORM Log(
+                _NodeID   := _NodeID,
+                _Severity := 'DEBUG5',
+                _Message  := format('Built-in function %L mapped to %L', Colorize(_Name, 'MAGENTA'), Colorize(_ImplementationFunction, 'CYAN'))
+            );
+            RETURN TRUE;
+        END IF;
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'ERROR',
