@@ -26,7 +26,7 @@ FROM Edges
 WHERE ChildNodeID = _ParentNodes[2]
 AND DeathPhaseID IS NULL;
 
-_ClonedNodeID := Clone_Node(_ArrayElements[1]);
+_ClonedNodeID := Clone_Node(Dereference(_ArrayElements[1]));
 
 PERFORM Set_Reference_Node(_ReferenceNodeID := _ClonedNodeID, _NodeID := _NodeID);
 

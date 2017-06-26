@@ -1,10 +1,12 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _WalkableNodes integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE)
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _WalkableNodes integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE, _ExcludeEdgeIDs integer[] DEFAULT NULL)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ClonedNodeID integer;
-_ParentNodeID integer;
+_ClonedNodeID    integer;
+_ParentNodeID    integer;
+_VariableBinding variablebinding;
+_OutOfScope      boolean;
 BEGIN
 
 SELECT      NodeID
@@ -33,47 +35,51 @@ WITH RECURSIVE Parents AS (
     AND ParentNode.DeathPhaseID IS NULL
     AND NOT Edges.ParentNodeID = ANY(Parents.ParentNodeIDs)
 )
-SELECT
-    COALESCE(
-        CASE WHEN _ClonedRootNodeID IS NULL
-        THEN NULL -- create new node, first node
-        ELSE
-            CASE (Language(_NodeID)).VariableBinding
-            WHEN 'CAPTURE_BY_VALUE'
-            THEN NULL -- create new node, copy value instead of referencing it
-            WHEN 'CAPTURE_BY_REFERENCE'
-            THEN
-                CASE
-                WHEN EXISTS ( -- any children nodes out of scope?
-                    SELECT ChildNodeID FROM Edges WHERE ParentNodeID = _NodeID AND DeathPhaseID IS NULL
-                    EXCEPT
-                    SELECT ParentNodeID FROM Parents
-                )
-                THEN _NodeID
-                ELSE NULL -- create new node, node is in scope
-                END
-            END
-        END,
-        New_Node(
-            _ProgramID        := ProgramID,
-            _NodeTypeID       := NodeTypeID,
-            _PrimitiveType    := PrimitiveType,
-            _PrimitiveValue   := PrimitiveValue,
-            _Walkable         := Walkable,
-            _ClonedFromNodeID := NodeID,
-            _ClonedRootNodeID := _ClonedRootNodeID,
-            _ReferenceNodeID  := ReferenceNodeID
-        )
-    )
-INTO STRICT
-    _ClonedNodeID
-FROM Nodes
-WHERE NodeID = _NodeID;
+SELECT EXISTS (
+    SELECT ChildNodeID FROM Edges WHERE ParentNodeID = _NodeID AND DeathPhaseID IS NULL
+    EXCEPT
+    SELECT ParentNodeID FROM Parents
+) INTO STRICT _OutOfScope;
+
+_VariableBinding := (Language(_NodeID)).VariableBinding;
+
+-- Create new node (THEN branch) or reference existing node (ELSE branch)?
+IF _ClonedRootNodeID IS NULL -- Always create new node for first node
+OR _OutOfScope       IS FALSE
+OR _VariableBinding  = 'CAPTURE_BY_VALUE' -- Always create new nodes in this mode
+THEN
+    SELECT New_Node(
+        _ProgramID        := ProgramID,
+        _NodeTypeID       := NodeTypeID,
+        _PrimitiveType    := PrimitiveType,
+        _PrimitiveValue   := PrimitiveValue,
+        _Walkable         := Walkable,
+        _ClonedFromNodeID := NodeID,
+        _ClonedRootNodeID := _ClonedRootNodeID,
+        _ReferenceNodeID  := ReferenceNodeID
+    ) INTO STRICT _ClonedNodeID
+    FROM Nodes
+    WHERE NodeID = _NodeID;
+ELSIF _ClonedRootNodeID IS NOT NULL
+AND   _OutOfScope       IS TRUE
+AND   _VariableBinding  = 'CAPTURE_BY_REFERENCE'
+THEN
+    _ClonedNodeID := _NodeID;
+    -- Don't recurse to parents since this node is references
+    -- and all its parent nodes will therefore also be references
+    -- e.g. if the node is a complex object such as a function declaration
+    RAISE NOTICE 'NodeID % have children that are out of scope, so not creating new node nor edges for parents', _NodeID;
+    RETURN _ClonedNodeID;
+ELSE
+    RAISE EXCEPTION 'How did we end up here!? ClonedRootNodeID % VariableBinding % OutOfScope %', _ClonedRootNodeID, _VariableBinding, _OutOfScope;
+END IF;
 
 IF _ClonedRootNodeID IS NULL THEN
     _ClonedRootNodeID := _ClonedNodeID;
     _OriginRootNodeID := _NodeID;
 END IF;
+
+RAISE NOTICE 'New_Edges for ClonedNodeID % NodeID % WalkableNodes % OriginRootNodeID %', _ClonedNodeID, _NodeID, _WalkableNodes, _OriginRootNodeID;
 
 PERFORM New_Edge(
     _ProgramID    := ProgramID,
@@ -85,7 +91,8 @@ PERFORM New_Edge(
             _OriginRootNodeID := _OriginRootNodeID,
             _ClonedRootNodeID := _ClonedRootNodeID,
             _WalkableNodes    := _WalkableNodes || _NodeID,
-            _SelfRef          := _SelfRef
+            _SelfRef          := _SelfRef,
+            _ExcludeEdgeIDs   := _ExcludeEdgeIDs
         )
     END,
     _ChildNodeID      := _ClonedNodeID,
@@ -99,10 +106,11 @@ FROM (
     FROM Edges
     INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
     WHERE Edges.ChildNodeID    = _NodeID
-    AND (NOT Edges.ParentNodeID = ANY(_WalkableNodes)
-         OR  Edges.ParentNodeID = _OriginRootNodeID)
+--    AND (NOT Edges.ParentNodeID = ANY(_WalkableNodes)
+--         OR  Edges.ParentNodeID = _OriginRootNodeID)
     AND Edges.DeathPhaseID IS NULL
     AND Nodes.DeathPhaseID IS NULL
+    AND (Edges.EdgeID = ANY(_ExcludeEdgeIDs)) IS NOT TRUE
     ORDER BY Edges.EdgeID
 ) AS X;
 

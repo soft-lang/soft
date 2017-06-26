@@ -20,8 +20,25 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 3 THEN
     RAISE EXCEPTION 'push() takes exactly two arguments';
 END IF;
 
-_ClonedNodeID := Clone_Node(_ParentNodes[2]);
-_PushNodeID   := Clone_Node(_ParentNodes[3]);
+_ClonedNodeID := Clone_Node(Dereference(_ParentNodes[2]));
+
+IF (SELECT PrimitiveType FROM Nodes WHERE NodeID = Dereference(_ParentNodes[3])) IS NOT NULL THEN
+    SELECT New_Node(
+        _ProgramID        := ProgramID,
+        _NodeTypeID       := NodeTypeID,
+        _PrimitiveType    := PrimitiveType,
+        _PrimitiveValue   := PrimitiveValue,
+        _Walkable         := Walkable,
+        _ClonedFromNodeID := NodeID,
+        _ClonedRootNodeID := Dereference(_ParentNodes[3]),
+        _ReferenceNodeID  := ReferenceNodeID
+    ) INTO STRICT _PushNodeID
+    FROM Nodes
+    WHERE NodeID = Dereference(_ParentNodes[3]);
+	RAISE NOTICE 'Node % is primitive, created node %', Dereference(_ParentNodes[3]), _PushNodeID;
+ELSE
+	_PushNodeID := Clone_Node(Dereference(_ParentNodes[3]));
+END IF;
 
 PERFORM New_Edge(
 	_ProgramID    := ProgramID(_NodeID),

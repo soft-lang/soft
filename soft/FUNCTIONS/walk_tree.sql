@@ -32,6 +32,20 @@ IF EXISTS (
 END IF;
 
 IF EXISTS (
+    SELECT Nodes.NodeID
+    FROM Nodes
+    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    INNER JOIN Edges     ON Edges.ChildNodeID    = Nodes.NodeID
+    WHERE NodeTypes.NodeType = 'RET'
+    AND Nodes.DeathPhaseID IS NULL
+    AND Edges.DeathPhaseID IS NULL
+    GROUP BY Nodes.NodeID
+    HAVING COUNT(Edges.EdgeID) > 1
+) THEN
+    RAISE EXCEPTION 'RET found with multiple parents';
+END IF;
+
+IF EXISTS (
     SELECT 1 FROM Log
     INNER JOIN Phases ON Phases.PhaseID = Log.PhaseID
     WHERE Log.ProgramID  = _ProgramID

@@ -19,7 +19,7 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
     RAISE EXCEPTION 'rest() takes exactly one array as argument';
 END IF;
 
-_ClonedNodeID := Clone_Node(_ParentNodes[2]);
+_ClonedNodeID := Clone_Node(Dereference(_ParentNodes[2]));
 
 SELECT
 	array_agg(ParentNodeID ORDER BY EdgeID),

@@ -3,9 +3,8 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
-_Walkable                   boolean;
+_Walkable                  boolean;
 _RetNodeID                 integer;
-_RetEdgeID                 integer;
 _NextNodeID                integer;
 _FunctionDeclarationNodeID integer;
 _FunctionInstanceNodeID    integer;
@@ -14,6 +13,7 @@ _VariableNodeID            integer;
 _ReturningCall             boolean;
 _NodeType                  text;
 _ImplementationFunction    text;
+_ContinuationEdgeID        integer;
 _OK                        boolean;
 BEGIN
 
@@ -59,31 +59,31 @@ ELSE
 END IF;
 
 SELECT
-    RET.NodeID,
-    RET.EdgeID,
+    Edges.ChildNodeID,
     Nodes.Walkable IS NOT NULL
 INTO
     _RetNodeID,
-    _RetEdgeID,
     _ReturningCall
-FROM (
-    SELECT
-        EdgeID,
-        ChildNodeID AS NodeID
-    FROM Edges
-    WHERE ParentNodeID  = _NodeID
-    AND   DeathPhaseID IS NULL
-    ORDER BY EdgeID DESC
-    LIMIT 1
-) AS RET
-INNER JOIN Nodes     ON Nodes.NodeID         = RET.NodeID
+FROM Edges
+INNER JOIN Nodes     ON Nodes.NodeID         = Edges.ChildNodeID
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-WHERE Nodes.DeathPhaseID IS NULL
-AND   NodeTypes.NodeType = 'RET';
+WHERE Edges.ParentNodeID = _NodeID
+AND   NodeTypes.NodeType = 'RET'
+AND   Edges.DeathPhaseID IS NULL
+AND   Nodes.DeathPhaseID IS NULL;
 IF NOT FOUND THEN
-    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := FALSE);
+    SELECT E2.EdgeID
+    INTO _ContinuationEdgeID
+    FROM Edges AS E1
+    INNER JOIN Nodes       ON Nodes.NodeID         = E1.ParentNodeID
+    INNER JOIN NodeTypes   ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    INNER JOIN Edges AS E2 ON E2.ChildNodeID       = E1.ParentNodeID
+    WHERE E1.ChildNodeID     = _FunctionDeclarationNodeID
+    AND   NodeTypes.NodeType = 'RET';
+    RAISE NOTICE '_ExcludeEdgeIDs %', _ContinuationEdgeID;
+    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := TRUE, _ExcludeEdgeIDs := ARRAY[_ContinuationEdgeID]);
     _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
-    PERFORM Set_Walkable(_FunctionInstanceNodeID, TRUE);
+--    PERFORM Set_Walkable(_FunctionInstanceNodeID, TRUE);
     PERFORM New_Edge(
         _ProgramID    := _ProgramID,
         _ParentNodeID := _NodeID,
