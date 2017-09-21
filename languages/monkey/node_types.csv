@@ -1,82 +1,82 @@
-nodetypeid,language,nodetype,primitivetype,nodegroup,literal,literalpattern,nodepattern,prologue,epilogue,growfrom,growinto,nodeseverity
-1,monkey,SOURCE_CODE,,,,,,,,,,
-2,monkey,ALLOCA,void,,,,,,,,,
-3,monkey,RET,void,,,,,,,,,
-4,monkey,FUNCTION_LABEL,,,,,,,,,,
-5,monkey,ARGS,,,,,,,,,,
-6,monkey,EQ,,,=,,,,,,,
-7,monkey,PLUS,,OPS,+,,,,,,,
-8,monkey,MINUS,,OPS,-,,,,,,,
-9,monkey,BANG,,OPS,!,,,,,,,
-10,monkey,ASTERISK,,OPS,*,,,,,,,
-11,monkey,PERCENT,,OPS,%,,,,,,,
-12,monkey,SLASH,,OPS,/,,,,,,,
-13,monkey,LT,,OPS,<,,,,,,,
-14,monkey,GT,,OPS,>,,,,,,,
-15,monkey,EQ_EQ,,OPS,==,,,,,,,
-16,monkey,BANG_EQ,,OPS,!=,,,,,,,
-17,monkey,COMMA,,,",",,,,,,,
-18,monkey,SEMICOLON,,,;,,,,,,,
-19,monkey,COLON,,,:,,,,,,,
-20,monkey,LPAREN,,,(,,,,,,,
-21,monkey,RPAREN,,,),,,,,,,
-22,monkey,LBRACE,,,{,,,,,,,
-23,monkey,RBRACE,,,},,,,,,,
-24,monkey,LBRACKET,,,[,,,,,,,
-25,monkey,RBRACKET,,,],,,,,,,
-26,monkey,WHITE_SPACE,,,,(\s+),,,,,,
-27,monkey,IDENTIFIER,name,VALUE,,([a-zA-Z_]+),,,,,,
-28,monkey,IF,,,,^(if)$,,,,IDENTIFIER,,
-29,monkey,ELSE,,,,^(else)$,,,,IDENTIFIER,,
-30,monkey,FUNCTION,,,,^(fn)$,,,,IDENTIFIER,,
-31,monkey,LOOP,,,,^(loop)$,,,,IDENTIFIER,,
-32,monkey,LET,,,,^(let)$,,,,IDENTIFIER,,
-33,monkey,RETURN,,,,^(return)$,,,,IDENTIFIER,,
-34,monkey,BOOLEAN,boolean,VALUE,,^(true|false)$,,,,IDENTIFIER,,
-35,monkey,NUMERIC,numeric,VALUE,,([0-9]+\.[0-9]+),,,,,,
-36,monkey,INTEGER,integer,VALUE,,([0-9]+),,,,,,
-37,monkey,TEXT,text,VALUE,,"""((?:[^""\\]|\\.)*)""",,,,,,
-38,monkey,ILLEGAL,,,,(.),,,,,,ERROR
-39,monkey,FUNCTION_NAME,,CALL,,,(?:^| )(IDENTIFIER\d+) LPAREN\d+,,,,,
-40,monkey,VARIABLE,name,,,,(?:^| )(?:FUNCTION\d+ LPAREN\d+ |VARIABLE\d+ COMMA\d+ |(?=LET\d+ IDENTIFIER\d+ EQ\d+)LET\d+ )(IDENTIFIER\d+) (?:EQ|COMMA|RPAREN)\d+,,,,,
-41,monkey,STORE_ARGS,,,,,(?:^| )FUNCTION\d+ (LPAREN\d+(?: VARIABLE\d+(?: COMMA\d+ VARIABLE\d+)*)? RPAREN\d+),,,,,
-42,monkey,FUNCTION_DECLARATION,void,VALUE,,,(?:^| )(FUNCTION\d+ STORE_ARGS\d+ BLOCK_(?:EXPRESSION|STATEMENT)\d+),ALLOCA,RET,,,
-43,monkey,ANONYMOUS_FUNCTION,,CALL,,,(?:^| )(FUNCTION_DECLARATION\d+) LPAREN\d+,,,,,
-44,monkey,INDEX,,VALUE,,,(?:^| )((?:VALUE|ARRAY|HASH)\d+ LBRACKET\d+ VALUE\d+ RBRACKET\d+),,,,,
-45,monkey,HASH_PAIR,,,,,(?:^| )(?:LBRACE\d+ |HASH_PAIR\d+ COMMA\d+ )((?:VALUE|EXPRESSION)\d+ COLON\d+ (?:VALUE|EXPRESSION)\d+) (?:COMMA|RBRACE)\d+,,,,,
-46,monkey,HASH,,VALUE,,,(?:^|(?:^| )(?!RBRACKET\d+ )[A-Z_]+\d+ )(LBRACE\d+ HASH_PAIR\d+(?: COMMA\d+ HASH_PAIR\d+)* RBRACE\d+),,,,,
-47,monkey,ARRAY,,VALUE,,,(?:^|(?:^| )(?!RBRACKET\d+ )[A-Z_]+\d+ )(LBRACKET\d+(?: (?:VALUE|EXPRESSION)\d+(?: COMMA\d+ (?:VALUE|EXPRESSION)\d+)*)? RBRACKET\d+),,,,,
-48,monkey,CONDITION,,,,,IF\d+ (SUB_EXPRESSION\d+),,,,,
-49,monkey,TRUE_BRANCH,,,,,CONDITION\d+ (BLOCK_EXPRESSION\d+),,,,,
-50,monkey,FALSE_BRANCH,,,,,ELSE\d+ (BLOCK_EXPRESSION\d+|IF_EXPRESSION\d+),,,,,
-51,monkey,IF_EXPRESSION,,VALUE,,,(?:^| )(IF\d+ CONDITION\d+ TRUE_BRANCH\d+ ELSE\d+ FALSE_BRANCH\d+),,,,,
-52,monkey,VALUE,,,,,(?:^| )((?#VALUE)\d+)(?! EQ\d+)(?: |$),,,,,
-53,monkey,BLOCK_EXPRESSION,,VALUE,,,(?:^| )(LBRACE\d+(?: EXPRESSION_STATEMENT\d+)*(?: EXPRESSION\d+)? RBRACE\d+),,,,,
-54,monkey,LOOP_EXPRESSION,,VALUE,,,(?:^| )(LOOP\d+ BLOCK_(?:EXPRESSION|STATEMENT)\d+),,,,,
-55,monkey,CALL_EXPRESSION,,VALUE,,,(?:^| )((?#CALL)\d+ LPAREN\d+(?: VALUE\d+| (?#OPS)\d+| COMMA\d+)* RPAREN\d+),,,VALUE,,
-56,monkey,SUB_EXPRESSION,,VALUE,,,(?:^|(?:^| )(?#OPS)\d+ |IF\d+ |COMMA\d+ )(LPAREN\d+ (?:VALUE\d+|(?#OPS)\d+)(?: (?:VALUE\d+|(?#OPS)\d+))* RPAREN\d+),,,VALUE,,
-57,monkey,EXPRESSION,,,,,(?:^|(?:^| )(?:SEMICOLON\d+ |LBRACE\d+ |EQ\d+ |RETURN\d+ |COMMA\d+ |COLON\d+ ))((?:VALUE\d+|(?#OPS)\d+)(?: (?:VALUE\d+|(?#OPS)\d+))*)(?: SEMICOLON\d+| RBRACE\d+| COMMA\d+| COLON\d+|$),,,VALUE,,
-58,monkey,CALL,,,,,(?:^| )((?#CALL)\d+ LPAREN\d+(?: VALUE\d+(?: COMMA\d+ VALUE\d+)*)? RPAREN\d+),,,,VALUE,
-59,monkey,GROUP,,,,,(?:^|(?#OPS)\d+ )(LPAREN\d+ VALUE\d+ RPAREN\d+),,,,VALUE,
-60,monkey,UNARY_MINUS,,,,,(?:^|(?:^| )(?!(?:VALUE|RPAREN)\d+ )[A-Z_]+\d+ )(MINUS\d+ VALUE\d+),,,,VALUE,
-61,monkey,MULTIPLY,,,,,(?:^| )(VALUE\d+ ASTERISK\d+ VALUE\d+),,,,VALUE,
-62,monkey,ADD,,,,,(?:^| )(VALUE\d+ PLUS\d+ VALUE\d+),,,,VALUE,
-63,monkey,DIVIDE,,,,,(?:^| )(VALUE\d+ SLASH\d+ VALUE\d+),,,,VALUE,
-64,monkey,SUBTRACT,,,,,(?:^| )(VALUE\d+ MINUS\d+ VALUE\d+),,,,VALUE,
-65,monkey,LESS_THAN,,,,,(?:^| )(VALUE\d+ LT\d+ VALUE\d+),,,,VALUE,
-66,monkey,GREATER_THAN,,,,,(?:^| )(VALUE\d+ GT\d+ VALUE\d+),,,,VALUE,
-67,monkey,EQUAL,,,,,(?:^| )(VALUE\d+ EQ_EQ\d+ VALUE\d+),,,,VALUE,
-68,monkey,NOT_EQUAL,,,,,(?:^| )(VALUE\d+ BANG_EQ\d+ VALUE\d+),,,,VALUE,
-69,monkey,NOT,,,,,(?:^| )(BANG\d+ VALUE\d+),,,,VALUE,
-70,monkey,INVALID_EXPRESSION,,,,,^(?!VALUE\d+$)([A-Z_]+\d+(?: [A-Z_]+\d+)*)$,,,,VALUE,ERROR
-71,monkey,IF_STATEMENT,void,,,,(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+(?: ELSE\d+ STATEMENT\d+)?)(?! ELSE\d+)(?= [A-Z_]+|$),,,,,
-72,monkey,LOOP_STATEMENT,void,,,,(?:^| )(LOOP\d+ STATEMENT\d+),,,,,
-73,monkey,LET_STATEMENT,void,STATEMENT,,,(?:^| )(LET\d+ VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+),,,,,
-74,monkey,ASSIGNMENT_STATEMENT,void,STATEMENT,,,(?:^| )(IDENTIFIER\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+),,,,,
-75,monkey,RETURN_STATEMENT,,STATEMENT,,,(?:^| )(RETURN\d+ EXPRESSION\d+ SEMICOLON\d+),,,,,
-76,monkey,EXPRESSION_STATEMENT,,STATEMENT,,,(?:^| )(EXPRESSION\d+ SEMICOLON\d+),,,,,
-77,monkey,BLOCK_STATEMENT,,,,,(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+),,,,,
-78,monkey,STATEMENT,,,,,(?:^| )((?#STATEMENT)\d+),,,,,
-79,monkey,STATEMENTS,,,,,(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*(?: EXPRESSION\d+)?|EXPRESSION\d+),,,,,
-80,monkey,UNPARSEABLE,,,,,(?:^| )(?!STATEMENTS\d+|UNPARSEABLE\d+|PROGRAM\d+)([A-Z_]+\d+),,,,,ERROR
-81,monkey,PROGRAM,,,,,(?:^| )((?:STATEMENTS\d+|UNPARSEABLE\d+)(?: (?:STATEMENTS\d+|UNPARSEABLE\d+))*),ALLOCA,RET,,,
+"nodetypeid","language","nodetype","primitivetype","nodegroup","literal","literalpattern","nodepattern","prologue","epilogue","growfrom","growinto","nodeseverity"
+"1","monkey","SOURCE_CODE","","","","","","","","","",""
+"2","monkey","ALLOCA","void","","","","","","","","",""
+"3","monkey","RET","void","","","","","","","","",""
+"4","monkey","FUNCTION_LABEL","","","","","","","","","",""
+"5","monkey","ARGS","","","","","","","","","",""
+"6","monkey","EQ","","","=","","","","","","",""
+"7","monkey","PLUS","","OPS","+","","","","","","",""
+"8","monkey","MINUS","","OPS","-","","","","","","",""
+"9","monkey","BANG","","OPS","!","","","","","","",""
+"10","monkey","ASTERISK","","OPS","*","","","","","","",""
+"11","monkey","PERCENT","","OPS","%","","","","","","",""
+"12","monkey","SLASH","","OPS","/","","","","","","",""
+"13","monkey","LT","","OPS","<","","","","","","",""
+"14","monkey","GT","","OPS",">","","","","","","",""
+"15","monkey","EQ_EQ","","OPS","==","","","","","","",""
+"16","monkey","BANG_EQ","","OPS","!=","","","","","","",""
+"17","monkey","COMMA","","",",","","","","","","",""
+"18","monkey","SEMICOLON","","",";","","","","","","",""
+"19","monkey","COLON","","",":","","","","","","",""
+"20","monkey","LPAREN","","","(","","","","","","",""
+"21","monkey","RPAREN","","",")","","","","","","",""
+"22","monkey","LBRACE","","","{","","","","","","",""
+"23","monkey","RBRACE","","","}","","","","","","",""
+"24","monkey","LBRACKET","","","[","","","","","","",""
+"25","monkey","RBRACKET","","","]","","","","","","",""
+"26","monkey","WHITE_SPACE","","","","(\s+)","","","","","",""
+"27","monkey","IDENTIFIER","name","VALUE","","([a-zA-Z_]+)","","","","","",""
+"28","monkey","IF","","","","^(if)$","","","","IDENTIFIER","",""
+"29","monkey","ELSE","","","","^(else)$","","","","IDENTIFIER","",""
+"30","monkey","FUNCTION","","","","^(fn)$","","","","IDENTIFIER","",""
+"31","monkey","LOOP","","","","^(loop)$","","","","IDENTIFIER","",""
+"32","monkey","LET","","","","^(let)$","","","","IDENTIFIER","",""
+"33","monkey","RETURN","","","","^(return)$","","","","IDENTIFIER","",""
+"34","monkey","BOOLEAN","boolean","VALUE","","^(true|false)$","","","","IDENTIFIER","",""
+"35","monkey","NUMERIC","numeric","VALUE","","([0-9]+\.[0-9]+)","","","","","",""
+"36","monkey","INTEGER","integer","VALUE","","([0-9]+)","","","","","",""
+"37","monkey","TEXT","text","VALUE","","""((?:[^""\\]|\\.)*)""","","","","","",""
+"38","monkey","ILLEGAL","","","","(.)","","","","","","ERROR"
+"39","monkey","FUNCTION_NAME","","CALL","","","(?:^| )(IDENTIFIER\d+) LPAREN\d+","","","","",""
+"40","monkey","VARIABLE","name","","","","(?:^| )(?:FUNCTION\d+ LPAREN\d+ |VARIABLE\d+ COMMA\d+ |(?=LET\d+ IDENTIFIER\d+ EQ\d+)LET\d+ )(IDENTIFIER\d+) (?:EQ|COMMA|RPAREN)\d+","","","","",""
+"41","monkey","STORE_ARGS","","","","","(?:^| )FUNCTION\d+ (LPAREN\d+(?: VARIABLE\d+(?: COMMA\d+ VARIABLE\d+)*)? RPAREN\d+)","","","","",""
+"42","monkey","FUNCTION_DECLARATION","void","VALUE","","","(?:^| )(FUNCTION\d+ STORE_ARGS\d+ BLOCK_(?:EXPRESSION|STATEMENT)\d+)","ALLOCA","RET","","",""
+"43","monkey","ANONYMOUS_FUNCTION","","CALL","","","(?:^| )(FUNCTION_DECLARATION\d+) LPAREN\d+","","","","",""
+"44","monkey","INDEX","","VALUE","","","(?:^| )((?:VALUE|ARRAY|HASH)\d+ LBRACKET\d+ VALUE\d+ RBRACKET\d+)","","","","",""
+"45","monkey","HASH_PAIR","","","","","(?:^| )(?:LBRACE\d+ |HASH_PAIR\d+ COMMA\d+ )((?:VALUE|EXPRESSION)\d+ COLON\d+ (?:VALUE|EXPRESSION)\d+) (?:COMMA|RBRACE)\d+","","","","",""
+"46","monkey","HASH","","VALUE","","","(?:^|(?:^| )(?!RBRACKET\d+ )[A-Z_]+\d+ )(LBRACE\d+ HASH_PAIR\d+(?: COMMA\d+ HASH_PAIR\d+)* RBRACE\d+)","","","","",""
+"47","monkey","ARRAY","","VALUE","","","(?:^|(?:^| )(?!RBRACKET\d+ )[A-Z_]+\d+ )(LBRACKET\d+(?: (?:VALUE|EXPRESSION)\d+(?: COMMA\d+ (?:VALUE|EXPRESSION)\d+)*)? RBRACKET\d+)","","","","",""
+"48","monkey","CONDITION","","","","","IF\d+ (SUB_EXPRESSION\d+)","","","","",""
+"49","monkey","TRUE_BRANCH","","","","","CONDITION\d+ (BLOCK_EXPRESSION\d+)","","","","",""
+"50","monkey","FALSE_BRANCH","","","","","ELSE\d+ (BLOCK_EXPRESSION\d+|IF_EXPRESSION\d+)","","","","",""
+"51","monkey","IF_EXPRESSION","","VALUE","","","(?:^| )(IF\d+ CONDITION\d+ TRUE_BRANCH\d+ ELSE\d+ FALSE_BRANCH\d+)","","","","",""
+"52","monkey","VALUE","","","","","(?:^| )((?#VALUE)\d+)(?! EQ\d+)(?: |$)","","","","",""
+"53","monkey","BLOCK_EXPRESSION","","VALUE","","","(?:^| )(LBRACE\d+(?: EXPRESSION_STATEMENT\d+)*(?: EXPRESSION\d+)? RBRACE\d+)","","","","",""
+"54","monkey","LOOP_EXPRESSION","","VALUE","","","(?:^| )(LOOP\d+ BLOCK_(?:EXPRESSION|STATEMENT)\d+)","","","","",""
+"55","monkey","CALL_EXPRESSION","","VALUE","","","(?:^| )((?#CALL)\d+ LPAREN\d+(?: VALUE\d+| (?#OPS)\d+| COMMA\d+)* RPAREN\d+)","","","VALUE","",""
+"56","monkey","SUB_EXPRESSION","","VALUE","","","(?:^|(?:^| )(?#OPS)\d+ |IF\d+ |COMMA\d+ )(LPAREN\d+ (?:VALUE\d+|(?#OPS)\d+)(?: (?:VALUE\d+|(?#OPS)\d+))* RPAREN\d+)","","","VALUE","",""
+"57","monkey","EXPRESSION","","","","","(?:^|(?:^| )(?:SEMICOLON\d+ |LBRACE\d+ |EQ\d+ |RETURN\d+ |COMMA\d+ |COLON\d+ ))((?:VALUE\d+|(?#OPS)\d+)(?: (?:VALUE\d+|(?#OPS)\d+))*)(?: SEMICOLON\d+| RBRACE\d+| COMMA\d+| COLON\d+|$)","","","VALUE","",""
+"58","monkey","CALL","","","","","(?:^| )((?#CALL)\d+ LPAREN\d+(?: VALUE\d+(?: COMMA\d+ VALUE\d+)*)? RPAREN\d+)","","","","VALUE",""
+"59","monkey","GROUP","","","","","(?:^|(?#OPS)\d+ )(LPAREN\d+ VALUE\d+ RPAREN\d+)","","","","VALUE",""
+"60","monkey","UNARY_MINUS","","","","","(?:^|(?:^| )(?!(?:VALUE|RPAREN)\d+ )[A-Z_]+\d+ )(MINUS\d+ VALUE\d+)","","","","VALUE",""
+"61","monkey","MULTIPLY","","","","","(?:^| )(VALUE\d+ ASTERISK\d+ VALUE\d+)","","","","VALUE",""
+"63","monkey","DIVIDE","","","","","(?:^| )(VALUE\d+ SLASH\d+ VALUE\d+)","","","","VALUE",""
+"62","monkey","ADD","","","","","(?:^| )(VALUE\d+ PLUS\d+ VALUE\d+)","","","","VALUE",""
+"64","monkey","SUBTRACT","","","","","(?:^| )(VALUE\d+ MINUS\d+ VALUE\d+)","","","","VALUE",""
+"65","monkey","LESS_THAN","","","","","(?:^| )(VALUE\d+ LT\d+ VALUE\d+)","","","","VALUE",""
+"66","monkey","GREATER_THAN","","","","","(?:^| )(VALUE\d+ GT\d+ VALUE\d+)","","","","VALUE",""
+"67","monkey","EQUAL","","","","","(?:^| )(VALUE\d+ EQ_EQ\d+ VALUE\d+)","","","","VALUE",""
+"68","monkey","NOT_EQUAL","","","","","(?:^| )(VALUE\d+ BANG_EQ\d+ VALUE\d+)","","","","VALUE",""
+"69","monkey","NOT","","","","","(?:^| )(BANG\d+ VALUE\d+)","","","","VALUE",""
+"70","monkey","INVALID_EXPRESSION","","","","","^(?!VALUE\d+$)([A-Z_]+\d+(?: [A-Z_]+\d+)*)$","","","","VALUE","ERROR"
+"71","monkey","IF_STATEMENT","void","","","","(?:^| )(IF\d+ EXPRESSION\d+ STATEMENT\d+(?: ELSE\d+ STATEMENT\d+)?)(?! ELSE\d+)(?= [A-Z_]+|$)","","","","",""
+"72","monkey","LOOP_STATEMENT","void","","","","(?:^| )(LOOP\d+ STATEMENT\d+)","","","","",""
+"73","monkey","LET_STATEMENT","void","STATEMENT","","","(?:^| )(LET\d+ VARIABLE\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)","","","","",""
+"74","monkey","ASSIGNMENT_STATEMENT","void","STATEMENT","","","(?:^| )(IDENTIFIER\d+ EQ\d+ EXPRESSION\d+ SEMICOLON\d+)","","","","",""
+"75","monkey","RETURN_STATEMENT","","STATEMENT","","","(?:^| )(RETURN\d+ EXPRESSION\d+ SEMICOLON\d+)","","","","",""
+"76","monkey","EXPRESSION_STATEMENT","","STATEMENT","","","(?:^| )(EXPRESSION\d+ SEMICOLON\d+)","","","","",""
+"77","monkey","BLOCK_STATEMENT","","","","","(?:^| )(LBRACE\d+(?: STATEMENT\d+)* RBRACE\d+)","","","","",""
+"78","monkey","STATEMENT","","","","","(?:^| )((?#STATEMENT)\d+)","","","","",""
+"79","monkey","STATEMENTS","","","","","(?:^| )(STATEMENT\d+(?: STATEMENT\d+)*(?: EXPRESSION\d+)?|EXPRESSION\d+)","","","","",""
+"80","monkey","UNPARSEABLE","","","","","(?:^| )(?!STATEMENTS\d+|UNPARSEABLE\d+|PROGRAM\d+)([A-Z_]+\d+)","","","","","ERROR"
+"81","monkey","PROGRAM","","","","","(?:^| )((?:STATEMENTS\d+|UNPARSEABLE\d+)(?: (?:STATEMENTS\d+|UNPARSEABLE\d+))*)","ALLOCA","RET","","",""
