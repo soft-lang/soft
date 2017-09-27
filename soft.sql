@@ -30,6 +30,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/expand_token_groups.sql
 \ir soft/FUNCTIONS/get_capturing_group.sql
 \ir soft/FUNCTIONS/get_dot.sql
+\ir soft/FUNCTIONS/get_env.sql
 \ir soft/FUNCTIONS/log.sql
 \ir soft/FUNCTIONS/colorize.sql
 \ir soft/FUNCTIONS/highlight_characters.sql
