@@ -5,7 +5,7 @@ SELECT New_Language(
     _LogSeverity           := 'NOTICE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE,
-    _VariableBinding       := 'CAPTURE_BY_REFERENCE',
+    _VariableBinding       := 'CAPTURE_BY_VALUE',
     _ZeroBasedNumbering    := TRUE
 );
 
