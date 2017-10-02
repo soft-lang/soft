@@ -2,6 +2,25 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := 'monkey',
+    _Program       := 'factorial',
+    _SourceCode    := $$
+        let factorial = fn(n) {
+            if (n == 0) {
+                1
+            } else {
+                n * factorial(n - 1)
+            }
+        };
+        factorial(5);
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '120'
+);
+
+/*
+
+SELECT New_Test(
+    _Language      := 'monkey',
     _Program       := 'evaluator_test.go:368',
     _SourceCode    := $$len("one", "two")$$,
     _ExpectedError := 'Length does not have exactly one parent node'
@@ -296,3 +315,4 @@ SELECT New_Test(
     _ExpectedTypes  := ARRAY['integer','integer','integer','integer']::regtype[],
     _ExpectedValues := ARRAY['2','4','6','8']::text[]
 );
+*/

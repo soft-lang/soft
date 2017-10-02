@@ -36,7 +36,8 @@ END IF;
 
 _Fillcolor := Get_Node_Color(_NodeID);
 
-IF _ReferenceNodeID IS NOT NULL THEN
+IF _ReferenceNodeID IS NOT NULL AND _Fillcolor <> Get_Node_Color(_ReferenceNodeID)
+THEN
     _Fillcolor := _Fillcolor || ':' || Get_Node_Color(_ReferenceNodeID);
 END IF;
 
