@@ -9,16 +9,19 @@ _NodeType text;
 _ReferenceNodeID integer;
 _PrimitiveValue text;
 _Label text;
+_ClonedFromNodeID integer;
 BEGIN
 
 SELECT
 	NodeTypes.NodeType,
 	Nodes.ReferenceNodeID,
-	Nodes.PrimitiveValue
+	Nodes.PrimitiveValue,
+	COALESCE(Nodes.ClonedFromNodeID,Nodes.NodeID)
 INTO STRICT
 	_NodeType,
 	_ReferenceNodeID,
-	_PrimitiveValue
+	_PrimitiveValue,
+	_ClonedFromNodeID
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.NodeID = _NodeID;
@@ -26,10 +29,10 @@ WHERE Nodes.NodeID = _NodeID;
 SELECT ROW_NUMBER INTO STRICT _Rank
 FROM (
 	SELECT NodeID, ROW_NUMBER() OVER () FROM (
-		SELECT NodeID FROM Nodes WHERE NodeTypeID = (SELECT NodeTypeID FROM Nodes WHERE NodeID = _NodeID) ORDER BY NodeID
+		SELECT NodeID FROM Nodes WHERE NodeTypeID = (SELECT NodeTypeID FROM Nodes WHERE NodeID = _ClonedFromNodeID) ORDER BY NodeID
 	) AS X
 ) AS Y
-WHERE NodeID = _NodeID;
+WHERE NodeID = _ClonedFromNodeID;
 
 _Label := format('%s%s',_NodeType,_Rank);
 

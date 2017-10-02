@@ -55,7 +55,7 @@ ELSIF _NodeType = 'IDENTIFIER' THEN
 
     RETURN;
 ELSE
-    RAISE EXCEPTION 'Unexpected NodeType %', _NodeType;
+    RAISE EXCEPTION 'Unexpected NodeType % NodeID % (%)', _NodeType, _NodeID, Get_Node_Label(_NodeID);
 END IF;
 
 SELECT

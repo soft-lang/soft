@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _WalkableNodes integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE)
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _ClonedEdgeIDs integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -6,6 +6,8 @@ DECLARE
 _ClonedNodeID integer;
 _ParentNodeID integer;
 BEGIN
+
+RAISE NOTICE '=>Clone_Node % (OriginRootNodeID %, ClonedRootNodeID %)', Get_Node_Label(_NodeID), Get_Node_Label(_OriginRootNodeID), Get_Node_Label(_ClonedRootNodeID);
 
 SELECT      NodeID
 INTO _ClonedNodeID
@@ -84,7 +86,7 @@ PERFORM New_Edge(
             _NodeID           := ParentNodeID,
             _OriginRootNodeID := _OriginRootNodeID,
             _ClonedRootNodeID := _ClonedRootNodeID,
-            _WalkableNodes    := _WalkableNodes || _NodeID,
+            _ClonedEdgeIDs    := _ClonedEdgeIDs || EdgeID,
             _SelfRef          := _SelfRef
         )
     END,
@@ -97,12 +99,15 @@ FROM (
         Edges.ProgramID,
         Edges.ParentNodeID
     FROM Edges
-    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+    INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID = Edges.ParentNodeID
+    INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID  = Dereference(Edges.ChildNodeID)
     WHERE Edges.ChildNodeID    = _NodeID
-    AND (NOT Edges.ParentNodeID = ANY(_WalkableNodes)
+    AND (NOT Edges.EdgeID       = ANY(_ClonedEdgeIDs)
          OR  Edges.ParentNodeID = _OriginRootNodeID)
-    AND Edges.DeathPhaseID IS NULL
-    AND Nodes.DeathPhaseID IS NULL
+    AND Edges.DeathPhaseID      IS NULL
+    AND ParentNode.DeathPhaseID IS NULL
+    AND ChildNode.DeathPhaseID  IS NULL
+    AND ChildNode.PrimitiveType IS NULL
     ORDER BY Edges.EdgeID
 ) AS X;
 
@@ -111,6 +116,8 @@ PERFORM Log(
     _Severity := 'DEBUG3',
     _Message  := format('Cloned %s -> %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_ClonedNodeID),'CYAN'))
 );
+
+RAISE NOTICE '<=Clone_Node % (OriginRootNodeID %, ClonedRootNodeID %)', Get_Node_Label(_NodeID), Get_Node_Label(_OriginRootNodeID), Get_Node_Label(_ClonedRootNodeID);
 
 RETURN _ClonedNodeID;
 END;

@@ -12,6 +12,8 @@ _BirthPhaseID integer;
 _EdgeID       integer;
 BEGIN
 
+RAISE NOTICE 'New_Edge % -> %', Get_Node_Label(_ParentNodeID), Get_Node_Label(_ChildNodeID);
+
 SELECT PhaseID INTO STRICT _BirthPhaseID FROM Programs WHERE ProgramID = _ProgramID;
 
 INSERT INTO Edges ( ProgramID,  ParentNodeID,  ChildNodeID,  BirthPhaseID,  ClonedRootNodeID)

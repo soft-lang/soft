@@ -3,23 +3,26 @@ RETURNS text
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramNode boolean;
-_Walkable    boolean;
-_Env         integer;
-_Style       text;
-_Shape       text;
-_Fillcolor   text;
-_Penwidth    text;
-_ColorScheme text    := 'set312';
-_NumColors   integer := 12;
+_ProgramNode     boolean;
+_Walkable        boolean;
+_Env             integer;
+_Style           text;
+_Shape           text;
+_Fillcolor       text;
+_Penwidth        text;
+_ColorScheme     text    := 'set312';
+_NumColors       integer := 12;
+_ReferenceNodeID integer;
 BEGIN
 
 SELECT
     Nodes.NodeID = Programs.NodeID,
-    Nodes.Walkable
+    Nodes.Walkable,
+    Nodes.ReferenceNodeID
 INTO
     _ProgramNode,
-    _Walkable
+    _Walkable,
+    _ReferenceNodeID
 FROM Nodes
 INNER JOIN Programs ON Programs.ProgramID = Nodes.ProgramID
 WHERE Nodes.NodeID = _NodeID;
@@ -38,7 +41,15 @@ IF _Env < _NumColors THEN
     _Style := 'filled';
     _Fillcolor := format('/%s/%s', _ColorScheme, _Env+1);
 ELSE
-    _Fillcolor := format('/%s/%s:/%s/%s', _ColorScheme, _Env/_NumColors, _ColorScheme, _Env%_NumColors+1);
+    SELECT format('/%s/%s:/%s/%s', _ColorScheme, C1, _ColorScheme, C2)
+    INTO _Fillcolor
+    FROM (
+        SELECT  C1, C2, ROW_NUMBER() OVER ()
+        FROM generate_series(1,12) AS C1
+        CROSS JOIN generate_series(1,12) AS C2
+        WHERE C1 <> C2
+    ) AS X
+    WHERE ROW_NUMBER = _Env;
 END IF;
 
 IF _ProgramNode THEN
