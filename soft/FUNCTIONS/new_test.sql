@@ -80,7 +80,13 @@ END IF;
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'NOTICE',
-    _Message  := format('Result %L %L, Error %L', _ResultType, _ResultValue, _Error)
+    _Message  := format('Result %L %L, Expected %L %L, Error %L',
+        COALESCE(_ResultType::text,array_to_string(_ResultTypes,',')),
+        COALESCE(_ResultValue,array_to_string(_ResultValues,',')),
+        COALESCE(_ExpectedType::text,array_to_string(_ExpectedTypes,',')),
+        COALESCE(_ExpectedValue,array_to_string(_ExpectedValues,',')),
+        _Error
+    )
 );
 
 PERFORM Log(

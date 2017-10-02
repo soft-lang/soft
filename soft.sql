@@ -33,6 +33,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/get_node_attributes.sql
 \ir soft/FUNCTIONS/get_node_label.sql
 \ir soft/FUNCTIONS/get_env.sql
+\ir soft/FUNCTIONS/get_node_color.sql
 \ir soft/FUNCTIONS/log.sql
 \ir soft/FUNCTIONS/colorize.sql
 \ir soft/FUNCTIONS/highlight_characters.sql

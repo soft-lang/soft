@@ -5,7 +5,6 @@ AS $$
 DECLARE
 _ProgramNode     boolean;
 _Walkable        boolean;
-_Env             integer;
 _Style           text;
 _Shape           text;
 _Fillcolor       text;
@@ -27,8 +26,6 @@ FROM Nodes
 INNER JOIN Programs ON Programs.ProgramID = Nodes.ProgramID
 WHERE Nodes.NodeID = _NodeID;
 
-_Env := Get_Env(_NodeID);
-
 IF _Walkable THEN
     _Style := 'wedged';
     _Shape := 'ellipse';
@@ -37,19 +34,14 @@ ELSE
     _Shape := 'box';
 END IF;
 
-IF _Env < _NumColors THEN
+_Fillcolor := Get_Node_Color(_NodeID);
+
+IF _ReferenceNodeID IS NOT NULL THEN
+    _Fillcolor := _Fillcolor || ':' || Get_Node_Color(_ReferenceNodeID);
+END IF;
+
+IF _Fillcolor !~ ':' THEN
     _Style := 'filled';
-    _Fillcolor := format('/%s/%s', _ColorScheme, _Env+1);
-ELSE
-    SELECT format('/%s/%s:/%s/%s', _ColorScheme, C1, _ColorScheme, C2)
-    INTO _Fillcolor
-    FROM (
-        SELECT  C1, C2, ROW_NUMBER() OVER ()
-        FROM generate_series(1,12) AS C1
-        CROSS JOIN generate_series(1,12) AS C2
-        WHERE C1 <> C2
-    ) AS X
-    WHERE ROW_NUMBER = _Env;
 END IF;
 
 IF _ProgramNode THEN
