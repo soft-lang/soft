@@ -44,11 +44,13 @@ INNER JOIN Nodes AS ConditionNode ON ConditionNode.NodeID = E.ParentNodes[1]
 INNER JOIN Nodes AS TrueBranch    ON TrueBranch.NodeID    = E.ParentNodes[2]
 LEFT  JOIN Nodes AS ElseBranch    ON ElseBranch.NodeID    = E.ParentNodes[3];
 
-IF _ConditionNodeType <> 'boolean'::regtype THEN
+IF _ConditionNodeType = 'boolean'::regtype THEN
+    _Condition := _ConditionNodeValue::boolean;
+ELSIF (Language(_NodeID)).TruthyNonBooleans THEN
+    _Condition := TRUE;
+ELSE
     RAISE EXCEPTION 'NodeID % ConditionNodeID % If condition expression is not a boolean value but of type "%"', _NodeID, _ConditionNodeID, _ConditionNodeType;
 END IF;
-
-_Condition := _ConditionNodeValue::boolean;
 
 IF    _TrueBranchReturning IS TRUE
 AND   _ElseBranchReturning IS NOT TRUE
@@ -97,6 +99,9 @@ THEN
         _Severity := 'DEBUG3',
         _Message  := format('No else branch, skipping ahead')
     );
+    IF _IfExpression THEN
+        PERFORM Set_Node_Value(_NodeID, 'nil'::regtype, 'nil');
+    END IF;
 
 ELSIF _Condition           IS NOT TRUE
 AND   _TrueBranchReturning IS FALSE

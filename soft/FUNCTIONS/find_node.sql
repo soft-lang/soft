@@ -2,22 +2,23 @@ CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict 
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_InputNodeID    integer;
-_LanguageID     integer;
-_Path           text;
-_Name           text;
-_SQL            text;
-_JOINs          text;
-_WHEREs         text;
-_Tokens         text[];
-_Direction      text;
-_NodeType       text;
-_i              integer;
-_j              integer;
-_k              integer;
-_FoundNodeID    integer;
-_Count          bigint;
+_InputNodeID     integer;
+_LanguageID      integer;
+_Path            text;
+_Name            text;
+_SQL             text;
+_JOINs           text;
+_WHEREs          text;
+_Tokens          text[];
+_Direction       text;
+_NodeType        text;
+_i               integer;
+_j               integer;
+_k               integer;
+_FoundNodeID     integer;
+_Count           bigint;
 _WalkableNodeIDs integer[];
+_EdgeNumber      integer;
 BEGIN
 _InputNodeID := _NodeID;
 IF _InputNodeID IS NULL THEN
@@ -72,6 +73,18 @@ LOOP
             ELSE
                 RAISE EXCEPTION 'Invalid direction %', _Direction;
             END IF;
+            IF _NodeType ~ '^\d+' THEN
+                _EdgeNumber := substring(_NodeType from '^(\d+)')::integer;
+                _NodeType   := regexp_replace(_NodeType, '^\d+', '');
+                _WHEREs     := _WHEREs || format($SQL$
+                    AND Edge%1$s.EdgeID = (
+                        SELECT EdgeID FROM (
+                            SELECT EdgeID, ROW_NUMBER() OVER (ORDER BY EdgeID) FROM Edges WHERE ChildNodeID = Node%1$s.NodeID AND DeathPhaseID IS NULL
+                        ) AS X
+                        WHERE X.ROW_NUMBER = %2$s
+                    )
+                $SQL$, _k, _EdgeNumber);
+            END IF;
             IF _NodeType LIKE '%|%' THEN
                 _WHEREs := _WHEREs || format($SQL$
                     AND Edge%1$s.DeathPhaseID IS NULL
@@ -86,6 +99,8 @@ LOOP
                     AND Node%2$s.DeathPhaseID IS NULL
                     AND Node%2$s.NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE LanguageID = %3$s AND NodeType = %4$L)
                 $SQL$, _k, _k+1, _LanguageID, _NodeType);
+            END IF;
+            IF _EdgeNumber IS NOT NULL THEN
             END IF;
             _j := _j + 1;
             _k := _k + 1;

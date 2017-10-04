@@ -3,6 +3,7 @@ SET search_path TO soft, public;
 \ir soft/TYPES/severity.sql
 \ir soft/TYPES/variablebinding.sql
 \ir soft/TYPES/direction.sql
+\ir soft/TYPES/nil.sql
 
 \ir soft/TABLES/languages.sql
 \ir soft/TABLES/phases.sql
@@ -43,6 +44,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/set_edge_parent.sql
 \ir soft/FUNCTIONS/set_edge_child.sql
 \ir soft/FUNCTIONS/node.sql
+\ir soft/FUNCTIONS/node_type.sql
 \ir soft/FUNCTIONS/phase.sql
 \ir soft/FUNCTIONS/set_node_type.sql
 \ir soft/FUNCTIONS/get_program_node.sql
@@ -54,6 +56,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/copy_node.sql
 \ir soft/FUNCTIONS/clone_node.sql
 \ir soft/FUNCTIONS/determine_return_type.sql
+\ir soft/FUNCTIONS/matching_input_types.sql
 \ir soft/FUNCTIONS/set_node_value.sql
 \ir soft/FUNCTIONS/eval_node.sql
 \ir soft/FUNCTIONS/set_program_node.sql
@@ -70,7 +73,6 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/language.sql
 \ir soft/FUNCTIONS/programid.sql
 \ir soft/FUNCTIONS/new_built_in_function.sql
-\ir soft/FUNCTIONS/notice.sql
 
 CREATE SCHEMA "DISCARD";
 \ir DISCARD/ENTER_WHITE_SPACE.sql
@@ -110,7 +112,6 @@ CREATE SCHEMA "EVAL";
 \ir EVAL/NOT.sql
 \ir EVAL/SUBTRACT.sql
 \ir EVAL/UNARY_MINUS.sql
-\ir EVAL/IF_EXPR.sql
 \ir EVAL/LEAVE_INDEX.sql
 \ir EVAL/LEAVE_CALL.sql
 \ir EVAL/LEAVE_PROGRAM.sql

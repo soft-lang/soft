@@ -41,6 +41,7 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Strict  := TRUE,
         _Path    := '<- RET'
     );
+    PERFORM "EVAL"."ENTER_RET"(_NodeID := _RetNodeID, _ReturnValueNodeID := _ReturnValueNodeID);
 ELSE
     -- Returning from program
     _ProgramNodeID := Get_Program_Node(_ProgramID := _ProgramID);
@@ -50,9 +51,9 @@ ELSE
         _Strict  := TRUE,
         _Path    := '<- RET'
     );
+    UPDATE Programs SET NodeID = _ProgramNodeID, Direction = 'LEAVE' WHERE ProgramID = ProgramID(_NodeID) RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Reference_Node(_ReferenceNodeID := _ReturnValueNodeID, _NodeID := _ProgramNodeID);
 END IF;
-
-PERFORM "EVAL"."ENTER_RET"(_NodeID := _RetNodeID, _ReturnValueNodeID := _ReturnValueNodeID);
 
 RETURN;
 END;

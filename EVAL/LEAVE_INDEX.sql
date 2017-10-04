@@ -54,6 +54,9 @@ IF _NodeType = 'ARRAY' THEN
 ELSIF _NodeType = 'HASH' THEN
 	_HashKeyType  := Primitive_Type(_IndexNodeID);
 	_HashKeyValue := Primitive_Value(_IndexNodeID);
+	IF _HashKeyType IS NULL THEN
+		RAISE EXCEPTION 'Unusable as hash key: %', Node_Type(_IndexNodeID);
+	END IF;
 	FOR _HashPairNodeID IN
 	SELECT ParentNodeID
 	FROM Edges
@@ -76,6 +79,7 @@ ELSIF _NodeType = 'HASH' THEN
 			RETURN;
 		END IF;
 	END LOOP;
+	RAISE EXCEPTION 'Hash key "%" of type "%" does not exist', _HashKeyValue, _HashKeyType;
 ELSE
 	RAISE EXCEPTION 'Index does not work with NodeType %', _NodeType;
 END IF;

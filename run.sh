@@ -7,6 +7,8 @@ psql -X -1 -f import_nodetypes.sql
 
 psql -X -1 -f languages/monkey/test.sql
 
+exit
+
 rm prog*.pdf
 rm prog.dot
 

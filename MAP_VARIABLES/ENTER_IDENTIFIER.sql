@@ -41,7 +41,7 @@ _VariableNodeID := Find_Node(
     _NodeID  := _NodeID,
     _Descend := TRUE,
     _Strict  := FALSE,
-    _Paths   := ARRAY['<- LET_STATEMENT|STORE_ARGS <- VARIABLE', _Name]
+    _Paths   := ARRAY['<- LET_STATEMENT|STORE_ARGS <- 1VARIABLE', _Name]
 );
 IF _VariableNodeID IS NULL THEN
     _VariableNodeID := Find_Node(
