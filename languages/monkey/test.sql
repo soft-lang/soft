@@ -25,7 +25,7 @@ SELECT New_Test(
         ['(5 + 10 * 2 + 15 / 3) * 2 + -10', '50']
     ] AS T
 ) AS TestEvalIntegerExpression
-CROSS JOIN generate_series(1,array_length(TestEvalIntegerExpression.T,1)) AS N
+CROSS JOIN generate_series(1,array_length(TestEvalIntegerExpression.T,1)) AS N;
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -56,7 +56,7 @@ SELECT New_Test(
         ['(1 > 2) == false' , 'true']
     ] AS T
 ) AS TestEvalBooleanExpression
-CROSS JOIN generate_series(1,array_length(TestEvalBooleanExpression.T,1)) AS N
+CROSS JOIN generate_series(1,array_length(TestEvalBooleanExpression.T,1)) AS N;
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -74,7 +74,7 @@ SELECT New_Test(
         ['!!5',      'true']
     ] AS T
 ) AS TestBangOperator
-CROSS JOIN generate_series(1,array_length(TestBangOperator.T,1)) AS N
+CROSS JOIN generate_series(1,array_length(TestBangOperator.T,1)) AS N;
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -93,7 +93,7 @@ SELECT New_Test(
         ['if (1 < 2) { 10 } else { 20 }', 'integer',  '10']
     ] AS T
 ) AS TestIfElseExpressions
-CROSS JOIN generate_series(1,array_length(TestIfElseExpressions.T,1)) AS N
+CROSS JOIN generate_series(1,array_length(TestIfElseExpressions.T,1)) AS N;
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -128,7 +128,7 @@ SELECT New_Test(
           f(10);',                     '20']
     ] AS T
 ) AS TestReturnStatements
-CROSS JOIN generate_series(1,array_length(TestReturnStatements.T,1)) AS N
+CROSS JOIN generate_series(1,array_length(TestReturnStatements.T,1)) AS N;
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -189,7 +189,7 @@ SELECT New_Test(
         ]
     ] AS T
 ) AS TestErrorHandling
-CROSS JOIN generate_series(1,array_length(TestErrorHandling.T,1)) AS N
+CROSS JOIN generate_series(1,array_length(TestErrorHandling.T,1)) AS N;
 
 SELECT New_Test(
     _Language      := 'monkey',
@@ -212,7 +212,29 @@ SELECT New_Test(
         ['let a = 5; let b = a; let c = a + b + 5; c;', '15']
     ] AS T
 ) AS TestLetStatements
-CROSS JOIN generate_series(1,array_length(TestLetStatements.T,1)) AS N
+CROSS JOIN generate_series(1,array_length(TestLetStatements.T,1)) AS N;
+
+SELECT New_Test(
+    _Language       := 'monkey',
+    _Program        := 'Test-Driving Arrays',
+    _SourceCode     := $$
+        let map = fn(arr, f) {
+            let iter = fn(arr, accumulated) {
+                if (len(arr) == 0) {
+                    accumulated
+                } else {
+                    iter(rest(arr), push(accumulated, f(first(arr))));
+                }
+            };
+            iter(arr, []);
+        };
+        let a = [1, 2, 3, 4];
+        let double = fn(x) { x * 2 };
+        map(a, double)
+    $$,
+    _ExpectedTypes  := ARRAY['integer','integer','integer','integer']::regtype[],
+    _ExpectedValues := ARRAY['2','4','6','8']::text[]
+);
 
 /*
 

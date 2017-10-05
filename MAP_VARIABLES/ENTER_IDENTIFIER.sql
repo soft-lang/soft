@@ -41,7 +41,11 @@ _VariableNodeID := Find_Node(
     _NodeID  := _NodeID,
     _Descend := TRUE,
     _Strict  := FALSE,
-    _Paths   := ARRAY['<- LET_STATEMENT|STORE_ARGS <- 1VARIABLE', _Name]
+    _Paths   := ARRAY[
+        '<- LET_STATEMENT 1<- VARIABLE[1]',
+        '<- STORE_ARGS     <- VARIABLE[1]'
+    ],
+    _Names   := ARRAY[_Name]
 );
 IF _VariableNodeID IS NULL THEN
     _VariableNodeID := Find_Node(
@@ -49,7 +53,8 @@ IF _VariableNodeID IS NULL THEN
             _NodeID  := _NodeID,
             _Descend := TRUE,
             _Strict  := FALSE,
-            _Paths   := ARRAY['-> FUNCTION_DECLARATION -> LET_STATEMENT <- VARIABLE <- IDENTIFIER', _Name]
+            _Paths   := ARRAY['-> FUNCTION_DECLARATION -> LET_STATEMENT <- VARIABLE <- IDENTIFIER[1]'],
+            _Names   := ARRAY[_Name]
         ),
         _Descend := FALSE,
         _Strict  := FALSE,

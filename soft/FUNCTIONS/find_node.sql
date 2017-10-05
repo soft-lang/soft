@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Paths text[]) RETURNS integer
+CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Paths text[], _Names text[] DEFAULT NULL) RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -12,13 +12,14 @@ _WHEREs          text;
 _Tokens          text[];
 _Direction       text;
 _NodeType        text;
-_i               integer;
-_j               integer;
-_k               integer;
+_PathIndex       integer;
+_NodeIndex       integer;
 _FoundNodeID     integer;
 _Count           bigint;
 _WalkableNodeIDs integer[];
 _EdgeNumber      integer;
+_EdgeNode        text;
+_NameIndex       integer;
 BEGIN
 _InputNodeID := _NodeID;
 IF _InputNodeID IS NULL THEN
@@ -27,7 +28,7 @@ END IF;
 PERFORM Log(
     _NodeID   := _InputNodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Find node %s %s %s %s', _InputNodeID, _Descend, _Strict, _Paths)
+    _Message  := format('Find node %s %s %s %s %s', _InputNodeID, _Descend, _Strict, _Paths, _Names)
 );
 SELECT NodeTypes.LanguageID
 INTO STRICT     _LanguageID
@@ -36,107 +37,107 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.NodeID = _NodeID;
 _WalkableNodeIDs := ARRAY[]::integer[];
 LOOP
-    _JOINs := '';
-    _WHEREs := '';
-    _i := 0;
-    _k := 0;
+    _PathIndex := 0;
     LOOP
-        _i := _i + 1;
-        IF _Paths[_i] IS NULL THEN
+        _PathIndex := _PathIndex + 1;
+        IF _Paths[_PathIndex] IS NULL THEN
             EXIT;
         END IF;
-        _Path := _Paths[_i];
-        IF _Paths[_i+1] IS NOT NULL THEN
-            _i    := _i + 1;
-            _Name := _Paths[_i];
-        ELSE
-            _Name := NULL;
-        END IF;
+        _Path := _Paths[_PathIndex];
         _Tokens := regexp_split_to_array(_Path, '\s+');
-        _j := 0;
+        _NodeIndex := 0;
+        _JOINs := '';
+        _WHEREs := '';
         LOOP
-            IF _j*2 >= array_length(_Tokens,1) THEN
+            IF _NodeIndex*2 >= array_length(_Tokens,1) THEN
                 EXIT;
             END IF;
-            _Direction := _Tokens[_j*2+1];
-            _NodeType  := _Tokens[_j*2+2];
-            IF _Direction = '<-' THEN
+            _Direction := _Tokens[_NodeIndex*2+1];
+            _NodeType  := _Tokens[_NodeIndex*2+2];
+            _Name      := NULL;
+            IF _NodeType ~ '\[\d+\]$' THEN
+                _NameIndex := substring(_NodeType from '\[(\d+)\]$')::integer;
+                _NodeType  := regexp_replace(_NodeType, '\[\d+\]$', '');
+                _Name := _Names[_NameIndex];
+                IF _Name IS NULL THEN
+                    RAISE EXCEPTION 'Names[%] not defined, Names: %', _NameIndex, _Names;
+                END IF;
+            END IF;
+            -- <-1 Edges.ParentNodeID = Edge%1$s.ParentNodeID
+            -- 1-> Edges.ParentNodeID = Edge%1$s.ParentNodeID
+            -- 1<- Edges.ChildNodeID  = Edge%1$s.ChildNodeID
+            -- ->1 Edges.ChildNodeID  = Edge%1$s.ChildNodeID
+            IF _Direction ~ '^(<-\d*|\d*<-)$' THEN
                 _JOINs := _JOINs || format('
                     INNER JOIN Edges AS Edge%1$s ON Edge%1$s.ChildNodeID = Node%1$s.NodeID
                     INNER JOIN Nodes AS Node%2$s ON Node%2$s.NodeID      = Edge%1$s.ParentNodeID
-                ', _k, _k+1);
-            ELSIF _Direction = '->' THEN
+                ', _NodeIndex, _NodeIndex+1);
+            ELSIF _Direction ~ '^(\d*->|\d*->)$' THEN
                 _JOINs := _JOINs || format('
                     INNER JOIN Edges AS Edge%1$s ON Edge%1$s.ParentNodeID = Node%1$s.NodeID
                     INNER JOIN Nodes AS Node%2$s ON Node%2$s.NodeID       = Edge%1$s.ChildNodeID
-                ', _k, _k+1);
+                ', _NodeIndex, _NodeIndex+1);
             ELSE
                 RAISE EXCEPTION 'Invalid direction %', _Direction;
             END IF;
-            IF _NodeType ~ '^\d+' THEN
-                _EdgeNumber := substring(_NodeType from '^(\d+)')::integer;
-                _NodeType   := regexp_replace(_NodeType, '^\d+', '');
+            IF _Direction ~ '^\d+' THEN
+                _EdgeNumber := substring(_Direction from '^(\d+)')::integer;
+                IF _Direction ~ '^(<-\d+|\d+->)$' THEN
+                    _EdgeNode := 'ParentNodeID';
+                ELSIF _Direction ~ '^(\d+<-|->\d+)$' THEN
+                    _EdgeNode := 'ChildNodeID';
+                ELSE
+                    RAISE EXCEPTION 'Invalid direction %', _Direction;
+                END IF;
                 _WHEREs     := _WHEREs || format($SQL$
                     AND Edge%1$s.EdgeID = (
                         SELECT EdgeID FROM (
-                            SELECT EdgeID, ROW_NUMBER() OVER (ORDER BY EdgeID) FROM Edges WHERE ChildNodeID = Node%1$s.NodeID AND DeathPhaseID IS NULL
+                            SELECT EdgeID, ROW_NUMBER() OVER (ORDER BY EdgeID) FROM Edges WHERE %2$s = Edge%1$s.%2$s AND DeathPhaseID IS NULL
                         ) AS X
-                        WHERE X.ROW_NUMBER = %2$s
+                        WHERE X.ROW_NUMBER = %3$s
                     )
-                $SQL$, _k, _EdgeNumber);
+                $SQL$, _NodeIndex, _EdgeNode, _EdgeNumber);
             END IF;
-            IF _NodeType LIKE '%|%' THEN
-                _WHEREs := _WHEREs || format($SQL$
-                    AND Edge%1$s.DeathPhaseID IS NULL
-                    AND Node%2$s.DeathPhaseID IS NULL
-                    AND Node%2$s.NodeTypeID IN (SELECT NodeTypeID FROM NodeTypes WHERE LanguageID = %3$s AND NodeType IN (%4$s))
-                $SQL$, _k, _k+1, _LanguageID, (
-                    SELECT string_agg(quote_literal,',') FROM (SELECT quote_literal(unnest(regexp_split_to_array(_NodeType,'\|')))) AS X
-                ));
-            ELSE
-                _WHEREs := _WHEREs || format($SQL$
-                    AND Edge%1$s.DeathPhaseID IS NULL
-                    AND Node%2$s.DeathPhaseID IS NULL
-                    AND Node%2$s.NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE LanguageID = %3$s AND NodeType = %4$L)
-                $SQL$, _k, _k+1, _LanguageID, _NodeType);
-            END IF;
-            IF _EdgeNumber IS NOT NULL THEN
-            END IF;
-            _j := _j + 1;
-            _k := _k + 1;
+            _WHEREs := _WHEREs || format($SQL$
+                AND Edge%1$s.DeathPhaseID IS NULL
+                AND Node%2$s.DeathPhaseID IS NULL
+                AND Node%2$s.NodeTypeID = (SELECT NodeTypeID FROM NodeTypes WHERE LanguageID = %3$s AND NodeType = %4$L)
+            $SQL$, _NodeIndex, _NodeIndex+1, _LanguageID, _NodeType);
+            _NodeIndex := _NodeIndex + 1;
         END LOOP;
         IF _Name IS NOT NULL THEN
             _WHEREs := _WHEREs || format($SQL$
                 AND Node%1$s.PrimitiveType  = 'name'::regtype
                 AND Node%1$s.PrimitiveValue = %2$L
-            $SQL$, _k, _Name);
+            $SQL$, _NodeIndex, _Name);
+        END IF;
+        _SQL := format($SQL$
+            SELECT Node%1$s.NodeID, COUNT(*) OVER ()
+            FROM Nodes AS Node0
+            %2$s
+            WHERE Node0.NodeID       = %3$s
+            AND   Node0.DeathPhaseID IS NULL
+            %4$s
+        $SQL$,
+            _NodeIndex,
+            _JOINs,
+            _NodeID,
+            _WHEREs
+        );
+        EXECUTE _SQL INTO _FoundNodeID, _Count;
+        IF _Count > 1 THEN
+            RAISE too_many_rows USING MESSAGE = format('query returned more than one row: NodeID %s Paths "%s" Count %s SQL "%s"', _NodeID, array_to_string(_Paths,','), _Count, _SQL);
+        END IF;
+        IF _FoundNodeID IS NOT NULL THEN
+            PERFORM Log(
+                _NodeID   := _InputNodeID,
+                _Severity := 'DEBUG3',
+                _Message  := format('Found node %s', Colorize(Node(_FoundNodeID)))
+            );
+            RETURN _FoundNodeID;
         END IF;
     END LOOP;
-    _SQL := format($SQL$
-        SELECT Node%1$s.NodeID, COUNT(*) OVER ()
-        FROM Nodes AS Node0
-        %2$s
-        WHERE Node0.NodeID       = %3$s
-        AND   Node0.DeathPhaseID IS NULL
-        %4$s
-    $SQL$,
-        _k,
-        _JOINs,
-        _NodeID,
-        _WHEREs
-    );
-    EXECUTE _SQL INTO _FoundNodeID, _Count;
-    IF _Count > 1 THEN
-        RAISE too_many_rows USING MESSAGE = format('query returned more than one row: NodeID %s Paths "%s" Count %s SQL "%s"', _NodeID, array_to_string(_Paths,','), _Count, _SQL);
-    END IF;
-    IF _FoundNodeID IS NOT NULL THEN
-        PERFORM Log(
-            _NodeID   := _InputNodeID,
-            _Severity := 'DEBUG3',
-            _Message  := format('Found node %s', Colorize(Node(_FoundNodeID)))
-        );
-        RETURN _FoundNodeID;
-    ELSIF _Descend THEN
+    IF _Descend THEN
         SELECT ChildNodeID INTO _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND (ChildNodeID = ANY(_WalkableNodeIDs)) IS NOT TRUE ORDER BY EdgeID LIMIT 1;
         IF NOT FOUND THEN
             EXIT;
