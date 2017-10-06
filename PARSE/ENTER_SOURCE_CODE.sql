@@ -40,6 +40,7 @@ _NodeSeverity               severity;
 _ProgramNodePattern         text;
 _ProgramNodeID              integer;
 _EdgeID                     integer;
+_Matches                    integer;
 BEGIN
 
 SELECT
@@ -103,7 +104,8 @@ LOOP
         NodeTypes.EpilogueNodeTypeID,
         NodeTypes.GrowFromNodeTypeID,
         GrowFromNodeType.NodeType,
-        NodeTypes.NodeSeverity
+        NodeTypes.NodeSeverity,
+        COUNT(*) OVER ()
     INTO
         _ChildNodeTypeID,
         _ChildNodeType,
@@ -114,13 +116,14 @@ LOOP
         _EpilogueNodeTypeID,
         _GrowFromNodeTypeID,
         _GrowFromNodeType,
-        _NodeSeverity
+        _NodeSeverity,
+        _Matches
     FROM NodeTypes
     LEFT JOIN NodeTypes AS GrowFromNodeType ON GrowFromNodeType.NodeTypeID = NodeTypes.GrowFromNodeTypeID
     WHERE NodeTypes.LanguageID = _LanguageID
     AND _Nodes ~ Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)
     AND NodeTypes.GrowIntoNodeTypeID IS NOT DISTINCT FROM _GrowIntoNodeTypeID
-    ORDER BY NodeTypes.NodeTypeID
+    ORDER BY Precedence(NodeTypes.NodeTypeID), strpos(_Nodes, substring(_Nodes from Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)))
     LIMIT 1;
     IF NOT FOUND THEN
         IF _Nodes ~ ('^'||_GrowIntoNodeType||'\d+$') THEN

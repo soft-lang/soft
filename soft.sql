@@ -73,6 +73,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/language.sql
 \ir soft/FUNCTIONS/programid.sql
 \ir soft/FUNCTIONS/new_built_in_function.sql
+\ir soft/FUNCTIONS/precedence.sql
 
 \ir soft/VIEWS/export_node_types.sql
 

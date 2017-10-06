@@ -11,7 +11,7 @@ _Epilogue       text     DEFAULT NULL,
 _GrowFrom       text     DEFAULT NULL,
 _GrowInto       text     DEFAULT NULL,
 _NodeSeverity   severity DEFAULT NULL,
-_Precedence     integer  DEFAULT NULL
+_Precedence     text     DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql

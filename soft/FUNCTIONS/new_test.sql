@@ -42,7 +42,7 @@ _NodeID := New_Node(
 
 PERFORM Log(
     _NodeID   := _NodeID,
-    _Severity := 'NOTICE',
+    _Severity := 'DEBUG1',
     _Message  := format('New test %L for language %L', Colorize(_Program,'CYAN'), Colorize(_Language,'MAGENTA'))
 );
 
@@ -79,7 +79,7 @@ END IF;
 
 PERFORM Log(
     _NodeID   := _NodeID,
-    _Severity := 'NOTICE',
+    _Severity := 'DEBUG1',
     _Message  := format('Result %L %L, Expected %L %L, Error %L',
         COALESCE(_ResultType::text,'['||array_to_string(_ResultTypes,',')||']'),
         COALESCE(_ResultValue,'['||array_to_string(_ResultValues,',')||']'),

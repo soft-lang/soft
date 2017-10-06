@@ -37,7 +37,7 @@ SELECT COUNT(*) FROM (
 		_GrowFrom       := NULLIF(GrowFrom,''),
 		_GrowInto       := NULLIF(GrowInto,''),
 		_NodeSeverity   := NULLIF(NodeSeverity,'')::severity,
-		_Precedence     := NULLIF(Precedence,'')::integer
+		_Precedence     := NULLIF(Precedence,'')
 	) FROM (SELECT * FROM ImportNodeTypes ORDER BY RowID) AS X
 ) AS Y;
 

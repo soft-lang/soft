@@ -8,22 +8,6 @@ SELECT New_Test(
     _ExpectedValue := TestEvalIntegerExpression.T[N][2]
 ) FROM (
     SELECT ARRAY[
-        ['1 - 2 + 3', '2'],
-        ['1 + 2 - 3', '0']
-    ] AS T
-) AS TestEvalIntegerExpression
-CROSS JOIN generate_series(1,array_length(TestEvalIntegerExpression.T,1)) AS N;
-
-/*
-
-SELECT New_Test(
-    _Language      := 'monkey',
-    _Program       := 'evaluator_test.go:TestEvalIntegerExpression:'||N,
-    _SourceCode    := TestEvalIntegerExpression.T[N][1],
-    _ExpectedType  := 'integer',
-    _ExpectedValue := TestEvalIntegerExpression.T[N][2]
-) FROM (
-    SELECT ARRAY[
         ['5',                                '5'],
         ['10',                              '10'],
         ['-5',                              '-5'],
@@ -526,5 +510,3 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '120'
 );
-
-*/
