@@ -7,9 +7,10 @@ _ProgramID   integer;
 _ReturnValue text;
 BEGIN
 
-INSERT INTO Programs (Program, PhaseID)
+INSERT INTO Programs (Program, LanguageID, PhaseID)
 SELECT
     _Program,
+    Languages.LanguageID,
     Phases.PhaseID
 FROM Languages
 INNER JOIN Phases ON Phases.LanguageID = Languages.LanguageID

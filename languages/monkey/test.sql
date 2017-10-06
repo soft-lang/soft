@@ -58,8 +58,6 @@ SELECT New_Test(
 ) AS TestEvalBooleanExpression
 CROSS JOIN generate_series(1,array_length(TestEvalBooleanExpression.T,1)) AS N;
 
-/*
-
 SELECT New_Test(
     _Language      := 'monkey',
     _Program       := 'evaluator_test.go:TestBangOperator:'||N,
@@ -512,4 +510,3 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '120'
 );
-*/

@@ -35,7 +35,7 @@ INTO STRICT
 FROM (
     SELECT array_agg(ParentNodeID ORDER BY EdgeID) AS ParentNodes
     FROM Edges
-    WHERE ChildNodeID = Dereference(_NodeID)
+    WHERE ChildNodeID = _NodeID
     AND DeathPhaseID IS NULL
     HAVING array_length(array_agg(ParentNodeID ORDER BY EdgeID),1) BETWEEN 2 AND 3
 ) AS E

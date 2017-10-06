@@ -1,22 +1,47 @@
 CREATE OR REPLACE FUNCTION Run(
-OUT OK     boolean,
-OUT Error  text,
-_ProgramID integer
+OUT OK         boolean,
+OUT Error      text,
+_Language      text,
+_Program       text,
+_RunUntilPhase name DEFAULT NULL
 )
 RETURNS record
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Step integer;
+_ProgramID     integer;
+_ProgramNodeID integer;
+_OK            boolean;
 BEGIN
-_Step := 0;
 OK := TRUE;
+
+SELECT Programs.ProgramID
+INTO STRICT    _ProgramID
+FROM Programs
+INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
+WHERE Languages.Language = _Language
+AND   Programs.Program   = _Program;
+
+_ProgramNodeID := Get_Program_Node(_ProgramID);
+
+UPDATE Programs
+SET Direction = 'ENTER'
+WHERE ProgramID = _ProgramID
+RETURNING TRUE INTO STRICT _OK;
+
+PERFORM Enter_Node(_ProgramNodeID);
+
 LOOP
-    -- _Step := _Step + 1;
-    -- RAISE NOTICE 'STEP %', _Step;
-    -- IF (SELECT Phases.Phase FROM Programs JOIN Phases USING (PhaseID)) = 'EVAL' THEN
-    --     EXIT;
-    -- END IF;
+    IF _RunUntilPhase IS NOT NULL
+    AND EXISTS (
+        SELECT 1
+        FROM Programs
+        INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
+        WHERE Programs.ProgramID = _ProgramID
+        AND   Phases.Phase       = _RunUntilPhase
+    ) THEN
+        EXIT;
+    END IF;
     BEGIN
         IF NOT Walk_Tree(_ProgramID) THEN
             EXIT;

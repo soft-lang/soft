@@ -53,6 +53,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/leave_node.sql
 \ir soft/FUNCTIONS/run.sql
 \ir soft/FUNCTIONS/run_tests.sql
+\ir soft/FUNCTIONS/run_test.sql
 \ir soft/FUNCTIONS/find_node.sql
 \ir soft/FUNCTIONS/copy_node.sql
 \ir soft/FUNCTIONS/clone_node.sql
@@ -104,6 +105,7 @@ CREATE SCHEMA "MAP_VARIABLES";
 
 CREATE SCHEMA "EVAL";
 \ir EVAL/ENTER_STORE_ARGS.sql
+\ir EVAL/ENTER_CALL.sql
 \ir EVAL/ENTER_RET.sql
 \ir EVAL/ENTER_PROGRAM.sql
 \ir EVAL/ADD.sql

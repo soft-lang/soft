@@ -123,9 +123,13 @@ RETURN Next_Node(_ProgramID);
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION Walk_Tree(_Program text)
+CREATE OR REPLACE FUNCTION Walk_Tree(_Language text, _Program text)
 RETURNS boolean
 LANGUAGE sql
 AS $$
-SELECT Walk_Tree(ProgramID) FROM Programs WHERE Program = $1
+SELECT Walk_Tree(Programs.ProgramID)
+FROM Programs
+INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
+WHERE Languages.Language = $1
+AND   Programs.Program   = $2
 $$;

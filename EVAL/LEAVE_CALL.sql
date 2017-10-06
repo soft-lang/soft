@@ -61,7 +61,7 @@ END IF;
 SELECT
     RET.NodeID,
     RET.EdgeID,
-    Nodes.Walkable IS NOT NULL
+    Nodes.Walkable IS TRUE
 INTO
     _RetNodeID,
     _RetEdgeID,
