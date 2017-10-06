@@ -20,6 +20,10 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 3 THEN
     RAISE EXCEPTION 'push() takes exactly two arguments';
 END IF;
 
+IF Node_Type(_ParentNodes[2]) <> 'ARRAY' THEN
+	RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodes[2]);
+END IF;
+
 _ClonedNodeID := Clone_Node(_ParentNodes[2]);
 _PushNodeID   := Clone_Node(_ParentNodes[3]);
 

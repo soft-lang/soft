@@ -52,15 +52,7 @@ WHERE Edges.ChildNodeID = _NodeID
 AND Edges.DeathPhaseID IS NULL
 AND Nodes.DeathPhaseID IS NULL;
 
-SELECT
-    X.InputArgTypes,
-    X.ReturnType,
-    COUNT(*) OVER ()
-INTO
-    _InputArgTypes,
-    _ReturnType,
-    _Count
-FROM (
+WITH X AS (
     SELECT
         (
             SELECT array_agg(pg_type.typname::regtype ORDER BY TypeOIDs.Ordinality)
@@ -74,14 +66,25 @@ FROM (
     INNER JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
     WHERE pg_namespace.nspname = _Phase
     AND   pg_proc.proname      = _FunctionName
-) AS X
-WHERE Matching_Input_Types(X.InputArgTypes, _ParentValueTypes);
+)
+SELECT
+    X.InputArgTypes,
+    X.ReturnType,
+    COUNT(*) OVER ()
+INTO
+    _InputArgTypes,
+    _ReturnType,
+    _Count
+FROM X
+WHERE Matching_Input_Types(X.InputArgTypes, _ParentValueTypes)
+AND NOT EXISTS (SELECT 1 FROM X AS X2 WHERE X2.InputArgTypes = _ParentValueTypes)
+OR X.InputArgTypes = _ParentValueTypes;
 IF NOT FOUND THEN
     RAISE EXCEPTION 'Type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes;
 END IF;
 
 IF _Count IS DISTINCT FROM 1 THEN
-    RAISE EXCEPTION 'Multiple matches for: %.%(%)', _Phase, _FunctionName, _ParentValueTypes;
+    RAISE EXCEPTION 'Multiple matches for: %.%(%), Count %', _Phase, _FunctionName, _ParentValueTypes, _Count;
 END IF;
 
 _SQL := format('SELECT %I.%I(%s)::text', _Phase, _FunctionName, _ParentArgValues);

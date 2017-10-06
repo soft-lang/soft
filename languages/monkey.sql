@@ -7,7 +7,9 @@ SELECT New_Language(
     _StatementReturnValues := TRUE,
     _VariableBinding       := 'CAPTURE_BY_VALUE',
     _ZeroBasedNumbering    := TRUE,
-   	_TruthyNonBooleans     := TRUE
+   	_TruthyNonBooleans     := TRUE,
+   	_ArrayOutOfBoundsError := FALSE,
+   	_MissingHashKeyError   := FALSE
 );
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
@@ -22,3 +24,4 @@ SELECT New_Built_In_Function(_Language := 'monkey', _Identifier := 'first', _Imp
 SELECT New_Built_In_Function(_Language := 'monkey', _Identifier := 'rest',  _ImplementationFunction := 'REST');
 SELECT New_Built_In_Function(_Language := 'monkey', _Identifier := 'push',  _ImplementationFunction := 'PUSH');
 SELECT New_Built_In_Function(_Language := 'monkey', _Identifier := 'last',  _ImplementationFunction := 'LAST');
+SELECT New_Built_In_Function(_Language := 'monkey', _Identifier := 'puts',  _ImplementationFunction := 'PUTS');
