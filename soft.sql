@@ -52,6 +52,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/enter_node.sql
 \ir soft/FUNCTIONS/leave_node.sql
 \ir soft/FUNCTIONS/run.sql
+\ir soft/FUNCTIONS/run_tests.sql
 \ir soft/FUNCTIONS/find_node.sql
 \ir soft/FUNCTIONS/copy_node.sql
 \ir soft/FUNCTIONS/clone_node.sql

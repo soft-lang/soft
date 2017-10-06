@@ -13,17 +13,17 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID     integer;
-_ProgramNodeID integer;
-_TestID        integer;
-_NodeID        integer;
-_ResultNodeID  integer;
-_ResultType    regtype;
-_ResultValue   text;
-_ResultTypes   regtype[];
-_ResultValues  text[];
-_OK            boolean;
-_Error         text;
+_ProgramID        integer;
+_ProgramNodeID    integer;
+_TestID           integer;
+_SourceCodeNodeID integer;
+_ResultNodeID     integer;
+_ResultType       regtype;
+_ResultValue      text;
+_ResultTypes      regtype[];
+_ResultValues     text[];
+_OK               boolean;
+_Error            text;
 BEGIN
 
 _ProgramID := New_Program(_Language, _Program);
@@ -33,88 +33,24 @@ VALUES            (_ProgramID, _ExpectedType, _ExpectedValue, _ExpectedTypes, _E
 RETURNING    TestID
 INTO STRICT _TestID;
 
-_NodeID := New_Node(
-    _Program       := _Program,
-    _NodeType      := 'SOURCE_CODE',
-    _PrimitiveType  := 'text'::regtype,
-    _PrimitiveValue := _SourceCode
-);
+SELECT
+    New_Node(
+        _ProgramID      := _ProgramID,
+        _NodeTypeID     := NodeTypes.NodeTypeID,
+        _PrimitiveType  := 'text'::regtype,
+        _PrimitiveValue := _SourceCode
+    )
+INTO STRICT
+    _SourceCodeNodeID
+FROM NodeTypes
+INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
+WHERE Languages.Language = _Language
+AND   NodeTypes.NodeType = 'SOURCE_CODE';
 
 PERFORM Log(
-    _NodeID   := _NodeID,
+    _NodeID   := _SourceCodeNodeID,
     _Severity := 'DEBUG1',
     _Message  := format('New test %L for language %L', Colorize(_Program,'CYAN'), Colorize(_Language,'MAGENTA'))
-);
-
-_ProgramNodeID := Get_Program_Node(_ProgramID);
-
-UPDATE Programs SET Direction = 'ENTER' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-
-PERFORM Enter_Node(_ProgramNodeID);
-
-SELECT       OK,  Error
-INTO STRICT _OK, _Error
-FROM Run(_ProgramID := _ProgramID);
-
-_ResultNodeID := Dereference((SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID));
-
-SELECT     PrimitiveType, PrimitiveValue
-INTO STRICT  _ResultType,   _ResultValue
-FROM Nodes
-WHERE NodeID = _ResultNodeID;
-
-IF _ResultType IS NULL THEN
-    SELECT
-        array_agg(Primitive_Type(Nodes.NodeID)  ORDER BY Edges.EdgeID),
-        array_agg(Primitive_Value(Nodes.NodeID) ORDER BY Edges.EdgeID)
-    INTO STRICT
-        _ResultTypes,
-        _ResultValues
-    FROM Edges
-    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
-    WHERE Edges.ChildNodeID = _ResultNodeID
-    AND Edges.DeathPhaseID IS NULL
-    AND Nodes.DeathPhaseID IS NULL;
-END IF;
-
-PERFORM Log(
-    _NodeID   := _NodeID,
-    _Severity := 'DEBUG1',
-    _Message  := format('Result %L %L, Expected %L %L, Error %L',
-        COALESCE(_ResultType::text,'['||array_to_string(_ResultTypes,',')||']'),
-        COALESCE(_ResultValue,'['||array_to_string(_ResultValues,',')||']'),
-        COALESCE(_ExpectedType::text,'['||array_to_string(_ExpectedTypes,',')||']'),
-        COALESCE(_ExpectedValue,'['||array_to_string(_ExpectedValues,',')||']'),
-        _Error
-    )
-);
-
-PERFORM Log(
-    _NodeID   := _NodeID,
-    _Severity := 'NOTICE',
-    _Message  := format('Test %L %s for language %L',
-        Colorize(_Program),
-        CASE WHEN _OK AND _ExpectedType   = _ResultType  AND _ExpectedValue  = _ResultValue
-        OR        _OK AND _ExpectedTypes  = _ResultTypes AND _ExpectedValues = _ResultValues
-        OR    NOT _OK AND _ExpectedError = _Error
-        OR        _OK AND EXISTS (
-            SELECT 1
-            FROM Log
-            INNER JOIN Phases    ON Phases.PhaseID       = Log.PhaseID
-            INNER JOIN Nodes     ON Nodes.NodeID         = Log.NodeID
-            INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-            WHERE Log.ProgramID = _ProgramID
-            AND format('%s %s %s',
-                Phases.Phase,
-                Log.Severity::text,
-                NodeTypes.NodeType
-            ) = _ExpectedLog
-        )
-        THEN Colorize('OK', 'GREEN')
-        ELSE Colorize('FAILED', 'RED')
-        END,
-        Colorize(_Language)
-    )
 );
 
 RETURN _TestID;

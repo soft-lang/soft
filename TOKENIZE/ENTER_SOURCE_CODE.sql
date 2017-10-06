@@ -73,7 +73,7 @@ LOOP
         INTO   _NodeTypeID, _NodeType, _PrimitiveType, _LiteralPattern, _NodeSeverity
         FROM NodeTypes
         WHERE LanguageID = _LanguageID
-        AND  _Remainder  ~  LiteralPattern
+        AND  _Remainder  ~  ('^('||LiteralPattern||')')
         ORDER BY NodeTypeID
         LIMIT 1;
         IF NOT FOUND THEN
@@ -81,22 +81,24 @@ LOOP
             _AtChar := _AtChar + 1;
             CONTINUE;
         END IF;
-        _Matches       := regexp_matches(_Remainder, _LiteralPattern);
-        _Literal       := _Matches[2];
-        _LiteralLength := length(_Matches[1]);
+        _LiteralPattern := '^('||_LiteralPattern||')';
+        _Matches        := regexp_matches(_Remainder, _LiteralPattern);
+        _Literal        := _Matches[2];
+        _LiteralLength  := length(_Matches[1]);
 
-        IF EXISTS (SELECT 1 FROM NodeTypes WHERE LanguageID = _LanguageID AND GrowFromNodeTypeID = _NodeTypeID AND _Literal ~ LiteralPattern) THEN
+        IF EXISTS (SELECT 1 FROM NodeTypes WHERE LanguageID = _LanguageID AND GrowFromNodeTypeID = _NodeTypeID AND _Literal ~ ('^('||LiteralPattern||')')) THEN
             SELECT       NodeTypeID,  NodeType,  PrimitiveType,  LiteralPattern,  NodeSeverity
             INTO STRICT _NodeTypeID, _NodeType, _PrimitiveType, _LiteralPattern, _NodeSeverity
             FROM NodeTypes
             WHERE LanguageID         = _LanguageID
             AND   GrowFromNodeTypeID = _NodeTypeID
-            AND  _Literal            ~  LiteralPattern
+            AND  _Literal            ~  ('^('||LiteralPattern||')')
             ORDER BY NodeTypeID
             LIMIT 1;
-            _Matches       := regexp_matches(_Literal, _LiteralPattern);
-            _Literal       := _Matches[2];
-            _LiteralLength := length(_Matches[1]);
+            _LiteralPattern := '^('||_LiteralPattern||')';
+            _Matches        := regexp_matches(_Literal, _LiteralPattern);
+            _Literal        := _Matches[2];
+            _LiteralLength  := length(_Matches[1]);
         END IF;
     END IF;
 

@@ -123,7 +123,11 @@ LOOP
     WHERE NodeTypes.LanguageID = _LanguageID
     AND _Nodes ~ Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)
     AND NodeTypes.GrowIntoNodeTypeID IS NOT DISTINCT FROM _GrowIntoNodeTypeID
-    ORDER BY Precedence(NodeTypes.NodeTypeID), strpos(_Nodes, substring(_Nodes from Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)))
+    ORDER BY
+        Precedence(NodeTypes.NodeTypeID),
+        -- If multiple node pattern with the same precedence matches,
+        -- then select the node pattern that matches first:
+        strpos(_Nodes, substring(_Nodes from Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)))
     LIMIT 1;
     IF NOT FOUND THEN
         IF _Nodes ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
