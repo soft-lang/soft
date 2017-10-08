@@ -7,9 +7,9 @@ SELECT New_Language(
     _StatementReturnValues := TRUE,
     _VariableBinding       := 'CAPTURE_BY_VALUE',
     _ZeroBasedNumbering    := TRUE,
-       _TruthyNonBooleans     := TRUE,
-       _ArrayOutOfBoundsError := FALSE,
-       _MissingHashKeyError   := FALSE
+    _TruthyNonBooleans     := TRUE,
+    _ArrayOutOfBoundsError := FALSE,
+    _MissingHashKeyError   := FALSE
 );
 
 SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
