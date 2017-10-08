@@ -15,7 +15,7 @@ IF _NodePattern ~ '\(\?\#[A-Z_]+\)' THEN
             RAISE EXCEPTION 'No NodeTypes with NodeGroup % exists for LanguagID %', _Matches[2], _LanguageID;
         END IF;
         _NodePattern := replace(_NodePattern, _Matches[1], (
-            SELECT '(?:'||string_agg(NodeType||'\d+','|' ORDER BY NodeType)||')\d+' FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeGroup = _Matches[2]
+            SELECT '(?:'||string_agg(NodeType,'|' ORDER BY NodeType)||')' FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeGroup = _Matches[2]
         ));
     END LOOP;
 END IF;
