@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION "EVAL"."ENTER_RET"(_NodeID integer, _ReturnValueNodeID integer DEFAULT NULL) RETURNS void
+CREATE OR REPLACE FUNCTION "EVAL"."ENTER_RET"(_NodeID integer, _ReturnValueNodeID integer DEFAULT NULL)
+RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -25,7 +26,12 @@ IF (Language(_NodeID)).ImplicitReturnValues AND _ReturnValueNodeID IS NULL THEN
     LIMIT 1;
 END IF;
 
-_FunctionDeclarationNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> FUNCTION_DECLARATION');
+_FunctionDeclarationNodeID := Find_Node(
+    _NodeID  := _NodeID,
+    _Descend := FALSE,
+    _Strict  := FALSE,
+    _Path    := '-> FUNCTION_DECLARATION'
+);
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
     SELECT
         CALL.NodeID
@@ -50,7 +56,7 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
-    UPDATE Programs SET NodeID = _CallNodeID, Direction = 'LEAVE' WHERE ProgramID = ProgramID(_NodeID) RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Program_Node(_CallNodeID, 'LEAVE');
     IF _ReturnValueNodeID IS NOT NULL THEN
         PERFORM Set_Reference_Node(_ReferenceNodeID := _ReturnValueNodeID, _NodeID := _CallNodeID);
     END IF;

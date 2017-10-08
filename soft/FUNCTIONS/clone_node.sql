@@ -78,7 +78,6 @@ IF _ClonedRootNodeID IS NULL THEN
 END IF;
 
 PERFORM New_Edge(
-    _ProgramID    := ProgramID,
     _ParentNodeID := CASE
         WHEN ParentNodeID = _OriginRootNodeID
         THEN CASE WHEN _SelfRef THEN _ClonedRootNodeID ELSE _OriginRootNodeID END

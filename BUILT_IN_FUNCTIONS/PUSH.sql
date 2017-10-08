@@ -28,7 +28,6 @@ _ClonedNodeID := Clone_Node(_ParentNodes[2]);
 _PushNodeID   := Clone_Node(_ParentNodes[3]);
 
 PERFORM New_Edge(
-    _ProgramID    := ProgramID(_NodeID),
     _ParentNodeID := _PushNodeID,
     _ChildNodeID  := _ClonedNodeID
 );

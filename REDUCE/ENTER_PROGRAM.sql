@@ -3,20 +3,20 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID        integer;
-_LanguageID       integer;
-_LogSeverity      severity;
-_DidWork          boolean;
-_NOPNodeID        integer;
-_NodeTypeID       integer;
-_NodeType         text;
-_PrimitiveType     regtype;
-_ParentNodeID     integer;
-_ChildNodeID      integer;
-_ProgramNodeID    integer;
-_OK               boolean;
-_Killed           integer;
-_NodePattern      text;
+_ProgramID     integer;
+_LanguageID    integer;
+_LogSeverity   severity;
+_DidWork       boolean;
+_NOPNodeID     integer;
+_NodeTypeID    integer;
+_NodeType      text;
+_PrimitiveType regtype;
+_ParentNodeID  integer;
+_ChildNodeID   integer;
+_ProgramNodeID integer;
+_OK            boolean;
+_Killed        integer;
+_NodePattern   text;
 BEGIN
 
 SELECT
@@ -49,11 +49,11 @@ LOOP
     SELECT Nodes.NodeID, Nodes.NodeTypeID, NodeTypes.NodeType, NodeTypes.PrimitiveType, NodeTypes.NodePattern
     FROM Nodes
     INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-    WHERE Nodes.ProgramID = _ProgramID
-    AND Nodes.DeathPhaseID     IS NULL
+    WHERE Nodes.ProgramID       = _ProgramID
+    AND Nodes.DeathPhaseID      IS NULL
     AND Nodes.PrimitiveType     IS NULL
     AND NodeTypes.PrimitiveType IS NULL
-    AND NodeTypes.NodeSeverity IS NULL
+    AND NodeTypes.NodeSeverity  IS NULL
     AND NOT EXISTS (
         SELECT 1 FROM pg_proc
         INNER JOIN pg_namespace ON pg_namespace.oid  = pg_proc.pronamespace

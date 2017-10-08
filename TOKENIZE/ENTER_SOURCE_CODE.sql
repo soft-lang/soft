@@ -3,28 +3,28 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID            integer;
-_LanguageID           integer;
-_SourceCode           text;
-_PhaseID              integer;
-_NumChars             integer;
-_AtChar               integer;
-_Remainder            text;
-_NodeTypeID           integer;
-_NodeType             text;
-_PrimitiveType         regtype;
-_Literal              text;
-_LiteralLength        integer;
-_LiteralPattern       text;
-_Matches              text[];
-_IllegalCharacters    integer[];
-_TokenNodeID          integer;
-_OK                   boolean;
-_Tokens               integer;
-_LogSeverity          severity;
-_NodeSeverity         severity;
-_Wrapping             text[];
-_RecreatedSourceCode  text;
+_ProgramID           integer;
+_LanguageID          integer;
+_SourceCode          text;
+_PhaseID             integer;
+_NumChars            integer;
+_AtChar              integer;
+_Remainder           text;
+_NodeTypeID          integer;
+_NodeType            text;
+_PrimitiveType       regtype;
+_Literal             text;
+_LiteralLength       integer;
+_LiteralPattern      text;
+_Matches             text[];
+_IllegalCharacters   integer[];
+_TokenNodeID         integer;
+_OK                  boolean;
+_Tokens              integer;
+_LogSeverity         severity;
+_NodeSeverity        severity;
+_Wrapping            text[];
+_RecreatedSourceCode text;
 BEGIN
 
 SELECT
@@ -44,9 +44,9 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
-WHERE Nodes.NodeID = _NodeID
-AND Phases.Phase       = 'TOKENIZE'
-AND NodeTypes.NodeType = 'SOURCE_CODE'
+WHERE Nodes.NodeID      = _NodeID
+AND Phases.Phase        = 'TOKENIZE'
+AND NodeTypes.NodeType  = 'SOURCE_CODE'
 AND Nodes.PrimitiveType = 'text'::regtype;
 
 _NumChars := length(_SourceCode);
@@ -110,30 +110,34 @@ LOOP
     END IF;
 
     IF _Wrapping[1] <> '' THEN
-        PERFORM Kill_Node(_NodeID :=  New_Node(
-            _ProgramID            := _ProgramID,
-            _NodeTypeID           := _NodeTypeID,
-            _PrimitiveType         := _PrimitiveType,
-            _PrimitiveValue        := _Wrapping[1]
-        ));
+        PERFORM Kill_Node(
+            _NodeID :=  New_Node(
+                _ProgramID      := _ProgramID,
+                _NodeTypeID     := _NodeTypeID,
+                _PrimitiveType  := _PrimitiveType,
+                _PrimitiveValue := _Wrapping[1]
+            )
+        );
         _Tokens := _Tokens + 1;
     END IF;
 
     _TokenNodeID := New_Node(
-        _ProgramID            := _ProgramID,
-        _NodeTypeID           := _NodeTypeID,
-        _PrimitiveType         := _PrimitiveType,
-        _PrimitiveValue        := _Literal
+        _ProgramID      := _ProgramID,
+        _NodeTypeID     := _NodeTypeID,
+        _PrimitiveType  := _PrimitiveType,
+        _PrimitiveValue := _Literal
     );
     _Tokens := _Tokens + 1;
 
     IF _Wrapping[2] <> '' THEN
-        PERFORM Kill_Node(_NodeID :=  New_Node(
-            _ProgramID            := _ProgramID,
-            _NodeTypeID           := _NodeTypeID,
-            _PrimitiveType         := _PrimitiveType,
-            _PrimitiveValue        := _Wrapping[2]
-        ));
+        PERFORM Kill_Node(
+            _NodeID :=  New_Node(
+                _ProgramID      := _ProgramID,
+                _NodeTypeID     := _NodeTypeID,
+                _PrimitiveType  := _PrimitiveType,
+                _PrimitiveValue := _Wrapping[2]
+            )
+        );
         _Tokens := _Tokens + 1;
     END IF;
 
@@ -147,7 +151,6 @@ LOOP
     );
 
     PERFORM New_Edge(
-        _ProgramID    := _ProgramID,
         _ParentNodeID := _TokenNodeID,
         _ChildNodeID  := _NodeID
     );
@@ -183,7 +186,7 @@ PERFORM Log(
     _Severity := 'INFO',
     _Message  := format('OK, created %s tokens from %s characters', _Tokens, _NumChars)
 );
-RETURN TRUE;
 
+RETURN TRUE;
 END;
 $$;

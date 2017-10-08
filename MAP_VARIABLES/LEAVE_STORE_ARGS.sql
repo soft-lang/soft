@@ -1,4 +1,5 @@
-    CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_STORE_ARGS"(_NodeID integer) RETURNS boolean
+CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_STORE_ARGS"(_NodeID integer)
+RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -49,7 +50,6 @@ LOOP
     PERFORM Kill_Node(_IdentifierNodeID);
 
     PERFORM New_Edge(
-        _ProgramID    := _ProgramID,
         _ParentNodeID := _VariableNodeID,
         _ChildNodeID  := _AllocaNodeID
     );

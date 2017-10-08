@@ -21,7 +21,7 @@ WHERE Nodes.NodeID       = _NodeID
 AND   Programs.Direction = 'ENTER'
 FOR UPDATE OF Nodes, Programs;
 
-UPDATE Programs SET NodeID = _NodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+PERFORM Set_Program_Node(_NodeID);
 
 _Function := 'ENTER_' || _NodeType;
 

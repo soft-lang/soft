@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_LET_STATEMENT"(_NodeID integer) RETURNS boolean
+CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."LEAVE_LET_STATEMENT"(_NodeID integer)
+RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -50,7 +51,6 @@ IF Find_Node(_NodeID := _VariableNodeID, _Descend := FALSE, _Strict := FALSE, _P
 THEN
     _AllocaNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := TRUE, _Path := '<- ALLOCA');
     PERFORM New_Edge(
-        _ProgramID    := _ProgramID,
         _ParentNodeID := _VariableNodeID,
         _ChildNodeID  := _AllocaNodeID
     );

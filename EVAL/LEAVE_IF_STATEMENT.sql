@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_IF_STATEMENT"(_NodeID integer, _IfExpression boolean DEFAULT FALSE) RETURNS void
+CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_IF_STATEMENT"(_NodeID integer, _IfExpression boolean DEFAULT FALSE)
+RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -87,7 +88,7 @@ THEN
         _Severity := 'DEBUG3',
         _Message  := format('Goto true branch %s', Colorize(Node(_TrueBranchNodeID), 'CYAN'))
     );
-    UPDATE Programs SET NodeID = _TrueBranchNodeID, Direction = 'ENTER' WHERE ProgramID = _ProgramID        RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Program_Node(_TrueBranchNodeID, 'ENTER');
     PERFORM Set_Walkable(_TrueBranchNodeID, TRUE);
 
 ELSIF _Condition           IS NOT TRUE
@@ -112,7 +113,7 @@ THEN
         _Severity := 'DEBUG3',
         _Message  := format('Goto else branch %s', Colorize(Node(_ElseBranchNodeID), 'CYAN'))
     );
-    UPDATE Programs SET NodeID = _ElseBranchNodeID, Direction = 'ENTER' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Program_Node(_ElseBranchNodeID, 'ENTER');
     PERFORM Set_Walkable(_ElseBranchNodeID, TRUE);
 
 ELSE

@@ -20,7 +20,7 @@ WHERE Edges.ParentNodeID = _NodeID
 AND   Edges.DeathPhaseID IS NULL
 AND   Nodes.DeathPhaseID IS NULL;
 
-UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+PERFORM Set_Program_Node(_ChildNodeID);
 
 RETURN TRUE;
 END;

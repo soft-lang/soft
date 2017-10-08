@@ -137,7 +137,6 @@ LOOP
                 _Message  := format('Done growing %s', Colorize(_GrowIntoNodeType))
             );
             PERFORM New_Edge(
-                _ProgramID    := _ProgramID,
                 _ParentNodeID := _ChildNodeID,
                 _ChildNodeID  := _GrandChildNodeID
             );
@@ -154,7 +153,7 @@ LOOP
                 _Severity := 'INFO',
                 _Message  := format('OK, %s children born with %s valuable parents and killed %s valueless parents. Setting current NodeID to %s', _Children, _Parents, _Killed, _ProgramNodeID)
             );
-            UPDATE Programs SET NodeID = _ProgramNodeID WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
+            PERFORM Set_Program_Node(_ProgramNodeID);
             PERFORM Kill_Node(_NodeID);
             RETURN TRUE;
         ELSE
@@ -210,7 +209,6 @@ LOOP
             _NodeTypeID := _PrologueNodeTypeID
         );
         PERFORM New_Edge(
-            _ProgramID    := _ProgramID,
             _ParentNodeID := _PrologueNodeID,
             _ChildNodeID  := _ChildNodeID
         );
@@ -221,7 +219,6 @@ LOOP
         _ParentNodeID := Get_Capturing_Group(_String := _MatchedNode, _Pattern := _SingleNodePattern, _Strict := TRUE)::integer;
 
         _EdgeID := New_Edge(
-            _ProgramID    := _ProgramID,
             _ParentNodeID := _ParentNodeID,
             _ChildNodeID  := _ChildNodeID
         );
@@ -242,7 +239,6 @@ LOOP
             _NodeTypeID := _EpilogueNodeTypeID
         );
         PERFORM New_Edge(
-            _ProgramID    := _ProgramID,
             _ParentNodeID := _EpilogueNodeID,
             _ChildNodeID  := _ChildNodeID
         );

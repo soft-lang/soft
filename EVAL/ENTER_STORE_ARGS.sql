@@ -10,7 +10,12 @@ _ClonedNodeID    integer;
 _OK              boolean;
 BEGIN
 
-_RetNodeID := Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION <- RET');
+_RetNodeID := Find_Node(
+    _NodeID  := _NodeID,
+    _Descend := FALSE,
+    _Strict  := TRUE,
+    _Path    := '-> FUNCTION_DECLARATION <- RET'
+);
 
 SELECT      CALL.NodeID
 INTO STRICT _CallNodeID

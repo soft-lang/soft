@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_CALL"(_NodeID integer) RETURNS void
+CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_CALL"(_NodeID integer)
+RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -85,7 +86,6 @@ IF NOT FOUND THEN
     _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
     PERFORM Set_Walkable(_FunctionInstanceNodeID, TRUE);
     PERFORM New_Edge(
-        _ProgramID    := _ProgramID,
         _ParentNodeID := _NodeID,
         _ChildNodeID  := _RetNodeID
     );
@@ -106,7 +106,7 @@ ELSE
         _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_FunctionInstanceNodeID),'MAGENTA'))
     );
     PERFORM Set_Walkable(_RetNodeID, TRUE);
-    UPDATE Programs SET NodeID = _FunctionInstanceNodeID, Direction = 'ENTER' WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Program_Node(_FunctionInstanceNodeID, 'ENTER');
 END IF;
 
 RETURN;
