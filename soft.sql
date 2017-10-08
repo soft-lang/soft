@@ -72,6 +72,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/set_reference_node.sql
 \ir soft/FUNCTIONS/set_walkable.sql
 \ir soft/FUNCTIONS/walk_tree.sql
+\ir soft/FUNCTIONS/valid_node_pattern.sql
 
 \ir soft/VIEWS/export_node_types.sql
 
@@ -97,13 +98,13 @@ CREATE SCHEMA "MAP_VARIABLES";
 \ir MAP_VARIABLES/LEAVE_IF_EXPRESSION.sql
 \ir MAP_VARIABLES/LEAVE_IF_STATEMENT.sql
 \ir MAP_VARIABLES/LEAVE_LET_STATEMENT.sql
-\ir MAP_VARIABLES/LEAVE_STORE_ARGS.sql
+\ir MAP_VARIABLES/LEAVE_ARGUMENTS.sql
 
 CREATE SCHEMA "EVAL";
 \ir EVAL/ADD.sql
 \ir EVAL/DIVIDE.sql
 \ir EVAL/ENTER_RET.sql
-\ir EVAL/ENTER_STORE_ARGS.sql
+\ir EVAL/ENTER_ARGUMENTS.sql
 \ir EVAL/EQUAL.sql
 \ir EVAL/GREATER_THAN.sql
 \ir EVAL/LEAVE_ARRAY.sql

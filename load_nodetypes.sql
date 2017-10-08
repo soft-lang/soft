@@ -41,4 +41,12 @@ SELECT COUNT(*) FROM (
     ) FROM (SELECT * FROM ImportNodeTypes ORDER BY RowID) AS X
 ) AS Y;
 
+SELECT Valid_Node_Pattern(Languages.Language, NodeTypes.NodePattern)
+FROM NodeTypes
+INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
+AND NodeTypes.NodePattern IS NOT NULL;
+
+-- Normalize file since external editor might use quotes differently:
+\COPY (SELECT * FROM Export_Node_Types) TO ~/src/soft/languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
+
 DROP TABLE ImportNodeTypes;

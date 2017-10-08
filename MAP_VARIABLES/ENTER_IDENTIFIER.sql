@@ -44,7 +44,7 @@ _VariableNodeID := Find_Node(
     _Strict  := FALSE,
     _Paths   := ARRAY[
         '<- LET_STATEMENT 1<- VARIABLE[1]',
-        '<- STORE_ARGS     <- VARIABLE[1]'
+        '<- ARGUMENTS      <- VARIABLE[1]'
     ],
     _Names   := ARRAY[_Name]
 );

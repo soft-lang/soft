@@ -3,9 +3,7 @@ psql -X -f install.sql
 
 psql -X -f languages/monkey.sql
 
-psql -X -1 -f import_nodetypes.sql
-
-psql -X -1 -f export_nodetypes.sql
+psql -X -1 -v ON_ERROR_STOP=1 -f load_nodetypes.sql
 
 psql -X -1 -f languages/monkey/test.sql
 

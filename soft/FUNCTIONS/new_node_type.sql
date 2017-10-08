@@ -26,6 +26,8 @@ _GrowIntoNodeTypeID integer;
 BEGIN
 SELECT LanguageID INTO STRICT _LanguageID FROM Languages WHERE Language = _Language;
 
+RAISE NOTICE '%', _NodeType;
+
 IF _Prologue IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _PrologueNodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = _Prologue; END IF;
 IF _Epilogue IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _EpilogueNodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = _Epilogue; END IF;
 IF _GrowFrom IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _GrowFromNodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = _GrowFrom; END IF;
