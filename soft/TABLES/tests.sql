@@ -7,5 +7,7 @@ ExpectedTypes  regtype[],
 ExpectedValues text[],
 ExpectedError  text,
 ExpectedLog    text,
+StartedAt      timestamptz,
+FinishedAt     timestamptz,
 PRIMARY KEY (TestID)
 );

@@ -14,7 +14,7 @@ IF (Language(_NodeID)).StatementReturnValues THEN
     AND DeathPhaseID IS NULL
     ORDER BY EdgeID DESC
     LIMIT 1;
-	PERFORM Set_Reference_Node(_ReferenceNodeID := _LastNodeID, _NodeID := _NodeID);
+    PERFORM Set_Reference_Node(_ReferenceNodeID := _LastNodeID, _NodeID := _NodeID);
 END IF;
 
 RETURN;

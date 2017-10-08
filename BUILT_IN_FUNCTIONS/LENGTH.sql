@@ -27,24 +27,24 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.NodeID = _ParentNodeID;
 
 IF _NodeType = 'ARRAY' THEN
-	SELECT array_agg(ParentNodeID ORDER BY EdgeID)
-	INTO STRICT _ArrayElements
-	FROM Edges
-	WHERE ChildNodeID = _ParentNodeID
-	AND DeathPhaseID IS NULL;
-	UPDATE Nodes SET
-		PrimitiveType  = 'integer'::regtype,
-		PrimitiveValue = COALESCE(array_length(_ArrayElements,1),0)
-	WHERE NodeID = _NodeID
-	RETURNING TRUE INTO STRICT _OK;
+    SELECT array_agg(ParentNodeID ORDER BY EdgeID)
+    INTO STRICT _ArrayElements
+    FROM Edges
+    WHERE ChildNodeID = _ParentNodeID
+    AND DeathPhaseID IS NULL;
+    UPDATE Nodes SET
+        PrimitiveType  = 'integer'::regtype,
+        PrimitiveValue = COALESCE(array_length(_ArrayElements,1),0)
+    WHERE NodeID = _NodeID
+    RETURNING TRUE INTO STRICT _OK;
 ELSIF Primitive_Type(_ParentNodeID) = 'text'::regtype THEN
-	UPDATE Nodes SET
-		PrimitiveType  = 'integer'::regtype,
-		PrimitiveValue = length(Primitive_Value(_ParentNodeID))
-	WHERE NodeID = _NodeID
-	RETURNING TRUE INTO STRICT _OK;
+    UPDATE Nodes SET
+        PrimitiveType  = 'integer'::regtype,
+        PrimitiveValue = length(Primitive_Value(_ParentNodeID))
+    WHERE NodeID = _NodeID
+    RETURNING TRUE INTO STRICT _OK;
 ELSE
-	RAISE EXCEPTION 'Cannot compute length of type %', Primitive_Type(_ParentNodeID);
+    RAISE EXCEPTION 'Cannot compute length of type %', Primitive_Type(_ParentNodeID);
 END IF;
 
 RETURN;

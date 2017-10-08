@@ -21,16 +21,16 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 3 THEN
 END IF;
 
 IF Node_Type(_ParentNodes[2]) <> 'ARRAY' THEN
-	RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodes[2]);
+    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodes[2]);
 END IF;
 
 _ClonedNodeID := Clone_Node(_ParentNodes[2]);
 _PushNodeID   := Clone_Node(_ParentNodes[3]);
 
 PERFORM New_Edge(
-	_ProgramID    := ProgramID(_NodeID),
-	_ParentNodeID := _PushNodeID,
-	_ChildNodeID  := _ClonedNodeID
+    _ProgramID    := ProgramID(_NodeID),
+    _ParentNodeID := _PushNodeID,
+    _ChildNodeID  := _ClonedNodeID
 );
 
 PERFORM Set_Reference_Node(_ReferenceNodeID := _ClonedNodeID, _NodeID := _NodeID);

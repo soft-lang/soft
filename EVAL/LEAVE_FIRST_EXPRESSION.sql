@@ -19,9 +19,9 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 1 THEN
 END IF;
 
 SELECT
-	array_agg(ParentNodeID ORDER BY EdgeID)
+    array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT
-	_ArrayElements
+    _ArrayElements
 FROM Edges
 WHERE ChildNodeID = _ParentNodes[1]
 AND DeathPhaseID IS NULL;

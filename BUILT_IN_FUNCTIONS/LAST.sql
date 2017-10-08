@@ -19,22 +19,22 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
 END IF;
 
 IF Node_Type(_ParentNodes[2]) <> 'ARRAY' THEN
-	RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodes[2]);
+    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodes[2]);
 END IF;
 
 SELECT
-	array_agg(ParentNodeID ORDER BY EdgeID)
+    array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT
-	_ArrayElements
+    _ArrayElements
 FROM Edges
 WHERE ChildNodeID = _ParentNodes[2]
 AND DeathPhaseID IS NULL;
 
 IF _ArrayElements IS NULL THEN
-	PERFORM Set_Node_Value(_NodeID, 'nil'::regtype, 'nil');
+    PERFORM Set_Node_Value(_NodeID, 'nil'::regtype, 'nil');
 ELSE
-	_ClonedNodeID := Clone_Node(_ArrayElements[array_length(_ArrayElements,1)]);
-	PERFORM Set_Reference_Node(_ReferenceNodeID := _ClonedNodeID, _NodeID := _NodeID);
+    _ClonedNodeID := Clone_Node(_ArrayElements[array_length(_ArrayElements,1)]);
+    PERFORM Set_Reference_Node(_ReferenceNodeID := _ClonedNodeID, _NodeID := _NodeID);
 END IF;
 
 RETURN;

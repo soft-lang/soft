@@ -41,8 +41,6 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/get_source_code_fragment.sql
 \ir soft/FUNCTIONS/get_parent_nodes.sql
 \ir soft/FUNCTIONS/one_line.sql
-\ir soft/FUNCTIONS/set_edge_parent.sql
-\ir soft/FUNCTIONS/set_edge_child.sql
 \ir soft/FUNCTIONS/node.sql
 \ir soft/FUNCTIONS/node_type.sql
 \ir soft/FUNCTIONS/phase.sql
@@ -52,7 +50,6 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/enter_node.sql
 \ir soft/FUNCTIONS/leave_node.sql
 \ir soft/FUNCTIONS/run.sql
-\ir soft/FUNCTIONS/run_tests.sql
 \ir soft/FUNCTIONS/run_test.sql
 \ir soft/FUNCTIONS/find_node.sql
 \ir soft/FUNCTIONS/copy_node.sql
@@ -61,12 +58,9 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/matching_input_types.sql
 \ir soft/FUNCTIONS/set_node_value.sql
 \ir soft/FUNCTIONS/eval_node.sql
-\ir soft/FUNCTIONS/set_program_node.sql
 \ir soft/FUNCTIONS/set_walkable.sql
 \ir soft/FUNCTIONS/goto_child.sql
 \ir soft/FUNCTIONS/goto_parent.sql
-\ir soft/FUNCTIONS/quote.sql
-\ir soft/FUNCTIONS/export_node_types.sql
 \ir soft/FUNCTIONS/next_node.sql
 \ir soft/FUNCTIONS/dereference.sql
 \ir soft/FUNCTIONS/primitive_type.sql
@@ -76,6 +70,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/programid.sql
 \ir soft/FUNCTIONS/new_built_in_function.sql
 \ir soft/FUNCTIONS/precedence.sql
+\ir soft/FUNCTIONS/set_edge_parent.sql
 
 \ir soft/VIEWS/export_node_types.sql
 

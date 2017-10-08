@@ -63,6 +63,11 @@ INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
 WHERE Languages.Language = _Language
 AND   Programs.Program   = _Program;
 
+UPDATE Tests
+SET StartedAt = clock_timestamp()
+WHERE TestID = _TestID
+RETURNING TRUE INTO STRICT _OK;
+
 _ProgramNodeID := Get_Program_Node(_ProgramID);
 
 SELECT       OK,  Error
@@ -146,6 +151,40 @@ SET LogSeverity = _DefaultLogSeverity
 WHERE Language = _Language
 RETURNING TRUE INTO STRICT _OK;
 
+UPDATE Tests
+SET FinishedAt = clock_timestamp()
+WHERE TestID = _TestID
+RETURNING TRUE INTO STRICT _OK;
+
 RETURN _TestResult;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION Run_Test(_ProcessID integer)
+RETURNS batchjobstate
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_Language text;
+_Program  text;
+BEGIN
+SELECT
+    Languages.Language,
+    Programs.Program
+INTO
+    _Language,
+    _Program
+FROM Tests
+INNER JOIN Programs  ON Programs.ProgramID   = Tests.ProgramID
+INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
+WHERE Tests.StartedAt IS NULL
+ORDER BY Tests.TestID;
+IF NOT FOUND THEN
+    RETURN 'DONE';
+END IF;
+
+PERFORM Run_Test(_Language, _Program);
+
+RETURN 'AGAIN';
 END;
 $$;

@@ -9,4 +9,9 @@ psql -X -1 -f export_nodetypes.sql
 
 psql -X -1 -f languages/monkey/test.sql
 
-# psql -X -t -A -q -c "SET search_path TO soft; SELECT Run_Tests('monkey')"
+while : ; do
+    FOO=$(psql -X -t -A -q -c "SET search_path TO soft; SELECT Run_Test(1)");
+    if [ $FOO == 'DONE' ]; then
+        break
+    fi
+done

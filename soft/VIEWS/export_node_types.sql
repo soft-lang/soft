@@ -4,6 +4,7 @@ Languages.Language,
 NodeTypes.NodeType,
 NodeTypes.PrimitiveType,
 NodeTypes.NodeGroup,
+NodeTypes.Precedence,
 NodeTypes.Literal,
 NodeTypes.LiteralPattern,
 NodeTypes.NodePattern,
@@ -11,8 +12,7 @@ Prologue.NodeType AS Prologue,
 Epilogue.NodeType AS Epilogue,
 GrowFrom.NodeType AS GrowFrom,
 GrowInto.NodeType AS GrowInto,
-NodeTypes.NodeSeverity,
-NodeTypes.Precedence
+NodeTypes.NodeSeverity
 FROM NodeTypes
 INNER JOIN Languages             ON Languages.LanguageID = NodeTypes.LanguageID
 LEFT  JOIN NodeTypes AS Prologue ON Prologue.NodeTypeID  = NodeTypes.PrologueNodeTypeID

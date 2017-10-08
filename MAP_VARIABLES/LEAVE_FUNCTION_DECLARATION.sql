@@ -23,7 +23,7 @@ AND   Edges.DeathPhaseID IS NULL
 AND   Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType <> 'CALL';
 IF FOUND THEN
-	UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
+    UPDATE Programs SET NodeID = _ChildNodeID WHERE ProgramID = _ProgramID AND NodeID = _NodeID RETURNING TRUE INTO STRICT _OK;
 END IF;
 
 RETURN TRUE;

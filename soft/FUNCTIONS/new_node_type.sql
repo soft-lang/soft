@@ -3,6 +3,7 @@ _Language       text,
 _NodeType       text,
 _PrimitiveType   regtype  DEFAULT NULL,
 _NodeGroup      text     DEFAULT NULL,
+_Precedence     text     DEFAULT NULL,
 _Literal        text     DEFAULT NULL,
 _LiteralPattern text     DEFAULT NULL,
 _NodePattern    text     DEFAULT NULL,
@@ -10,8 +11,7 @@ _Prologue       text     DEFAULT NULL,
 _Epilogue       text     DEFAULT NULL,
 _GrowFrom       text     DEFAULT NULL,
 _GrowInto       text     DEFAULT NULL,
-_NodeSeverity   severity DEFAULT NULL,
-_Precedence     text     DEFAULT NULL
+_NodeSeverity   severity DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -31,8 +31,8 @@ IF _Epilogue IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _EpilogueNodeTypeID 
 IF _GrowFrom IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _GrowFromNodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = _GrowFrom; END IF;
 IF _GrowInto IS NOT NULL THEN SELECT NodeTypeID INTO STRICT _GrowIntoNodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = _GrowInto; END IF;
 
-INSERT INTO NodeTypes ( LanguageID,  NodeType,  PrimitiveType,  NodeGroup,  Literal, LiteralLength,     LiteralPattern,  NodePattern,  PrologueNodeTypeID,  EpilogueNodeTypeID,  GrowFromNodeTypeID,  GrowIntoNodeTypeID,  NodeSeverity,  Precedence)
-VALUES                (_LanguageID, _NodeType, _PrimitiveType, _NodeGroup, _Literal, length(_Literal), _LiteralPattern, _NodePattern, _PrologueNodeTypeID, _EpilogueNodeTypeID, _GrowFromNodeTypeID, _GrowIntoNodeTypeID, _NodeSeverity, _Precedence)
+INSERT INTO NodeTypes ( LanguageID,  NodeType,  PrimitiveType,  NodeGroup,  Precedence,  Literal, LiteralLength,     LiteralPattern,  NodePattern,  PrologueNodeTypeID,  EpilogueNodeTypeID,  GrowFromNodeTypeID,  GrowIntoNodeTypeID,  NodeSeverity)
+VALUES                (_LanguageID, _NodeType, _PrimitiveType, _NodeGroup, _Precedence, _Literal, length(_Literal), _LiteralPattern, _NodePattern, _PrologueNodeTypeID, _EpilogueNodeTypeID, _GrowFromNodeTypeID, _GrowIntoNodeTypeID, _NodeSeverity)
 RETURNING    NodeTypeID
 INTO STRICT _NodeTypeID;
 
