@@ -2,8 +2,6 @@ language,nodetype,primitivetype,nodegroup,precedence,literal,literalpattern,node
 monkey,SOURCE_CODE,,,,,,,,,,,
 monkey,ALLOCA,void,,,,,,,,,,
 monkey,RET,void,,,,,,,,,,
-monkey,FUNCTION_LABEL,,,,,,,,,,,
-monkey,ARGS,,,,,,,,,,,
 monkey,EQ,,,,=,,,,,,,
 monkey,PLUS,,OPS,,+,,,,,,,
 monkey,MINUS,,OPS,,-,,,,,,,
