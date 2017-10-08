@@ -1,9 +1,7 @@
 CREATE OR REPLACE FUNCTION Log(
-_NodeID               integer,
-_Severity             severity,
-_Message              text,
-_SourceCodeCharacters integer[] DEFAULT NULL,
-_NodeIDs              integer[] DEFAULT NULL
+_NodeID   integer,
+_Severity severity,
+_Message  text
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -13,7 +11,6 @@ _ProgramID   integer;
 _Program     text;
 _PhaseID     integer;
 _Phase       text;
-_Context     text;
 _LogID       integer;
 _Color       text;
 _LogSeverity severity;
@@ -47,19 +44,10 @@ _Color := CASE
     WHEN _Severity > 'WARNING' THEN 'RED'
 END;
 
-_Context := '';
-IF _SourceCodeCharacters IS NOT NULL THEN
-    _Context := E'\n' || Highlight_Code(
-        _Text                 := Get_Source_Code(_ProgramID),
-        _SourceCodeCharacters := _SourceCodeCharacters,
-        _Color                := _Color
-    );
-END IF;
+RAISE NOTICE E'% %: "%"', _Phase, Colorize(_Severity::text, _Color), _Message;
 
-RAISE NOTICE E'% %: "%"%', _Phase, Colorize(_Severity::text, _Color), _Message, _Context;
-
-INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  SourceCodeCharacters,  NodeIDs)
-SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _SourceCodeCharacters, _NodeIDs
+INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message)
+SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message
 FROM Programs WHERE ProgramID = _ProgramID
 RETURNING LogID INTO STRICT _LogID;
 RETURN _LogID;

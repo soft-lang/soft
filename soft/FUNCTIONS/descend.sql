@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Goto_Child(_NodeID integer)
+CREATE OR REPLACE FUNCTION Descend(_NodeID integer)
 RETURNS boolean
 LANGUAGE plpgsql
 AS $$

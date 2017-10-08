@@ -17,7 +17,7 @@ RETURN QUERY
 SELECT format(E'"%s.%s" [label="%s" %s];',
     Get_Env(Nodes.NodeID),
     Nodes.NodeID,
-    Get_Node_Label(Nodes.NodeID),
+    Node(Nodes.NodeID),
     Get_Node_Attributes(Nodes.NodeID)
 )
 FROM Nodes
@@ -36,7 +36,7 @@ RETURN QUERY
 SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
     Get_Env(Edges.ChildNodeID),
     Nodes.NodeID,
-    Get_Node_Label(Nodes.NodeID),
+    Node(Nodes.NodeID),
     Get_Node_Attributes(Nodes.NodeID)
 )
 FROM Nodes
@@ -51,7 +51,7 @@ RETURN QUERY
 SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
     Get_Env(Edges.ParentNodeID),
     Nodes.NodeID,
-    Get_Node_Label(Nodes.NodeID),
+    Node(Nodes.NodeID),
     Get_Node_Attributes(Nodes.NodeID)
 )
 FROM Nodes

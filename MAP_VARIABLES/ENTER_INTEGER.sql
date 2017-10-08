@@ -4,7 +4,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-PERFORM Goto_Child(_NodeID);
+PERFORM Descend(_NodeID);
 PERFORM Set_Walkable(_NodeID, FALSE);
 RETURN;
 END;

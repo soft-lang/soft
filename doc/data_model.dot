@@ -1,0 +1,18 @@
+digraph {
+    Languages -> Phases
+    Languages -> NodeTypes
+    Languages -> NodeTypes
+    Languages -> Programs
+    Phases -> Programs
+    Programs -> Nodes
+    NodeTypes -> Nodes
+    Phases -> Nodes
+    Programs -> Edges
+    Nodes -> Edges
+    Phases -> Edges
+    Programs -> Log
+    Nodes -> Log
+    Phases -> Log
+    Programs -> Tests
+    Languages -> BuiltInFunctions
+}

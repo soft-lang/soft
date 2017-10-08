@@ -26,7 +26,10 @@ _FromNodeID := Dereference(_ParentNodes[2]);
 IF (SELECT ClonedFromNodeID = _FromNodeID FROM Nodes WHERE NodeID = _ToNodeID) THEN
     -- Already declared from previous execution of program
 ELSE
-    PERFORM Copy_Node(_FromNodeID := Dereference(_ParentNodes[2]), _ToNodeID := _ParentNodes[1]);
+    PERFORM Copy_Node(
+        _FromNodeID := _FromNodeID,
+        _ToNodeID   := _ToNodeID
+    );
 END IF;
 
 RETURN;
