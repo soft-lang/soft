@@ -50,10 +50,10 @@ IF _NodeType = 'ARRAY' THEN
     END IF;
     IF _ArrayIndex BETWEEN 1 AND array_length(_ArrayElements,1) THEN
         PERFORM Set_Reference_Node(_ReferenceNodeID := _ArrayElements[_ArrayIndex], _NodeID := _NodeID);
-    ELSIF (Language(_NodeID)).ArrayOutOfBoundsError THEN
-        RAISE EXCEPTION 'Array index % is out of bounds', _ArrayIndex;
-    ELSE
+    ELSIF (Language(_NodeID)).NilIfArrayOutOfBounds THEN
         PERFORM Set_Node_Value(_NodeID, 'nil'::regtype, 'nil');
+    ELSE
+        RAISE EXCEPTION 'Array index % is out of bounds', _ArrayIndex;
     END IF;
 ELSIF _NodeType = 'HASH' THEN
     _HashKeyType  := Primitive_Type(_IndexNodeID);
@@ -83,10 +83,10 @@ ELSIF _NodeType = 'HASH' THEN
             RETURN;
         END IF;
     END LOOP;
-    IF (Language(_NodeID)).MissingHashKeyError THEN
-        RAISE EXCEPTION 'Hash key "%" of type "%" does not exist', _HashKeyValue, _HashKeyType;
-    ELSE
+    IF (Language(_NodeID)).NilIfMissingHashKey THEN
         PERFORM Set_Node_Value(_NodeID, 'nil'::regtype, 'nil');
+    ELSE
+        RAISE EXCEPTION 'Hash key "%" of type "%" does not exist', _HashKeyValue, _HashKeyType;
     END IF;
 ELSE
     RAISE EXCEPTION 'Index does not work with NodeType %', _NodeType;

@@ -84,7 +84,11 @@ LOOP
             )
         );
         IF _PrimitiveType IS NOT NULL THEN
-            PERFORM Set_Node_Type(_NodeID := _ParentNodeID, _NodeTypeID := _NodeTypeID);
+            UPDATE Nodes
+            SET NodeTypeID = _NodeTypeID
+            WHERE NodeID = _ParentNodeID
+            AND DeathPhaseID IS NULL
+            RETURNING TRUE INTO STRICT _OK;
         END IF;
         _DidWork := TRUE;
     END LOOP;

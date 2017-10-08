@@ -86,7 +86,12 @@ LOOP
         _Literal        := _Matches[2];
         _LiteralLength  := length(_Matches[1]);
 
-        IF EXISTS (SELECT 1 FROM NodeTypes WHERE LanguageID = _LanguageID AND GrowFromNodeTypeID = _NodeTypeID AND _Literal ~ ('^('||LiteralPattern||')')) THEN
+        IF EXISTS (
+            SELECT 1 FROM NodeTypes
+            WHERE LanguageID         = _LanguageID
+            AND   GrowFromNodeTypeID = _NodeTypeID
+            AND  _Literal            ~ ('^('||LiteralPattern||')')
+        ) THEN
             SELECT       NodeTypeID,  NodeType,  PrimitiveType,  LiteralPattern,  NodeSeverity
             INTO STRICT _NodeTypeID, _NodeType, _PrimitiveType, _LiteralPattern, _NodeSeverity
             FROM NodeTypes

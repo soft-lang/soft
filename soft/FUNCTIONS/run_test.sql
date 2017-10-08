@@ -99,10 +99,10 @@ PERFORM Log(
     _NodeID   := _ProgramNodeID,
     _Severity := 'DEBUG1',
     _Message  := format('Result %L %L, Expected %L %L, Error %L',
-        COALESCE(_ResultType::text,'['||array_to_string(_ResultTypes,',')||']'),
-        COALESCE(_ResultValue,'['||array_to_string(_ResultValues,',')||']'),
-        COALESCE(_ExpectedType::text,'['||array_to_string(_ExpectedTypes,',')||']'),
-        COALESCE(_ExpectedValue,'['||array_to_string(_ExpectedValues,',')||']'),
+        COALESCE(_ResultType::text,   format('[%s]', array_to_string(_ResultTypes,','))),
+        COALESCE(_ResultValue,        format('[%s]', array_to_string(_ResultValues,','))),
+        COALESCE(_ExpectedType::text, format('[%s]', array_to_string(_ExpectedTypes,','))),
+        COALESCE(_ExpectedValue,      format('[%s]', array_to_string(_ExpectedValues,','))),
         _Error
     )
 );

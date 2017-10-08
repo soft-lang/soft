@@ -11,11 +11,21 @@ _TokenNodeID      integer;
 _PrimitiveValue    text;
 _Fragment         text;
 BEGIN
-_NodeIDs := ARRAY(SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID FROM regexp_matches($1,'(?:^| )[A-Z_]+(\d+)','g') ORDER BY NodeID);
+
+_NodeIDs := ARRAY(
+    SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID
+    FROM regexp_matches($1,'(?:^| )[A-Z_]+(\d+)','g')
+    ORDER BY NodeID
+);
 
 SELECT DISTINCT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = ANY(_NodeIDs);
 
-SELECT NodeID, BirthPhaseID INTO STRICT _SourceCodeNodeID, _TokenizePhaseID FROM Nodes WHERE ProgramID = _ProgramID ORDER BY NodeID LIMIT 1;
+SELECT                 NodeID,     BirthPhaseID
+INTO STRICT _SourceCodeNodeID, _TokenizePhaseID
+FROM Nodes
+WHERE ProgramID = _ProgramID
+ORDER BY NodeID
+LIMIT 1;
 
 _Fragment := '';
 

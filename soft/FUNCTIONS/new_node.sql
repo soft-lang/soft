@@ -32,8 +32,6 @@ VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _Pri
 RETURNING    NodeID
 INTO STRICT _NodeID;
 
--- RAISE NOTICE 'New_Node % (=%)', Get_Node_Label(_ClonedFromNodeID), Get_Node_Label(_NodeID);
-
 RETURN _NodeID;
 END;
 $$;

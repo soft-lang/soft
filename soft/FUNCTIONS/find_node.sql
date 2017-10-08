@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Paths text[], _Names text[] DEFAULT NULL) RETURNS integer
+CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Paths text[], _Names text[] DEFAULT NULL)
+RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -63,10 +64,6 @@ LOOP
                     RAISE EXCEPTION 'Names[%] not defined, Names: %', _NameIndex, _Names;
                 END IF;
             END IF;
-            -- <-1 Edges.ParentNodeID = Edge%1$s.ParentNodeID
-            -- 1-> Edges.ParentNodeID = Edge%1$s.ParentNodeID
-            -- 1<- Edges.ChildNodeID  = Edge%1$s.ChildNodeID
-            -- ->1 Edges.ChildNodeID  = Edge%1$s.ChildNodeID
             IF _Direction ~ '^(<-\d*|\d*<-)$' THEN
                 _JOINs := _JOINs || format('
                     INNER JOIN Edges AS Edge%1$s ON Edge%1$s.ChildNodeID = Node%1$s.NodeID
@@ -162,7 +159,8 @@ RETURN NULL;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text) RETURNS integer
+CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text)
+RETURNS integer
 LANGUAGE sql
 AS $$
 SELECT Find_Node($1,$2,$3,ARRAY[$4])

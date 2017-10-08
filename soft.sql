@@ -62,11 +62,9 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/precedence.sql
 \ir soft/FUNCTIONS/primitive_type.sql
 \ir soft/FUNCTIONS/primitive_value.sql
-\ir soft/FUNCTIONS/programid.sql
 \ir soft/FUNCTIONS/run.sql
 \ir soft/FUNCTIONS/run_test.sql
 \ir soft/FUNCTIONS/set_edge_parent.sql
-\ir soft/FUNCTIONS/set_node_type.sql
 \ir soft/FUNCTIONS/set_node_value.sql
 \ir soft/FUNCTIONS/set_program_node.sql
 \ir soft/FUNCTIONS/set_reference_node.sql

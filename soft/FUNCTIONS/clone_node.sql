@@ -7,8 +7,6 @@ _ClonedNodeID integer;
 _ParentNodeID integer;
 BEGIN
 
--- RAISE NOTICE '=>Clone_Node % (OriginRootNodeID %, ClonedRootNodeID %)', Get_Node_Label(_NodeID), Get_Node_Label(_OriginRootNodeID), Get_Node_Label(_ClonedRootNodeID);
-
 SELECT      NodeID
 INTO _ClonedNodeID
 FROM Nodes
@@ -115,8 +113,6 @@ PERFORM Log(
     _Severity := 'DEBUG3',
     _Message  := format('Cloned %s -> %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_ClonedNodeID),'CYAN'))
 );
-
--- RAISE NOTICE '<=Clone_Node % (OriginRootNodeID %, ClonedRootNodeID %)', Get_Node_Label(_NodeID), Get_Node_Label(_OriginRootNodeID), Get_Node_Label(_ClonedRootNodeID);
 
 RETURN _ClonedNodeID;
 END;

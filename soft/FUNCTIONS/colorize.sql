@@ -3,9 +3,9 @@ RETURNS text
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ESCReset  text;
-_ESCBold   text;
-_ESCColor  text;
+_ESCReset text;
+_ESCBold  text;
+_ESCColor text;
 BEGIN
 SELECT EscapeSequence INTO STRICT _ESCReset FROM ANSIEscapeCodes WHERE Name = 'RESET';
 SELECT EscapeSequence INTO STRICT _ESCBold  FROM ANSIEscapeCodes WHERE Name = 'BOLD';

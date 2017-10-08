@@ -7,8 +7,8 @@ StatementReturnValues boolean         NOT NULL,
 VariableBinding       variablebinding NOT NULL,
 ZeroBasedNumbering    boolean         NOT NULL,
 TruthyNonBooleans     boolean         NOT NULL,
-ArrayOutOfBoundsError boolean         NOT NULL,
-MissingHashKeyError   boolean         NOT NULL,
+NilIfArrayOutOfBounds boolean         NOT NULL,
+NilIfMissingHashKey   boolean         NOT NULL,
 PRIMARY KEY (LanguageID),
 UNIQUE (Language)
 );
