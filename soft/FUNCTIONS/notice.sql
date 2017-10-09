@@ -1,0 +1,10 @@
+CREATE OR REPLACE FUNCTION Notice(_Message text)
+RETURNS boolean
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+RAISE NOTICE E'%', _Message;
+RETURN TRUE;
+END;
+$$;

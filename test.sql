@@ -165,13 +165,25 @@ SELECT
     ) AS SecondArgument
 FROM ADD;
 
--- Helper-function to handle ANSI colors:
+-- Helper-function to handle ANSI colors
+-- and highlight code fragments:
 
 \ir soft/FUNCTIONS/colorize.sql
-
-SELECT Colorize(_Text := 'Hello world!', _Color := 'GREEN');
-
+\ir soft/FUNCTIONS/notice.sql
+\ir soft/FUNCTIONS/highlight_characters.sql
+\ir soft/FUNCTIONS/get_parent_nodes.sql
+\ir soft/FUNCTIONS/get_env.sql
+\ir soft/FUNCTIONS/get_source_code_fragment.sql
+\ir soft/FUNCTIONS/one_line.sql
 \ir soft/FUNCTIONS/log.sql
+
+SELECT Notice(Colorize(_Text := 'Hello world!', _Color := 'GREEN'));
+
+SELECT Notice(Highlight_Characters(
+    _Text       := 'Hello world!',
+    _Characters := ARRAY[7,8,9,10,11],
+    _Color      := 'RED'
+));
 
 -- Logging of compiler messages,
 -- always passing the current NodeID
@@ -182,9 +194,22 @@ SELECT Log(
     _Message  := 'Hello again world!'
 );
 
+-- Returns text description of things:
+\ir soft/FUNCTIONS/language.sql
+\ir soft/FUNCTIONS/phase.sql
+\ir soft/FUNCTIONS/node_type.sql
+\ir soft/FUNCTIONS/node.sql
+
+\ir soft/VIEWS/view_nodes.sql
+
+SELECT * FROM View_Nodes;
+
 \ir soft/FUNCTIONS/new_test.sql
 
--- Add some tests
+-- New_Test() will create a SOURCE_CODE node with the _SourceCode
+-- and store the other input params in Tests,
+-- but it won't actually run the test. To do so, we will call
+-- Run_Test() later when we're ready:
 
 SELECT New_Test(
     _Language      := 'foo',
@@ -194,12 +219,12 @@ SELECT New_Test(
     _ExpectedValue := '10'
 );
 
-\ir soft/FUNCTIONS/new_built_in_function.sql
-
 -- Our simple test language doesn't have any built-in functions,
 -- but let's say it would have a function called "puts"
 -- implemented as in the function "BUILT_IN_FUNCTIONS"."PUTS",
 -- we would then do:
+
+\ir soft/FUNCTIONS/new_built_in_function.sql
 
 CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 \ir BUILT_IN_FUNCTIONS/PUTS.sql
@@ -209,27 +234,57 @@ SELECT New_Built_In_Function(
     _ImplementationFunction := 'PUTS'
 );
 
--- Returns text description of things:
-\ir soft/FUNCTIONS/language.sql
-\ir soft/FUNCTIONS/phase.sql
-\ir soft/FUNCTIONS/node_type.sql
-\ir soft/FUNCTIONS/node.sql
 
-SELECT Phase(PhaseID) FROM Programs ORDER BY ProgramID;
+-- To reference some other node from a node,
+-- use Set_Reference_Node(_ReferenceNodeID integer, _NodeID integer),
+-- which will set Nodes.ReferenceNodeID to _ReferenceNodeID
+-- for the input _NodeID.
+--
+-- This means that when someone wants to use _NodeID's value,
+-- they will get the value of _ReferenceNodeID instead,
+-- or its parent tree, if it's a multi-node tree object
+-- such as a FUNCTION_DECLARATION:
+
+\ir soft/FUNCTIONS/set_reference_node.sql
+
+-- To get the referenced node, use Dereference(_NodeID integer)
+-- which will recursively Dereference(ReferenceNodeID)
+-- until we get the final NodeID where Nodes.ReferenceNodeID IS NULL:
+
+\ir soft/FUNCTIONS/dereference.sql
 
 -- Nodes can be cloned which recursively copies
 -- the node and its parents, if any.
 
-\ir soft/FUNCTIONS/dereference.sql
-\ir soft/FUNCTIONS/set_reference_node.sql
 \ir soft/FUNCTIONS/clone_node.sql
 
 SELECT Clone_Node((SELECT NodeID FROM Nodes ORDER BY NodeID LIMIT 1));
 
--- Killing of things:
-\ir soft/FUNCTIONS/kill_clone.sql
+
+-- Some nodes only exist in the early compilation phases
+-- and are killed when giving birth to abstract nodes
+-- that only need the nodes containing primitive values
+-- that can be computed.
+-- For instance, the program '1 + 2' consist of three
+-- nodes 'INTEGER PLUS INTEGER' after TOKENIZE,
+-- but during PARSE, 'PLUS' will die, and
+-- a new 'ADD' node will be born, with Edges pointing
+-- to the two 'INTEGER' nodes.
+--
+-- To keep track of exactly when Nodes and Edges have been
+-- killed, we don't actually DELETE them, but instead
+-- set their DeathPhaseID and DeathTime columns,
+-- which tells during what phase they were killed
+-- and at what clock_timestamp().
+
 \ir soft/FUNCTIONS/kill_edge.sql
 \ir soft/FUNCTIONS/kill_node.sql
+
+-- Kill_Clone() kills all the Nodes and Edges
+-- for a cloned copy of a node, which could
+-- be just a single node, or a sub-tree.
+
+\ir soft/FUNCTIONS/kill_clone.sql
 
 -- Copy value from one node to some other node:
 \ir soft/FUNCTIONS/copy_node.sql
@@ -238,35 +293,16 @@ SELECT Clone_Node((SELECT NodeID FROM Nodes ORDER BY NodeID LIMIT 1));
 \ir soft/FUNCTIONS/primitive_type.sql
 \ir soft/FUNCTIONS/primitive_value.sql
 
+-- Test copy value from first node (integer 30) to second (integer 70):
 SELECT Copy_Node(
     _FromNodeID := (SELECT NodeID FROM Nodes ORDER BY NodeID LIMIT 1 OFFSET 1),
     _ToNodeID   := (SELECT NodeID FROM Nodes ORDER BY NodeID LIMIT 1 OFFSET 2)
 );
 
+-- Kill the clone we created earlier:
 SELECT Kill_Clone(NodeID) FROM Nodes WHERE ClonedFromNodeID IS NOT NULL AND ClonedRootNodeID IS NULL;
 
-SELECT
-    ProgramID,
-    NodeID,
-    Language(NodeID),
-    Node_Type(NodeID),
-    Node(NodeID),
-    Primitive_Type(NodeID),
-    Primitive_Value(NodeID),
-    DeathPhaseID,
-    ClonedRootNodeID,
-    ClonedFromNodeID
-FROM Nodes
-ORDER BY ProgramID, NodeID;
-
-\ir soft/FUNCTIONS/highlight_characters.sql
-\ir soft/FUNCTIONS/get_parent_nodes.sql
-\ir soft/FUNCTIONS/get_source_code_fragment.sql
-\ir soft/FUNCTIONS/one_line.sql
-
--- Returns PrimitiveType/PrimitiveValue for node:
-\ir soft/FUNCTIONS/primitive_type.sql
-\ir soft/FUNCTIONS/primitive_value.sql
+SELECT * FROM View_Nodes;
 
 -- Parser helper-functions:
 \ir soft/FUNCTIONS/expand_token_groups.sql
@@ -277,7 +313,6 @@ ORDER BY ProgramID, NodeID;
 \ir soft/FUNCTIONS/get_dot.sql
 \ir soft/FUNCTIONS/get_node_attributes.sql
 \ir soft/FUNCTIONS/get_node_color.sql
-\ir soft/FUNCTIONS/get_env.sql
 
 -- Tree searching:
 \ir soft/FUNCTIONS/find_node.sql

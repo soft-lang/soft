@@ -31,6 +31,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/new_built_in_function.sql
 
 -- Logging and helper-functions for the same:
+\ir soft/FUNCTIONS/notice.sql
 \ir soft/FUNCTIONS/log.sql
 \ir soft/FUNCTIONS/colorize.sql
 \ir soft/FUNCTIONS/highlight_characters.sql
@@ -100,6 +101,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/valid_node_pattern.sql
 
 \ir soft/VIEWS/export_node_types.sql
+\ir soft/VIEWS/view_nodes.sql
 
 -- SEMANTIC SUPPORT:
 --

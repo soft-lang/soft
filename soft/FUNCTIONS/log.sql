@@ -44,7 +44,7 @@ _Color := CASE
     WHEN _Severity > 'WARNING' THEN 'RED'
 END;
 
-RAISE NOTICE E'% %: "%"', _Phase, Colorize(_Severity::text, _Color), _Message;
+PERFORM Notice(format('%s %s: "%s"', _Phase, Colorize(_Severity::text, _Color), _Message));
 
 INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message)
 SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message
