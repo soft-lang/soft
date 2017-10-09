@@ -1,5 +1,5 @@
 language,nodetype,primitivetype,nodegroup,precedence,literal,literalpattern,nodepattern,prologue,epilogue,growfrom,growinto,nodeseverity
-monkey,SOURCE_CODE,,,,,,,,,,,
+monkey,SOURCE_CODE,text,,,,,,,,,,
 monkey,ALLOCA,void,,,,,,,,,,
 monkey,RET,void,,,,,,,,,,
 monkey,EQ,,,,=,,,,,,,
