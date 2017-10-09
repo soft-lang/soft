@@ -1,10 +1,8 @@
 ROLLBACK;
 
+\set AUTOCOMMIT ON
+
 SET client_encoding TO 'UTF8';
-
-\set AUTOCOMMIT OFF
-
-BEGIN;
 
 SET search_path TO soft;
 
@@ -58,7 +56,7 @@ CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 -- CAPTURE_BY_REFERENCE, CAPTURE_BY_VALUE
 
 \ir soft/TYPES/direction.sql
--- Controls if walking up or down the tree.
+-- Controls if walking up or down the AST.
 -- ENTER, LEAVE
 
 -- Used by languages to represent the 'nil' value.
@@ -77,8 +75,8 @@ CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 -- A language has a unique Language name, a unique LanguageID,
 -- and multiple semantic settings that all need to be defined.
 SELECT New_Language(
-    _Language              := 'foo',
-    _LogSeverity           := 'NOTICE',
+    _Language              := 'TestLanguage',
+    _LogSeverity           := 'DEBUG5',
     _VariableBinding       := 'CAPTURE_BY_VALUE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE,
@@ -122,7 +120,7 @@ $$;
 -- functionality between different languages where
 -- the built-in works the same but have different names:
 SELECT New_Built_In_Function(
-    _Language               := 'foo',
+    _Language               := 'TestLanguage',
     _Identifier             := 'puts',
     _ImplementationFunction := 'PUTS'
 );
@@ -141,12 +139,12 @@ SELECT New_Built_In_Function(
 -- The order in which we call New_Phase() determine
 -- the order the phases they will be executed,
 -- i.e. ORDER BY PhaseID:
-SELECT New_Phase(_Language := 'foo', _Phase := 'TOKENIZE');
-SELECT New_Phase(_Language := 'foo', _Phase := 'DISCARD');
-SELECT New_Phase(_Language := 'foo', _Phase := 'PARSE');
-SELECT New_Phase(_Language := 'foo', _Phase := 'REDUCE');
-SELECT New_Phase(_Language := 'foo', _Phase := 'MAP_VARIABLES');
-SELECT New_Phase(_Language := 'foo', _Phase := 'EVAL');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'TOKENIZE');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'DISCARD');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'PARSE');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'REDUCE');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'MAP_VARIABLES');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL');
 
 -------------------------------------------------------------------------------
 -- NODE TYPES
@@ -154,6 +152,7 @@ SELECT New_Phase(_Language := 'foo', _Phase := 'EVAL');
 
 \ir soft/TABLES/nodetypes.sql
 \ir soft/FUNCTIONS/new_node_type.sql
+\ir soft/VIEWS/view_node_types.sql
 -- Different languages might have different syntax for one and the same thing.
 -- This is all fine, but to be able to reuse semantic functionality
 -- we will agree on language agnostic NodeType names, and let any semantic
@@ -172,7 +171,7 @@ SELECT New_Phase(_Language := 'foo', _Phase := 'EVAL');
 -- the NodeType.
 --
 -- For the sake of testing, we will define a simple grammar
--- for our "foo" language that is only capable of calculating
+-- for our test language that is only capable of calculating
 -- simple arithmetic expressions using + - / * ( )
 --
 -- Note that the NodeTypes for the various arithmetic tokens
@@ -180,7 +179,7 @@ SELECT New_Phase(_Language := 'foo', _Phase := 'EVAL');
 -- i.e. the "ADD" operator have it, but not the "PLUS" token.
 
 -------------------------------------------------------------------------------
--- TOKENIZE
+-- GRAMMAR: TOKENIZE NODE TYPES
 -------------------------------------------------------------------------------
 
 -- The tokenizer uses NodeTypes where Literal or LiteralPattern is defined.
@@ -190,32 +189,32 @@ SELECT New_Phase(_Language := 'foo', _Phase := 'EVAL');
 -- it tries to find a matching _LiteralPattern instead.
 
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'SOURCE_CODE', _PrimitiveType := 'text'::regtype);
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'SOURCE_CODE', _PrimitiveType := 'text'::regtype);
 -- The node containing the source code of the program stored as text
 -- in Nodes.PrimitiveValue.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'ALLOCA', _PrimitiveType := 'void'::regtype);
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'ALLOCA', _PrimitiveType := 'void'::regtype);
 -- The node per function to which all the function's arguments and local variables are connected.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'RET',    _PrimitiveType := 'void'::regtype);
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'RET',    _PrimitiveType := 'void'::regtype);
 -- The node per function which determines where to continue when we're done executing the function.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'PLUS',     _Literal := '+', _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'MINUS',    _Literal := '-', _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'ASTERISK', _Literal := '*', _NodeGroup := 'OPS');
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'SLASH',    _Literal := '/', _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'PLUS',     _Literal := '+', _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'MINUS',    _Literal := '-', _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'ASTERISK', _Literal := '*', _NodeGroup := 'OPS');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'SLASH',    _Literal := '/', _NodeGroup := 'OPS');
 -- Arithmetic tokens defines the _Literal text that must match exactly in the source code.
 -- We group them together by using the _NodeGroup feature, which lets us refer to them as a
 -- group later on.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'LPAREN', _Literal := '(');
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'RPAREN', _Literal := ')');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'LPAREN', _Literal := '(');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'RPAREN', _Literal := ')');
 -- These tokens are used to explicitly tell we want a SUB_EXPRESSION to be executed first,
 -- before executing the main expression.
 -- These are not part of the same NodeGroup, as we don't want them to match a normal EXPRESSION,
 -- but only a SUB_EXPRESSION.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'WHITE_SPACE', _LiteralPattern := '(\s+)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'WHITE_SPACE', _LiteralPattern := '(\s+)');
 -- White space is not ignored by default in this compiler,
 -- as there might be languages where white space matters,
 -- such as Python.
@@ -227,25 +226,25 @@ SELECT New_Node_Type(_Language := 'foo', _NodeType := 'WHITE_SPACE', _LiteralPat
 -- * If you need multiple parenthesis, use (?:) to avoid capturing.
 -- * The text captured is stored as the Nodes.PrimitiveValue.
 --
--- If "foo" would have support for double-quotes text string, which it don't,
+-- If our test language would have support for double-quotes text string, which it don't,
 -- the _LiteralPattern would be: "((?:[^"\\]|\\.)*)"
 -- This would make the double-quotes (") to NOT be included in the PrimitiveValue,
 -- since the capture group captures whatever is in between the double-quotes.
 
 SELECT New_Node_Type(
-    _Language       := 'foo',
+    _Language       := 'TestLanguage',
     _NodeType       := 'INTEGER',
     _PrimitiveType  := 'integer'::regtype,
     _NodeGroup      := 'VALUE',
     _LiteralPattern := '([0-9]+)'
 );
--- In "foo" we only have support for integers,
+-- In our test language we only have support for integers,
 -- but if we would have support for e.g. boolean, text, numeric, etc,
 -- they would also get _NodeGroup := 'VALUE', to allow refering to them
 -- as a group in the grammar.
 
 SELECT New_Node_Type(
-    _Language       := 'foo',
+    _Language       := 'TestLanguage',
     _NodeType       := 'ILLEGAL',
     _LiteralPattern := '(.)',
     _NodeSeverity   := 'ERROR'::severity
@@ -261,7 +260,7 @@ SELECT New_Node_Type(
 -- i.e. those that have _Literal or _LiteralPattern.
 
 -------------------------------------------------------------------------------
--- PARSE
+-- GRAMMAR: PARSE NODE TYPES
 -------------------------------------------------------------------------------
 
 -- Next up is NodePatterns, that define what-is-what on
@@ -342,7 +341,7 @@ SELECT New_Node_Type(
 -- Just like with LiteralPatterns, there must be exactly one capture group.
 -- If you need multiple paranthesis, use (?:) to avoid capturing them.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'VALUE', _NodePattern := '(?:^| )((?#VALUE))(?: |$)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'VALUE', _NodePattern := '(?:^| )((?#VALUE))(?: |$)');
 -- This will raise our INTEGER to a VALUE, which allows
 -- us to define more general NodePatterns dealing with VALUE nodes,
 -- instead of having to repeat our selves and define
@@ -359,7 +358,7 @@ SELECT New_Node_Type(_Language := 'foo', _NodeType := 'VALUE', _NodePattern := '
 -- The '(?:^| )' ensures we match either at the beginning of the
 -- sequence of tokens, or right after a previous token.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'SUB_EXPRESSION', _NodePattern := '(?:^|(?:^| )(?#OPS) )(LPAREN (?:VALUE|(?#OPS))(?: (?:VALUE|(?#OPS)))* RPAREN)', _GrowFrom := 'VALUE', _NodeGroup := 'VALUE');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'SUB_EXPRESSION', _NodePattern := '(?:^|(?:^| )(?#OPS) )(LPAREN (?:VALUE|(?#OPS))(?: (?:VALUE|(?#OPS)))* RPAREN)', _GrowFrom := 'VALUE', _NodeGroup := 'VALUE');
 -- This is the first time we make use of the _GrowFrom input param to New_Node_Type(),
 -- so let's explain it here.
 --
@@ -384,7 +383,7 @@ SELECT New_Node_Type(_Language := 'foo', _NodeType := 'SUB_EXPRESSION', _NodePat
 -- meaning it will also be raised to a VALUE in the next parsing iteration
 -- unless consumed by some other NodePattern with higher percedence.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'EXPRESSION', _NodePattern := '^((?:VALUE|(?#OPS))(?: (?:VALUE|(?#OPS)))*)$', _GrowFrom := 'VALUE');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'EXPRESSION', _NodePattern := '^((?:VALUE|(?#OPS))(?: (?:VALUE|(?#OPS)))*)$', _GrowFrom := 'VALUE');
 -- When we reach this node type in the parser,
 -- we can feel confident all sub expression have now been parsed,
 -- and we're ready to parse expressions without any sub expressions.
@@ -403,10 +402,10 @@ SELECT New_Node_Type(_Language := 'foo', _NodeType := 'EXPRESSION', _NodePattern
 -- to tell the parser we want these to be considered when matching node patterns
 -- that have _GrowFrom := 'VALUE'.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'GROUP', _GrowInto := 'VALUE', _NodePattern := '(?:^|(?#OPS) )(LPAREN VALUE RPAREN)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'GROUP', _GrowInto := 'VALUE', _NodePattern := '(?:^|(?#OPS) )(LPAREN VALUE RPAREN)');
 -- This matches a paranthesis group and has the highest precedence, since it's the first NodeType for _GrowInto := 'VALUE'.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'UNARY_MINUS', _GrowInto := 'VALUE', _NodePattern := '(?:^|(?:^| )(?!(?:VALUE|RPAREN) )[A-Z_]+ )(MINUS VALUE)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'UNARY_MINUS', _GrowInto := 'VALUE', _NodePattern := '(?:^|(?:^| )(?!(?:VALUE|RPAREN) )[A-Z_]+ )(MINUS VALUE)');
 -- The NodePattern might look a bit complicated, so let's explain it:
 -- We want (MINUS VALUE) to match, but only if NOT preceded by a VALUE or a RPAREN,
 -- as that would mean it's a SUBTRACT operator instead.
@@ -417,8 +416,8 @@ SELECT New_Node_Type(_Language := 'foo', _NodeType := 'UNARY_MINUS', _GrowInto :
 -- the text matched before or after, it is merely used to enfore we
 -- match where we want to, also known as Context Sensitive Parsing.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'DIVIDE',   _GrowInto := 'VALUE', _Precedence := 'PRODUCT', _NodePattern := '(?:^| )(VALUE SLASH VALUE)');
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'MULTIPLY', _GrowInto := 'VALUE', _Precedence := 'PRODUCT', _NodePattern := '(?:^| )(VALUE ASTERISK VALUE)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'DIVIDE',   _GrowInto := 'VALUE', _Precedence := 'PRODUCT', _NodePattern := '(?:^| )(VALUE SLASH VALUE)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'MULTIPLY', _GrowInto := 'VALUE', _Precedence := 'PRODUCT', _NodePattern := '(?:^| )(VALUE ASTERISK VALUE)');
 -- The NodePatterns for DIVIDE and MULTIPLY are must simpler
 -- since they are Context Free meaning they should always match
 -- regardless of what comes before or after.
@@ -435,8 +434,8 @@ SELECT New_Node_Type(_Language := 'foo', _NodeType := 'MULTIPLY', _GrowInto := '
 -- precedence for all other NodeTypes with the same _Precedence value,
 -- that is, MULTIPLY will get the same precedence as DIVIDE.
 
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'ADD',      _GrowInto := 'VALUE', _Precedence := 'SUM', _NodePattern := '(?:^| )(VALUE PLUS VALUE)');
-SELECT New_Node_Type(_Language := 'foo', _NodeType := 'SUBTRACT', _GrowInto := 'VALUE', _Precedence := 'SUM', _NodePattern := '(?:^| )(VALUE MINUS VALUE)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'ADD',      _GrowInto := 'VALUE', _Precedence := 'SUM', _NodePattern := '(?:^| )(VALUE PLUS VALUE)');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'SUBTRACT', _GrowInto := 'VALUE', _Precedence := 'SUM', _NodePattern := '(?:^| )(VALUE MINUS VALUE)');
 -- ADD and SUBTRACT are done after DIVIDE and MULTIPLY,
 -- which is why they are defined after them,
 -- but we need to give them their own precedence group, 'SUM',
@@ -450,7 +449,7 @@ SELECT New_Node_Type(_Language := 'foo', _NodeType := 'SUBTRACT', _GrowInto := '
 -- it's the order in which they are defined that determine their precedence.
 
 SELECT New_Node_Type(
-    _Language     := 'foo',
+    _Language     := 'TestLanguage',
     _NodeType     := 'INVALID_EXPRESSION',
     _GrowInto     := 'VALUE',
     _NodePattern  := '^(?!VALUE$)([A-Z_]+(?: [A-Z_]+)*)$',
@@ -466,7 +465,7 @@ SELECT New_Node_Type(
 -- since there might be other invalid expressions to be found.
 
 SELECT New_Node_Type(
-    _Language     := 'foo',
+    _Language     := 'TestLanguage',
     _NodeType     := 'UNPARSEABLE',
     _NodePattern  := '(?:^| )(?!EXPRESSION|UNPARSEABLE|PROGRAM)([A-Z_]+)',
     _NodeSeverity := 'ERROR'::severity
@@ -490,7 +489,7 @@ SELECT New_Node_Type(
 -- of the program.
 
 SELECT New_Node_Type(
-    _Language    := 'foo',
+    _Language    := 'TestLanguage',
     _NodeType    := 'PROGRAM',
     _NodePattern := '^((?:UNPARSEABLE)?(?: UNPARSEABLE)*EXPRESSION(?: UNPARSEABLE)*)$',
     _Prologue    := 'ALLOCA',
@@ -503,18 +502,20 @@ SELECT New_Node_Type(
 -- but exactly one EXPRESSION
 -- followed by any number of UNPARSEABLE nodes.
 
+SELECT * FROM View_Node_Types;
+
 \ir soft/TABLES/programs.sql
 \ir soft/FUNCTIONS/new_program.sql
 SELECT New_Program(
-    _Language := 'foo',
-    _Program  := '30+70'
+    _Language := 'TestLanguage',
+    _Program  := 'AddTwoNumbers'
 );
 -- A program has a name that is unique per language,
 -- that is, multiple programs with one and the same name
 -- can be implemented in different languages.
 --
 -- In this document, we will create two programs.
--- The first one '30+70' is only to demonstrate
+-- The first one 'AddTwoNumbers' is only to demonstrate
 -- how to directly create Nodes and Edges,
 -- but won't result in a runnable program.
 --
@@ -539,22 +540,51 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 -- Each program has a current NodeID where we're currently at.
 -- This is aka as the "program counter" or "PC".
 
+-- NodeID 2
 SELECT New_Node(
-    _ProgramID      := (SELECT ProgramID  FROM Programs  WHERE Program  = '30+70'),
+    _ProgramID      := (SELECT ProgramID  FROM Programs  WHERE Program  = 'AddTwoNumbers'),
+    _NodeTypeID     := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'SOURCE_CODE'),
+    _PrimitiveType  := 'text'::regtype,
+    _PrimitiveValue := '30+70'
+);
+
+-- Let's simulate what the tokenizer does,
+-- by creating some Nodes for the above source code:
+
+-- NodeID 2
+SELECT New_Node(
+    _ProgramID      := (SELECT ProgramID  FROM Programs  WHERE Program  = 'AddTwoNumbers'),
     _NodeTypeID     := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'INTEGER'),
     _PrimitiveType  := 'integer'::regtype,
     _PrimitiveValue := '30'
 );
 
+-- NodeID 3
 SELECT New_Node(
-    _ProgramID      := (SELECT ProgramID  FROM Programs  WHERE Program  = '30+70'),
+    _ProgramID  := (SELECT ProgramID  FROM Programs  WHERE Program  = 'AddTwoNumbers'),
+    _NodeTypeID := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'PLUS'),
+    _PrimitiveType  := 'text'::regtype,
+    _PrimitiveValue := '+'
+);
+
+-- NodeID 4
+SELECT New_Node(
+    _ProgramID      := (SELECT ProgramID  FROM Programs  WHERE Program  = 'AddTwoNumbers'),
     _NodeTypeID     := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'INTEGER'),
     _PrimitiveType  := 'integer'::regtype,
     _PrimitiveValue := '70'
 );
 
+-- Next, we will simulate what the parser does,
+-- by switching to the PARSE phase and
+-- create an ADD node with edges to the integer nodes:
+
+UPDATE Programs SET PhaseID = (SELECT PhaseID FROM Phases WHERE Phase = 'PARSE')
+WHERE Program = 'AddTwoNumbers';
+
+-- NodeID 5
 SELECT New_Node(
-    _ProgramID  := (SELECT ProgramID  FROM Programs  WHERE Program  = '30+70'),
+    _ProgramID  := (SELECT ProgramID  FROM Programs  WHERE Program  = 'AddTwoNumbers'),
     _NodeTypeID := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'ADD')
 );
 -- The ADD node doesn't have any PrimitiveType/PrimitiveValue from the beginning
@@ -566,13 +596,13 @@ SELECT New_Node(
 \ir soft/FUNCTIONS/new_edge.sql
 
 SELECT New_Edge(
-    _ParentNodeID := 1, -- INTEGER1=30
-    _ChildNodeID  := 3  -- ADD1
+    _ParentNodeID := 2, -- 30
+    _ChildNodeID  := 5  -- ADD
 );
 
 SELECT New_Edge(
-    _ParentNodeID := 2, -- INTEGER2=70
-    _ChildNodeID  := 3  -- ADD1
+    _ParentNodeID := 4, -- 70
+    _ChildNodeID  := 5  -- ADD
 );
 
 -- This connects the two INTEGER nodes to the ADD node.
@@ -625,7 +655,12 @@ SELECT Notice(Colorize(_Text := 'Hello green world!', _Color := 'GREEN'));
 SELECT Log(
     _NodeID   := 1,
     _Severity := 'NOTICE',
-    _Message  := 'Hello world! This is a log message!'
+    _Message  := 'Hello world! This is a log message.'
+);
+SELECT Log(
+    _NodeID   := 1,
+    _Severity := 'ERROR',
+    _Message  := 'This is an error message!'
 );
 
 \ir soft/FUNCTIONS/highlight_characters.sql
@@ -640,128 +675,346 @@ SELECT Notice(Highlight_Characters(
 -- Recursively gets all parent nodes for a node.
 -- Remember the ADD node we created before with NodeID3?
 -- This should return its two parent nodes, 1 and 2, together with itself, 3:
-SELECT Get_Parent_Nodes(3);
+SELECT Get_Parent_Nodes(_NodeID := 3);
 
 \ir soft/FUNCTIONS/get_source_code_fragment.sql
+-- Shows the entire source code and highlights different
+-- parts of the code with the given color,
+-- where the nodes to highlight are specified as a space
+-- separated list of [NodeType][NodeID].
+-- The below will highlight '30' and '70' in '30+70', but not the '+':
+SELECT Notice(Get_Source_Code_Fragment(_Nodes := 'INTEGER2 INTEGER4', _Color := 'RED'));
 
-
-\ir soft/TABLES/tests.sql
-
-
-
--- Each program has a name that is unique per language:
-
--- Helper-function to handle ANSI colors
--- and highlight code fragments:
-
-\ir soft/FUNCTIONS/get_env.sql
 \ir soft/FUNCTIONS/one_line.sql
+-- Replaces all white space with a single space charater
+-- to make log messages containing source code fragments
+-- more compact.
+SELECT One_Line($$1
+    +
+3$$);
 
--- Returns text description of things:
-\ir soft/FUNCTIONS/language.sql
-\ir soft/FUNCTIONS/phase.sql
-\ir soft/FUNCTIONS/node_type.sql
+-------------------------------------------------------------------------------
+-- GRAPHVIZ DOT GENERATION OF THE ABSTRACT SYNTAX TREE
+-------------------------------------------------------------------------------
+
 \ir soft/FUNCTIONS/node.sql
+-- Returns a formatted text string for the NodeID
+-- on the format [NodeType][NodeType rank]=[PrimitiveValue]
+-- or if it's referencing a node, the referenced node
+-- is specified with ->:
+--
+-- Nodes in different lexical environments
+-- but that originate from the same node,
+-- get the same node text label,
+-- but different colors, making it visually
+-- easy for the eye to see what node in
+-- a lexical environment that corresponds
+-- to what other node in a different lexical environment.
+SELECT Node(_NodeID := 2);
+
+\ir soft/FUNCTIONS/get_node_lexical_environment.sql
+-- Returns a number for the lexical environment
+-- which the NodeID shared with all other nodes
+-- part of the same clone.
+--
+-- If the node is an original node from the initial
+-- Abstract Syntax Tree (AST) before starting to
+-- evaluate the tree, it will have a lexical environment
+-- of the value 0.
+SELECT Get_Node_Lexical_Environment(_NodeID := 2);
 
 \ir soft/VIEWS/view_nodes.sql
-
+-- Human friendly view showing all Nodes
 SELECT * FROM View_Nodes;
 
-\ir soft/FUNCTIONS/new_test.sql
+\ir soft/VIEWS/view_edges.sql
+-- Human friendly view showing all Edges
+SELECT * FROM View_Edges;
 
+\ir soft/FUNCTIONS/get_node_color.sql
+-- All nodes in the same lexical environment
+-- are drawn with the same color.
+--
+-- We use the "set312" color scheme from Graphviz,
+-- which provides 12 very distinct colors.
+--
+-- If running out of colors, a unique combination
+-- of two different colors of these 12 will be used,
+-- that is, if the program needs more than 12
+-- lexcial environments.
+-- This makes it easier to visually see what nodes
+-- belong to the same lexical environment,
+-- as if only using single colors, one would have
+-- to look carefully to see the difference between
+-- e.g. two shades of blue, but by combining two
+-- very different colors, it's easy to spot
+-- nodes of the same color mix.
+SELECT Get_Node_Color(_NodeID := 2);
+
+\ir soft/FUNCTIONS/get_node_attributes.sql
+-- Returns the node attributes to be used
+-- in the Graphviz DOT file generated for the AST.
+--
+-- * Walkable nodes are drawn with shape=ellipse
+--   and non-walkable nodes i.e. terminal nodes
+--   are drawn with shape=box.
+--
+-- * The current program node i.e. where we're at,
+--   is drawn with a thicker pen width around
+--   the shape, to make it visually easy to see
+--   where we are in the program.
+SELECT Get_Node_Attributes(_NodeID := 2);
+
+\ir soft/FUNCTIONS/get_dot.sql
+-- Returns a Graphviz DOT compatible file for the AST.
+SELECT Get_DOT(_Language := 'TestLanguage', _Program := 'AddTwoNumbers');
+
+-------------------------------------------------------------------------------
+-- TEST CREATION
+-------------------------------------------------------------------------------
+
+\ir soft/TABLES/tests.sql
+\ir soft/FUNCTIONS/new_test.sql
 -- New_Test() will create a SOURCE_CODE node with the _SourceCode
 -- and store the other input params in Tests,
 -- but it won't actually run the test. To do so, we will call
--- Run_Test() later when we're ready:
-
+-- Run_Test() later when we're ready.
 SELECT New_Test(
-    _Language      := 'foo',
-    _Program       := 'bar',
+    _Language      := 'TestLanguage',
+    _Program       := 'ShouldComputeToTen',
     _SourceCode    := '1 + 2 - - 3 * 4 - 15 / (2 + 1)',
     _ExpectedType  := 'integer',
     _ExpectedValue := '10'
 );
 
+-------------------------------------------------------------------------------
+-- PHASE: TOKENIZE
+-------------------------------------------------------------------------------
 
-
--- To reference some other node from a node,
--- use Set_Reference_Node(_ReferenceNodeID integer, _NodeID integer),
--- which will set Nodes.ReferenceNodeID to _ReferenceNodeID
--- for the input _NodeID.
+\ir TOKENIZE/ENTER_SOURCE_CODE.sql
+-- We're now finally ready to try out our tokenizer
+-- on the source code for the 'ShouldComputeToTen' test
+-- we just created. The SOURCE_CODE node created by New_Test()
+-- will have NodeID 6.
 --
--- This means that when someone wants to use _NodeID's value,
--- they will get the value of _ReferenceNodeID instead,
--- or its parent tree, if it's a multi-node tree object
--- such as a FUNCTION_DECLARATION:
+-- Normally, this phase is run by the tree walker,
+-- but to demonstrate it isolated from the rest,
+-- let's run it here manually:
+SELECT "TOKENIZE"."ENTER_SOURCE_CODE"(_NodeID := 6);
+-- This will create 29 new token Nodes from the 30 characters of source code,
+-- and Edges where the SOURCE_CODE node is the ParentNode
+-- and the created token Nodes are ChildrenNodes.
+SELECT * FROM View_Nodes;
+SELECT * FROM View_Edges;
 
-\ir soft/FUNCTIONS/set_reference_node.sql
+-------------------------------------------------------------------------------
+-- REFERENCING AND DEREFERENCING
+-------------------------------------------------------------------------------
 
--- To get the referenced node, use Dereference(_NodeID integer)
--- which will recursively Dereference(ReferenceNodeID)
--- until we get the final NodeID where Nodes.ReferenceNodeID IS NULL:
+-- A node can either have a PrimitiveType+PrimitiveValue OR reference
+-- some other node in which case ReferenceNodeID is set,
+-- but it CANNOT have both at the same time.
 
 \ir soft/FUNCTIONS/dereference.sql
+-- Recursively calls itself by following ReferenceNodeID
+-- until it finds the node where ReferenceNodeID IS NULL
+-- and returns the NodeID.
+\ir soft/FUNCTIONS/set_reference_node.sql
+-- Sets Nodes.ReferenceNodeID to _ReferenceNodeID for the _NodeID.
+SELECT New_Node(
+    _ProgramID  := (SELECT ProgramID  FROM Programs  WHERE Program  = 'AddTwoNumbers'),
+    _NodeTypeID := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'ADD')
+);
+SELECT * FROM View_Nodes;
+-- Create a new node with NodeID 36
+SELECT Set_Reference_Node(_ReferenceNodeID := 5, _NodeID := 36);
+-- Make this new node point to NodeID 5
+SELECT * FROM View_Nodes;
+-- As you can see, Node() now returns 'ADD2->ADD1' for NodeID 7.
+SELECT Dereference(_NodeID := 36); -- returns 5
 
--- Nodes can be cloned which recursively copies
--- the node and its parents, if any.
+-------------------------------------------------------------------------------
+-- VARIOUS HELPER FUNCTIONS
+-------------------------------------------------------------------------------
 
-\ir soft/FUNCTIONS/clone_node.sql
+-- Various helper-functions:
+\ir soft/FUNCTIONS/language.sql
+-- Returns all Languages-columns for a LanguageID:
+SELECT * FROM Language(_NodeID := 1);
 
-SELECT Clone_Node((SELECT NodeID FROM Nodes ORDER BY NodeID LIMIT 1));
+\ir soft/FUNCTIONS/phase.sql
+-- Returns the Phase name for a PhaseID
+SELECT Phase(_PhaseID := 1);
 
+\ir soft/FUNCTIONS/node_type.sql
+-- Returns the NodeType name for a NodeTypeID
+SELECT Node_Type(_NodeID := 1);
 
--- Some nodes only exist in the early compilation phases
--- and are killed when giving birth to abstract nodes
--- that only need the nodes containing primitive values
--- that can be computed.
--- For instance, the program '1 + 2' consist of three
--- nodes 'INTEGER PLUS INTEGER' after TOKENIZE,
--- but during PARSE, 'PLUS' will die, and
--- a new 'ADD' node will be born, with Edges pointing
--- to the two 'INTEGER' nodes.
+\ir soft/FUNCTIONS/primitive_type.sql
+-- Returns the PrimitiveType for a node
+SELECT Primitive_Type(_NodeID := 2);
+
+\ir soft/FUNCTIONS/primitive_value.sql
+-- Returns the PrimitiveValue for a node
+-- If the node references a node,
+-- the value for the referenced node is returned.
+SELECT Primitive_Value(_NodeID := 2);
+
+-------------------------------------------------------------------------------
+-- CLONING OF NODES
+-------------------------------------------------------------------------------
+
+-- To clone a node means creating new Nodes with the same PrimitiveValues
+-- and the same NodeTypes, for the node and all its parents, and all
+-- it's parents parents, etc, recursively.
 --
--- To keep track of exactly when Nodes and Edges have been
--- killed, we don't actually DELETE them, but instead
--- set their DeathPhaseID and DeathTime columns,
--- which tells during what phase they were killed
--- and at what clock_timestamp().
+-- We keep track of what EdgeIDs we have visited to break out from
+-- possible cycles in the graph.
+\ir soft/FUNCTIONS/clone_node.sql
+-- Let's clone the ADD node:
+SELECT Clone_Node(_NodeID := 5);
+SELECT * FROM View_Nodes;
+SELECT * FROM View_Edges;
+-- As you can see, the original ADD node and its two parent INTEGER nodes,
+-- have now been cloned, and you can see the ClonedFromNode and ClonedRootNode
+-- to see where they originate from.
+
+-------------------------------------------------------------------------------
+-- KILLING OF NODES
+-------------------------------------------------------------------------------
+
+-- During different compilation phases, nodes that are not necessary anymore
+-- are removed, to simplify the graph. For instance, the PLUS node generated
+-- for the plus character '+' in the program '1 + 2' can be removed once
+-- the abstract ADD node with its edges have been created.
+
+-- Before a node can be killed, all its edges must be killed first.
 
 \ir soft/FUNCTIONS/kill_edge.sql
+SELECT Kill_Edge(_EdgeID := 3);
+SELECT * FROM View_Edges;
+
 \ir soft/FUNCTIONS/kill_node.sql
-
--- Kill_Clone() kills all the Nodes and Edges
--- for a cloned copy of a node, which could
--- be just a single node, or a sub-tree.
-
-\ir soft/FUNCTIONS/kill_clone.sql
-
--- Copy value from one node to some other node:
-\ir soft/FUNCTIONS/copy_node.sql
-
--- Returns PrimitiveType/PrimitiveValue for node:
-\ir soft/FUNCTIONS/primitive_type.sql
-\ir soft/FUNCTIONS/primitive_value.sql
-
--- Test copy value from first node (integer 30) to second (integer 70):
-SELECT Copy_Node(
-    _FromNodeID := (SELECT NodeID FROM Nodes ORDER BY NodeID LIMIT 1 OFFSET 1),
-    _ToNodeID   := (SELECT NodeID FROM Nodes ORDER BY NodeID LIMIT 1 OFFSET 2)
-);
-
--- Kill the clone we created earlier:
-SELECT Kill_Clone(NodeID) FROM Nodes WHERE ClonedFromNodeID IS NOT NULL AND ClonedRootNodeID IS NULL;
-
+SELECT Kill_Node(_NodeID := 36);
 SELECT * FROM View_Nodes;
 
--- Parser helper-functions:
-\ir soft/FUNCTIONS/expand_token_groups.sql
-\ir soft/FUNCTIONS/get_capturing_group.sql
-\ir soft/FUNCTIONS/precedence.sql
+\ir soft/FUNCTIONS/kill_clone.sql
+SELECT Kill_Clone(_ClonedRootNodeID := 37);
+-- This results in killing NodeID 37 and all its parent Nodes and Edges
+SELECT * FROM View_Nodes;
+SELECT * FROM View_Edges;
 
--- Graphviz DOT generation:
-\ir soft/FUNCTIONS/get_dot.sql
-\ir soft/FUNCTIONS/get_node_attributes.sql
-\ir soft/FUNCTIONS/get_node_color.sql
+-------------------------------------------------------------------------------
+-- COPYING OF NODES
+-------------------------------------------------------------------------------
+
+\ir soft/FUNCTIONS/copy_node.sql
+-- Copy value from one node to another node,
+-- by making a clone of the FromNodeID
+-- and then changing all Edges pointing to/from the ToNodeID
+-- to instead point to/from the new cloned node,
+-- and then finally killing the ToNodeID.
+SELECT Copy_Node(
+    _FromNodeID := 2,
+    _ToNodeID   := 4
+);
+-- Copies the INTEGER node with value 30 to the one with 70
+SELECT * FROM View_Nodes;
+
+-------------------------------------------------------------------------------
+-- TREE WALKER
+-------------------------------------------------------------------------------
+
+-- The AST once parsed will strictly speaking not be a tree any longer,
+-- but let's stick to the term "tree walker" since "graph walker" is
+-- according to Google an unfamiliar used term.
+-- 
+-- Walking the tree starts with calling Enter_Node() with the NodeID
+-- where the program should start executing, normally the PROGRAM node,
+-- which is the only node with no children for a program, i.e. it is the
+-- last node created after having completely parsed the program.
+--
+
+/*
+
+-------------------------------------------------------------------------------
+-- PHASE: DISCARD
+-------------------------------------------------------------------------------
+\ir DISCARD/ENTER_WHITE_SPACE.sql
+-- Normally, this step runs by the tree walker via Run_Test(),
+-- but to demonstrate it isolated from the rest,
+-- let's run it here manually for all WHITE_SPACE nodes:
+UPDATE Programs SET PhaseID = (SELECT PhaseID FROM Phases WHERE Phase = 'DISCARD')
+WHERE Program = 'ShouldComputeToTen';
+
+SELECT "DISCARD"."ENTER_WHITE_SPACE"(_NodeID := NodeID)
+FROM View_Nodes
+WHERE Program  = 'ShouldComputeToTen'
+AND   NodeType = 'WHITE_SPACE';
+
+-- This will create 29 new token nodes from the 30 characters of source code
+
+"."ENTER_WHITE_SPACE"
+
+-------------------------------------------------------------------------------
+-- PHASE: PARSE
+-------------------------------------------------------------------------------
+
+-- We're now finally ready to parse the token nodes generated by the tokenizer
+-- during the TOKENIZE phase.
+
+-- Below are some helper-functions used by PARSE.ENTER_SOURCE_CODE():
+
+\ir soft/FUNCTIONS/expand_token_groups.sql
+-- This expands NodeGroups and appends '\d+' to each NodeType also '[A-Z_]+'
+-- which is the regex pattern to signify "any node type".
+SELECT Expand_Token_Groups(
+    _NodePattern := NodeTypes.NodePattern,
+    _LanguageID  := Languages.LanguageID
+)
+FROM NodeTypes
+INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
+WHERE Languages.Language = 'TestLanguage'
+AND NodeTypes.NodePattern IS NOT NULL;
+
+\ir soft/FUNCTIONS/get_capturing_group.sql
+-- Returns what the single capture group matches,
+-- and checks there is exactly one capture group.
+-- If strict, then the pattern must match at exactly one place.
+-- If non strict, the pattern is allowed to match at multiple places,
+-- and if so, the first is returned.
+SELECT Get_Capturing_Group(
+    _String  := 'FOO1 BAR2 BAZ3',
+    _Pattern := 'FOO\d+ (BAR\d+) BAZ\d+',
+    _Strict  := TRUE
+);
+
+SELECT Get_Capturing_Group(
+    _String  := 'FOO1 BAR2 BAZ3 FOO4 BAR5 BAZ6',
+    _Pattern := 'FOO\d+ (BAR\d+) BAZ\d+',
+    _Strict  := FALSE
+);
+
+\ir soft/FUNCTIONS/precedence.sql
+-- Returns the precedence for the node type.
+SELECT NodeTypeID, Precedence(NodeTypeID), NodeType FROM NodeTypes ORDER BY NodeTypeID;
+
+\ir soft/FUNCTIONS/set_program_node.sql
+-- Set's the program's current node.
+-- The ProgramID is resolved from the NodeID.
+SELECT Set_Program_Node(_NodeID := 1);
+
+\ir PARSE/ENTER_SOURCE_CODE.sql
+-- Normally, this step runs by the tree walker via Run_Test(),
+-- but to demonstrate it isolated from the rest,
+-- let's run it here manually:
+UPDATE Programs SET PhaseID = (SELECT PhaseID FROM Phases WHERE Phase = 'PARSE')
+WHERE Program = 'ShouldComputeToTen';
+
+SELECT "PARSE"."ENTER_SOURCE_CODE"(_NodeID := 6);
+-- This will create 29 new token nodes from the 30 characters of source code
+
+
 
 -- Tree searching:
 \ir soft/FUNCTIONS/find_node.sql
@@ -779,7 +1032,6 @@ SELECT * FROM View_Nodes;
 \ir soft/FUNCTIONS/next_node.sql
 \ir soft/FUNCTIONS/get_program_node.sql
 \ir soft/FUNCTIONS/run.sql
-\ir soft/FUNCTIONS/set_program_node.sql
 \ir soft/FUNCTIONS/descend.sql
 \ir soft/FUNCTIONS/set_walkable.sql
 
@@ -791,8 +1043,6 @@ SELECT * FROM View_Nodes;
 
 -- Validation functions:
 \ir soft/FUNCTIONS/valid_node_pattern.sql
-
-\ir soft/VIEWS/export_node_types.sql
 
 -- SEMANTIC SUPPORT:
 --
@@ -821,8 +1071,6 @@ SELECT * FROM View_Nodes;
 -- The TOKENIZE phase creates new token Nodes by matching the
 -- SOURCE_CODE node's PrimitiveValue text, i.e. the source code,
 -- against all literal NodeTypes Literal or LiteralPattern.
-
-\ir TOKENIZE/ENTER_SOURCE_CODE.sql
 
 -- The DISCARD phase eliminates white space nodes.
 -- If white space matters in a language,
@@ -903,4 +1151,6 @@ SELECT * FROM View_Nodes;
 \ir BUILT_IN_FUNCTIONS/PUTS.sql
 \ir BUILT_IN_FUNCTIONS/REST.sql
 
-SELECT Run_Test('foo','bar','DEBUG5');
+SELECT Run_Test('TestLanguage','bar','DEBUG5');
+
+*/

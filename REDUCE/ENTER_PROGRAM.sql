@@ -39,7 +39,7 @@ AND NodeTypes.NodeType = 'PROGRAM';
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG1',
-    _Message  := format('Reducing tree by killing unnecessary valueless middle-men nodes')
+    _Message  := format('Reducing graph by killing unnecessary valueless middle-men nodes')
 );
 
 _Killed := 0;

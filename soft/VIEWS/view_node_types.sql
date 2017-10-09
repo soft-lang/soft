@@ -1,4 +1,4 @@
-CREATE VIEW Export_Node_Types AS
+CREATE VIEW View_Node_Types AS
 SELECT
 Languages.Language,
 NodeTypes.NodeType,

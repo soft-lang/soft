@@ -7,7 +7,6 @@ _NodeID       integer;
 _PhaseID      integer;
 _LanguageID   integer;
 _Direction    direction;
-
 _NextPhaseID  integer;
 _NextNodeID   integer;
 _ChildNodeID  integer;

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Get_Env(_NodeID integer)
+CREATE OR REPLACE FUNCTION Get_Node_Lexical_Environment(_NodeID integer)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$

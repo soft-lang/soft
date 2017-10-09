@@ -69,7 +69,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 \ir soft/FUNCTIONS/get_dot.sql
 \ir soft/FUNCTIONS/get_node_attributes.sql
 \ir soft/FUNCTIONS/get_node_color.sql
-\ir soft/FUNCTIONS/get_env.sql
+\ir soft/FUNCTIONS/get_node_lexical_environment.sql
 
 -- Tree searching:
 \ir soft/FUNCTIONS/find_node.sql

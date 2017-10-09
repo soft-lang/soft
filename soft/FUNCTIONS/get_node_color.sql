@@ -9,7 +9,7 @@ _ColorScheme text    := 'set312';
 _NumColors   integer := 12;
 BEGIN
 
-_Env := Get_Env(_NodeID);
+_Env := Get_Node_Lexical_Environment(_NodeID);
 
 IF _Env < _NumColors THEN
     _Fillcolor := format('/%s/%s', _ColorScheme, _Env+1);

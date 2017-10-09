@@ -1,8 +1,10 @@
 CREATE VIEW View_Nodes AS
 SELECT
+Nodes.NodeID,
 Node(Nodes.NodeID),
-Get_Env(Nodes.NodeID) AS Environment,
+Get_Node_Lexical_Environment(Nodes.NodeID) AS Environment,
 Programs.Program,
+Languages.Language,
 NodeTypes.NodeType,
 Nodes.Walkable,
 Birth.Phase AS BirthPhase,
