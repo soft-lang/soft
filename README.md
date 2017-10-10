@@ -220,7 +220,7 @@ simple arithmetic expressions using `+ - / * ( )`
 
 Note that the NodeTypes for the various arithmetic tokens
 don't have any explicit precedence, but their arithmetic *operators* do,
-i.e. the `ADD` operator have it, but not the `PLUS` token.
+i.e. the `ADD` operator has it, but not the `PLUS` token.
 
 ## GRAMMAR
 
@@ -271,10 +271,9 @@ SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'LPAREN', _Litera
 SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'RPAREN', _Literal := ')');
 ```
 
-These tokens are used to explicitly tell we want a `SUB_EXPRESSION` to be executed first,
-before executing the main expression.
-These are not part of the same NodeGroup, as we don't want them to match a normal `EXPRESSION`,
-but only a `SUB_EXPRESSION`.
+These tokens are not part of the NodeGroup `OPS` as we don't want them to match
+normal expressions, as they are used by `SUB_EXPRESSION` to match on the left and right
+side of the tokens possible inside a normal `EXPRESSION`.
 
 ```sql
 SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'WHITE_SPACE', _LiteralPattern := '(\s+)');
@@ -291,7 +290,7 @@ so let's explain it before moving on:
 * The text captured is stored as the `Nodes.PrimitiveValue`.
 
 If our test language would have support for double-quotes text string, which it don't,
-the `LiteralPattern` would be: `((?:[^"\\]|\\.)*)`
+the `LiteralPattern` would be: `"((?:[^"\\]|\\.)*)"`
 This would make the double-quotes (") to *NOT* be included in the `PrimitiveValue`,
 since the capture group captures whatever is in between the double-quotes.
 
