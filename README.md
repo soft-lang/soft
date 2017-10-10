@@ -551,7 +551,7 @@ e.g. if the program is `1 - 2 + 3`, then `2 + 3` would match
 first, if we wouldn't specify any precedence, since `ADD`
 was defined before `SUBTRACT`.
 
-But, since they *do* have the same precedence `SUM`.
+But, since they *do* have the same precedence `SUM`,
 `1 - 2` will match `SUBTRACT` first since it has the
 same precedence as `ADD` and if multiple NodePatterns
 matches with the same precedence, then the *left-most*
