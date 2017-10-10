@@ -227,7 +227,7 @@ whereas the parser uses `NodeTypes` where `NodePattern` is defined.
 
 ### NodeTypes used by TOKENIZE
 
-The tokenizer creates a new `Node` where `PrimitiveValue` is set to the matching text.
+The tokenizer create new `Nodes` where `PrimitiveValue` is set to the matching text.
 The tokenizer begins matching at the first character in the source code,
 and tries to match the longest `Literal` first, and then if there is no match
 it tries to find a matching `LiteralPattern` instead.
@@ -238,7 +238,7 @@ SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'SOURCE_CODE', _P
 ```
 
 The node containing the source code of the program stored as text
-in Nodes.PrimitiveValue.
+in `Nodes.PrimitiveValue`.
 
 ```sql
 SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'ALLOCA', _PrimitiveType := 'void'::regtype);
@@ -316,25 +316,23 @@ SELECT New_Node_Type(
 );
 ```
 
-Finally, if we are still parsing source code
+If we are still tokenizing remaining source code
 and no `Literal` or `LitteralPattern` matches
 then we have found an illegal character
 which in our language is an `ERROR`,
-but you can imagine some other language
-where illegal characters only leads to a `WARNING`.
-
-We're done defining NodeTypes for tokens,
-i.e. those that have `Literal` or `LiteralPattern`.
+but in other languages illegal characters
+might only cause a `WARNING` or some other severity.
 
 ## NodeTypes used by PARSE
 
-Next up is NodePatterns, that define what-is-what on
-an abstract level. These nodes don't have a literal
-presence in the source code, but only exist on an
-abstract level in the Abstract Syntax Tree that
-the parser will generate by creating new Nodes
-and inserting rows to Edges, based on the NodePatterns
-we define.
+NodePatterns define what-is-what on an abstract level,
+and might be self referring.
+These nodes don't have a literal
+presence in the source code, and only exist on an
+abstract level in the Abstract Syntax Tree (AST).
+The parser generates new `Nodes` and inserts `Edges`
+to the existing `Nodes` which matched the `NodePattern`
+defined for the language.
 
 The parser code is in `PARSE/ENTER_SOURCE_CODE.sql`
 
