@@ -2,28 +2,6 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := 'monkey',
-    _Program       := 'fibonacci',
-    _SourceCode    := $$
-        let fibonacci = fn(x) {
-            if (x == 0) {
-                0
-            } else if (x == 1) {
-                1
-            } else {
-                fibonacci(x - 1) + fibonacci(x - 2)
-            }
-        };
-        fibonacci(2);
-    $$,
-    _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '1',
-    _LogSeverity   := 'DEBUG5'
-);
-
-/*
-
-SELECT New_Test(
-    _Language      := 'monkey',
     _Program       := 'evaluator_test.go:TestEvalIntegerExpression:'||N,
     _SourceCode    := TestEvalIntegerExpression.T[N][1],
     _ExpectedType  := 'integer',
@@ -532,5 +510,3 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '120'
 );
-
-*/

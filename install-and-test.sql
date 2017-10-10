@@ -540,7 +540,7 @@ SELECT New_Program(
 
 ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 -- Each program has a current NodeID where we're currently at.
--- This is aka as the "program counter" or "PC".
+-- This is aka as the Program Counter (PC).
 
 -- NodeID 2
 SELECT New_Node(
@@ -783,25 +783,6 @@ SELECT One_Line($$1
 3$$);
 
 -------------------------------------------------------------------------------
-\echo TEST CREATION
--------------------------------------------------------------------------------
-
-\ir soft/TABLES/tests.sql
-\ir soft/FUNCTIONS/new_test.sql
--- New_Test() will create a SOURCE_CODE node with the _SourceCode
--- and store the other input params in Tests,
--- but it won't actually run the test. To do so, we will call
--- Run_Test() later when we're ready.
-SELECT New_Test(
-    _Language      := 'TestLanguage',
-    _Program       := 'ShouldComputeToTen',
-    _SourceCode    := '1 + 2 - - 3 * 4 - 15 / (2 + 1)',
-    _ExpectedType  := 'integer',
-    _ExpectedValue := '10',
-    _LogSeverity   := 'DEBUG5'
-);
-
--------------------------------------------------------------------------------
 \echo REFERENCING AND DEREFERENCING
 -------------------------------------------------------------------------------
 
@@ -822,10 +803,10 @@ SELECT New_Node(
 -- Create a new node
 SELECT * FROM View_Nodes;
 -- Make this new node point to NodeID 5
-SELECT Set_Reference_Node(_ReferenceNodeID := 5, _NodeID := 7);
+SELECT Set_Reference_Node(_ReferenceNodeID := 5, _NodeID := 6);
 SELECT * FROM View_Nodes;
 -- As you can see, Node() now returns 'ADD2->ADD1'
-SELECT Dereference(_NodeID := 7);
+SELECT Dereference(_NodeID := 6);
 
 -------------------------------------------------------------------------------
 \echo VARIOUS HELPER FUNCTIONS
@@ -889,11 +870,11 @@ SELECT Kill_Edge(_EdgeID := 3);
 SELECT * FROM View_Edges;
 
 \ir soft/FUNCTIONS/kill_node.sql
-SELECT Kill_Node(_NodeID := 7);
+SELECT Kill_Node(_NodeID := 6);
 SELECT * FROM View_Nodes;
 
 \ir soft/FUNCTIONS/kill_clone.sql
-SELECT Kill_Clone(_ClonedRootNodeID := 8);
+SELECT Kill_Clone(_ClonedRootNodeID := 7);
 -- This results in killing the cloned node and all its parent Nodes and Edges
 SELECT * FROM View_Nodes;
 SELECT * FROM View_Edges;
@@ -1042,13 +1023,12 @@ SELECT Set_Program_Node(_NodeID := 1);
 -- Tree modifying:
 \ir soft/FUNCTIONS/set_edge_parent.sql
 
--- Run test:
-\ir soft/FUNCTIONS/run_test.sql
-
 -- Validation functions:
 \ir soft/FUNCTIONS/valid_node_pattern.sql
 
--- SEMANTIC SUPPORT:
+-------------------------------------------------------------------------------
+\echo SEMANTIC SUPPORT
+-------------------------------------------------------------------------------
 --
 -- All directories and functions from here on have names in ALL CAPS
 -- to visually distinguish them from the core functionality above. 
@@ -1072,6 +1052,10 @@ SELECT Set_Program_Node(_NodeID := 1);
 -- once when entering the node, and once when leaving the node,
 -- i.e. when descending.
 
+-------------------------------------------------------------------------------
+\echo TOKENIZE
+-------------------------------------------------------------------------------
+
 \ir TOKENIZE/ENTER_SOURCE_CODE.sql
 
 -- The TOKENIZE phase creates new token Nodes by matching the
@@ -1081,6 +1065,10 @@ SELECT Set_Program_Node(_NodeID := 1);
 -- The DISCARD phase eliminates white space nodes.
 -- If white space matters in a language,
 -- this phase is simply skipped.
+
+-------------------------------------------------------------------------------
+\echo DISCARD
+-------------------------------------------------------------------------------
 
 \ir DISCARD/ENTER_WHITE_SPACE.sql
 
@@ -1094,11 +1082,19 @@ SELECT Set_Program_Node(_NodeID := 1);
 -- of the same Precedence match, then the
 -- left most match is selected.
 
+-------------------------------------------------------------------------------
+\echo PARSE
+-------------------------------------------------------------------------------
+
 \ir PARSE/ENTER_SOURCE_CODE.sql
 
 -- The REDUCE phase shrinks the AST by eliminating
 -- unnecessary middle-men nodes that have exactly
 -- one parent and one child.
+
+-------------------------------------------------------------------------------
+\echo REDUCE
+-------------------------------------------------------------------------------
 
 \ir REDUCE/ENTER_PROGRAM.sql
 
@@ -1108,11 +1104,11 @@ SELECT Set_Program_Node(_NodeID := 1);
 -- node and replacing it with a new Edge
 -- to the VARIABLE.
 
-\ir MAP_VARIABLES/ENTER_ALLOCA.sql
-\ir MAP_VARIABLES/ENTER_BOOLEAN.sql
+-------------------------------------------------------------------------------
+\echo MAP_VARIABLES
+-------------------------------------------------------------------------------
+
 \ir MAP_VARIABLES/ENTER_IDENTIFIER.sql
-\ir MAP_VARIABLES/ENTER_INTEGER.sql
-\ir MAP_VARIABLES/ENTER_TEXT.sql
 \ir MAP_VARIABLES/LEAVE_FUNCTION_DECLARATION.sql
 \ir MAP_VARIABLES/LEAVE_IF_EXPRESSION.sql
 \ir MAP_VARIABLES/LEAVE_IF_STATEMENT.sql
@@ -1121,6 +1117,10 @@ SELECT Set_Program_Node(_NodeID := 1);
 
 -- The EVAL phase computes the values
 -- for nodes when they are visited.
+
+-------------------------------------------------------------------------------
+\echo EVAL
+-------------------------------------------------------------------------------
 
 \ir EVAL/ADD.sql
 \ir EVAL/DIVIDE.sql
@@ -1150,6 +1150,10 @@ SELECT Set_Program_Node(_NodeID := 1);
 -- The BUILT_IN_FUNCTIONS phase contains
 -- functionality that is built-in to languages.
 
+-------------------------------------------------------------------------------
+\echo BUILT_IN_FUNCTIONS
+-------------------------------------------------------------------------------
+
 \ir BUILT_IN_FUNCTIONS/FIRST.sql
 \ir BUILT_IN_FUNCTIONS/LAST.sql
 \ir BUILT_IN_FUNCTIONS/LENGTH.sql
@@ -1157,6 +1161,26 @@ SELECT Set_Program_Node(_NodeID := 1);
 \ir BUILT_IN_FUNCTIONS/PUTS.sql
 \ir BUILT_IN_FUNCTIONS/REST.sql
 
+-------------------------------------------------------------------------------
+\echo TESTING
+-------------------------------------------------------------------------------
+
+\ir soft/TABLES/tests.sql
+\ir soft/FUNCTIONS/new_test.sql
+-- New_Test() will create a SOURCE_CODE node with the _SourceCode
+-- and store the other input params in Tests,
+-- but it won't actually run the test.
+SELECT New_Test(
+    _Language      := 'TestLanguage',
+    _Program       := 'ShouldComputeToTen',
+    _SourceCode    := '1 + 2 - - 3 * 4 - 15 / (2 + 1)',
+    _ExpectedType  := 'integer',
+    _ExpectedValue := '10',
+    _LogSeverity   := 'DEBUG5'
+);
+
+\ir soft/FUNCTIONS/run_test.sql
+-- Runs a test created by New_Test()
 SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
 
 -- Clean-up all test data written by tests
