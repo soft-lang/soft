@@ -340,7 +340,7 @@ The parser code is in `PARSE/ENTER_SOURCE_CODE.sql`
 
 How the parser works is out of scope for this install-and-test
 document, but we need to at least say something about it
-to explain the NodePatterns concept.
+to explain the `NodePattern` concept.
 
 The first thing the parser does is to generate a text
 string representing the entire program as a sequence
