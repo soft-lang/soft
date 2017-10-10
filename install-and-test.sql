@@ -44,7 +44,7 @@ DROP SCHEMA IF EXISTS "BUILT_IN_FUNCTIONS" CASCADE;
 CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 
 -------------------------------------------------------------------------------
--- TYPES
+\echo TYPES
 -------------------------------------------------------------------------------
 
 \ir soft/TYPES/severity.sql
@@ -67,7 +67,7 @@ CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 -- AGAIN, DONE
 
 -------------------------------------------------------------------------------
--- LANGUAGES
+\echo LANGUAGES
 -------------------------------------------------------------------------------
 
 \ir soft/TABLES/languages.sql
@@ -88,7 +88,7 @@ SELECT New_Language(
 SELECT * FROM Languages;
 
 -------------------------------------------------------------------------------
--- BUILT-IN FUNCTIONS
+\echo BUILT-IN FUNCTIONS
 -------------------------------------------------------------------------------
 
 \ir soft/TABLES/builtinfunctions.sql
@@ -126,7 +126,7 @@ SELECT New_Built_In_Function(
 );
 
 -------------------------------------------------------------------------------
--- PHASES
+\echo PHASES
 -------------------------------------------------------------------------------
 
 \ir soft/TABLES/phases.sql
@@ -147,7 +147,7 @@ SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'MAP_VARIABLES');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL');
 
 -------------------------------------------------------------------------------
--- NODE TYPES
+\echo NODE TYPES
 -------------------------------------------------------------------------------
 
 \ir soft/TABLES/nodetypes.sql
@@ -179,7 +179,7 @@ SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL');
 -- i.e. the "ADD" operator have it, but not the "PLUS" token.
 
 -------------------------------------------------------------------------------
--- GRAMMAR: TOKENIZE NODE TYPES
+\echo GRAMMAR: TOKENIZE NODE TYPES
 -------------------------------------------------------------------------------
 
 -- The tokenizer uses NodeTypes where Literal or LiteralPattern is defined.
@@ -260,7 +260,7 @@ SELECT New_Node_Type(
 -- i.e. those that have _Literal or _LiteralPattern.
 
 -------------------------------------------------------------------------------
--- GRAMMAR: PARSE NODE TYPES
+\echo GRAMMAR: PARSE NODE TYPES
 -------------------------------------------------------------------------------
 
 -- Next up is NodePatterns, that define what-is-what on
@@ -523,7 +523,7 @@ SELECT New_Program(
 -- and uses New_Test()/Run_Test() to also run the program.
 
 -------------------------------------------------------------------------------
--- ABSTRACT SYNTAX TREE DATA MODEL
+\echo ABSTRACT SYNTAX TREE DATA MODEL
 -------------------------------------------------------------------------------
 
 \ir soft/TABLES/nodes.sql
@@ -617,7 +617,7 @@ SELECT New_Edge(
 --  \-> ADD <-/
 
 -------------------------------------------------------------------------------
--- LOGGING AND DEBUGGING
+\echo LOGGING AND DEBUGGING
 -------------------------------------------------------------------------------
 
 \ir soft/TABLES/ansiescapecodes.sql
@@ -694,7 +694,7 @@ SELECT One_Line($$1
 3$$);
 
 -------------------------------------------------------------------------------
--- GRAPHVIZ DOT GENERATION OF THE ABSTRACT SYNTAX TREE
+\echo GRAPHVIZ DOT GENERATION OF THE ABSTRACT SYNTAX TREE
 -------------------------------------------------------------------------------
 
 \ir soft/FUNCTIONS/node.sql
@@ -770,7 +770,7 @@ SELECT Get_Node_Attributes(_NodeID := 2);
 SELECT Get_DOT(_Language := 'TestLanguage', _Program := 'AddTwoNumbers');
 
 -------------------------------------------------------------------------------
--- TEST CREATION
+\echo TEST CREATION
 -------------------------------------------------------------------------------
 
 \ir soft/TABLES/tests.sql
@@ -788,27 +788,7 @@ SELECT New_Test(
 );
 
 -------------------------------------------------------------------------------
--- PHASE: TOKENIZE
--------------------------------------------------------------------------------
-
-\ir TOKENIZE/ENTER_SOURCE_CODE.sql
--- We're now finally ready to try out our tokenizer
--- on the source code for the 'ShouldComputeToTen' test
--- we just created. The SOURCE_CODE node created by New_Test()
--- will have NodeID 6.
---
--- Normally, this phase is run by the tree walker,
--- but to demonstrate it isolated from the rest,
--- let's run it here manually:
-SELECT "TOKENIZE"."ENTER_SOURCE_CODE"(_NodeID := 6);
--- This will create 29 new token Nodes from the 30 characters of source code,
--- and Edges where the SOURCE_CODE node is the ParentNode
--- and the created token Nodes are ChildrenNodes.
-SELECT * FROM View_Nodes;
-SELECT * FROM View_Edges;
-
--------------------------------------------------------------------------------
--- REFERENCING AND DEREFERENCING
+\echo REFERENCING AND DEREFERENCING
 -------------------------------------------------------------------------------
 
 -- A node can either have a PrimitiveType+PrimitiveValue OR reference
@@ -825,16 +805,16 @@ SELECT New_Node(
     _ProgramID  := (SELECT ProgramID  FROM Programs  WHERE Program  = 'AddTwoNumbers'),
     _NodeTypeID := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'ADD')
 );
+-- Create a new node
 SELECT * FROM View_Nodes;
--- Create a new node with NodeID 36
-SELECT Set_Reference_Node(_ReferenceNodeID := 5, _NodeID := 36);
 -- Make this new node point to NodeID 5
+SELECT Set_Reference_Node(_ReferenceNodeID := 5, _NodeID := 7);
 SELECT * FROM View_Nodes;
--- As you can see, Node() now returns 'ADD2->ADD1' for NodeID 7.
-SELECT Dereference(_NodeID := 36); -- returns 5
+-- As you can see, Node() now returns 'ADD2->ADD1'
+SELECT Dereference(_NodeID := 7);
 
 -------------------------------------------------------------------------------
--- VARIOUS HELPER FUNCTIONS
+\echo VARIOUS HELPER FUNCTIONS
 -------------------------------------------------------------------------------
 
 -- Various helper-functions:
@@ -861,7 +841,7 @@ SELECT Primitive_Type(_NodeID := 2);
 SELECT Primitive_Value(_NodeID := 2);
 
 -------------------------------------------------------------------------------
--- CLONING OF NODES
+\echo CLONING OF NODES
 -------------------------------------------------------------------------------
 
 -- To clone a node means creating new Nodes with the same PrimitiveValues
@@ -880,7 +860,7 @@ SELECT * FROM View_Edges;
 -- to see where they originate from.
 
 -------------------------------------------------------------------------------
--- KILLING OF NODES
+\echo KILLING OF NODES
 -------------------------------------------------------------------------------
 
 -- During different compilation phases, nodes that are not necessary anymore
@@ -895,17 +875,17 @@ SELECT Kill_Edge(_EdgeID := 3);
 SELECT * FROM View_Edges;
 
 \ir soft/FUNCTIONS/kill_node.sql
-SELECT Kill_Node(_NodeID := 36);
+SELECT Kill_Node(_NodeID := 7);
 SELECT * FROM View_Nodes;
 
 \ir soft/FUNCTIONS/kill_clone.sql
-SELECT Kill_Clone(_ClonedRootNodeID := 37);
--- This results in killing NodeID 37 and all its parent Nodes and Edges
+SELECT Kill_Clone(_ClonedRootNodeID := 8);
+-- This results in killing the cloned node and all its parent Nodes and Edges
 SELECT * FROM View_Nodes;
 SELECT * FROM View_Edges;
 
 -------------------------------------------------------------------------------
--- COPYING OF NODES
+\echo COPYING OF NODES
 -------------------------------------------------------------------------------
 
 \ir soft/FUNCTIONS/copy_node.sql
@@ -922,7 +902,7 @@ SELECT Copy_Node(
 SELECT * FROM View_Nodes;
 
 -------------------------------------------------------------------------------
--- TREE WALKER
+\echo TREE WALKER
 -------------------------------------------------------------------------------
 
 -- The AST once parsed will strictly speaking not be a tree any longer,
@@ -933,28 +913,43 @@ SELECT * FROM View_Nodes;
 -- where the program should start executing, normally the PROGRAM node,
 -- which is the only node with no children for a program, i.e. it is the
 -- last node created after having completely parsed the program.
---
 
-/*
+-------------------------------------------------------------------------------
+-- PHASE: TOKENIZE
+-------------------------------------------------------------------------------
+
+-- We're now finally ready to try out our tokenizer
+-- on the source code for the 'ShouldComputeToTen' test
+-- we just created. The SOURCE_CODE node created by New_Test()
+-- will have NodeID 6.
+--
+-- Normally, this phase is run by the tree walker,
+-- but to demonstrate it isolated from the rest,
+-- let's run it here manually:
+-- SELECT "TOKENIZE"."ENTER_SOURCE_CODE"(_NodeID := 6);
+-- This will create 29 new token Nodes from the 30 characters of source code,
+-- and Edges where the SOURCE_CODE node is the ParentNode
+-- and the created token Nodes are ChildrenNodes.
+-- SELECT * FROM View_Nodes;
+-- SELECT * FROM View_Edges;
+
 
 -------------------------------------------------------------------------------
 -- PHASE: DISCARD
 -------------------------------------------------------------------------------
-\ir DISCARD/ENTER_WHITE_SPACE.sql
+-- \ir DISCARD/ENTER_WHITE_SPACE.sql
 -- Normally, this step runs by the tree walker via Run_Test(),
 -- but to demonstrate it isolated from the rest,
 -- let's run it here manually for all WHITE_SPACE nodes:
-UPDATE Programs SET PhaseID = (SELECT PhaseID FROM Phases WHERE Phase = 'DISCARD')
-WHERE Program = 'ShouldComputeToTen';
+-- UPDATE Programs SET PhaseID = (SELECT PhaseID FROM Phases WHERE Phase = 'DISCARD')
+-- WHERE Program = 'ShouldComputeToTen';
 
-SELECT "DISCARD"."ENTER_WHITE_SPACE"(_NodeID := NodeID)
-FROM View_Nodes
-WHERE Program  = 'ShouldComputeToTen'
-AND   NodeType = 'WHITE_SPACE';
+-- SELECT "DISCARD"."ENTER_WHITE_SPACE"(_NodeID := NodeID)
+-- FROM View_Nodes
+-- WHERE Program  = 'ShouldComputeToTen'
+-- AND   NodeType = 'WHITE_SPACE';
 
 -- This will create 29 new token nodes from the 30 characters of source code
-
-"."ENTER_WHITE_SPACE"
 
 -------------------------------------------------------------------------------
 -- PHASE: PARSE
@@ -1004,17 +999,12 @@ SELECT NodeTypeID, Precedence(NodeTypeID), NodeType FROM NodeTypes ORDER BY Node
 -- The ProgramID is resolved from the NodeID.
 SELECT Set_Program_Node(_NodeID := 1);
 
-\ir PARSE/ENTER_SOURCE_CODE.sql
+-- \ir PARSE/ENTER_SOURCE_CODE.sql
 -- Normally, this step runs by the tree walker via Run_Test(),
 -- but to demonstrate it isolated from the rest,
 -- let's run it here manually:
-UPDATE Programs SET PhaseID = (SELECT PhaseID FROM Phases WHERE Phase = 'PARSE')
-WHERE Program = 'ShouldComputeToTen';
-
-SELECT "PARSE"."ENTER_SOURCE_CODE"(_NodeID := 6);
--- This will create 29 new token nodes from the 30 characters of source code
-
-
+-- UPDATE Programs SET PhaseID = (SELECT PhaseID FROM Phases WHERE Phase = 'PARSE')
+-- WHERE Program = 'ShouldComputeToTen';
 
 -- Tree searching:
 \ir soft/FUNCTIONS/find_node.sql
@@ -1067,6 +1057,8 @@ SELECT "PARSE"."ENTER_SOURCE_CODE"(_NodeID := 6);
 -- Each Walkable node is visited exactly two times,
 -- once when entering the node, and once when leaving the node,
 -- i.e. when descending.
+
+\ir TOKENIZE/ENTER_SOURCE_CODE.sql
 
 -- The TOKENIZE phase creates new token Nodes by matching the
 -- SOURCE_CODE node's PrimitiveValue text, i.e. the source code,
@@ -1151,6 +1143,4 @@ SELECT "PARSE"."ENTER_SOURCE_CODE"(_NodeID := 6);
 \ir BUILT_IN_FUNCTIONS/PUTS.sql
 \ir BUILT_IN_FUNCTIONS/REST.sql
 
-SELECT Run_Test('TestLanguage','bar','DEBUG5');
-
-*/
+SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
