@@ -6,7 +6,7 @@ Soft is not a hard-coded single-language compiler front end
 
 This document is not only a README but also the install and test script.
 
-The SQL code is extracted from this file and executed by `./install`.
+The SQL code is extracted from this file and executed by `./install.pl`.
 
 ```sql
 ROLLBACK;
@@ -1338,7 +1338,7 @@ or if there is no child, it will move on to the next `Phase`,
 or if there is no next `Phase`, the program has reached its final `Phase` and will therefore exit.
 
 ```sql
-SELECT Next_Node(_NodeID := 2);
+SELECT Next_Node(_ProgramID := 1);
 ```
 
 
