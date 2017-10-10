@@ -156,8 +156,8 @@ the built-in works the same but have different names:
 ```sql
 SELECT New_Built_In_Function(
     _Language               := 'TestLanguage',
-    _Identifier             := 'puts',
-    _ImplementationFunction := 'PUTS'
+    _Identifier             := 'nop',
+    _ImplementationFunction := 'NOOP'
 );
 ```
 
@@ -202,7 +202,7 @@ differences be controlled by the language settings.
 NodeType names *MUST* *MATCH*: `^[A-Z_]+$`
 
 Digits are not allowed not only to discourage bad names,
-but also made the parsing algorithm simpler. More on that later.
+but also makes the parsing algorithm simpler. More on that later.
 
 When implementing a new language, you might need to add new NodeTypes,
 if some token or semantic feature is missing, but always first
@@ -219,9 +219,14 @@ Note that the NodeTypes for the various arithmetic tokens
 don't have any explicit precedence, but their arithmetic *operators* do,
 i.e. the `ADD` operator have it, but not the `PLUS` token.
 
-## GRAMMAR: TOKENIZE NODE TYPES
+## GRAMMAR
 
-The tokenizer uses `NodeTypes` where `Literal` or `LiteralPattern` is defined.
+The grammar for a language is defined by `NodeTypes`.
+The tokenizer uses `NodeTypes` where `Literal` or `LiteralPattern` is defined,
+whereas the parser uses `NodeTypes` where `NodePattern` is defined.
+
+### NodeTypes used by TOKENIZE
+
 The tokenizer creates a new `Node` where `PrimitiveValue` is set to the matching text.
 The tokenizer begins matching at the first character in the source code,
 and tries to match the longest `Literal` first, and then if there is no match
@@ -272,8 +277,7 @@ but only a `SUB_EXPRESSION`.
 SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'WHITE_SPACE', _LiteralPattern := '(\s+)');
 ```
 
-White space is not ignored by default in this compiler,
-as there might be languages where white space matters,
+White space is not ignored by default, as there might be languages where white space matters,
 such as Python.
 
 Here we make use of the `LiteralPattern` feature for the first time,
@@ -322,7 +326,7 @@ where illegal characters only leads to a `WARNING`.
 We're done defining NodeTypes for tokens,
 i.e. those that have `Literal` or `LiteralPattern`.
 
-## GRAMMAR: PARSE NODE TYPES
+## NodeTypes used by PARSE
 
 Next up is NodePatterns, that define what-is-what on
 an abstract level. These nodes don't have a literal
