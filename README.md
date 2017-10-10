@@ -1240,6 +1240,8 @@ SELECT Set_Program_Node(_NodeID := 1);
 
 ## TREE WALKER
 
+![layout](https://raw.githubusercontent.com/soft-lang/soft/master/doc/tree_walker.gif)
+
 The AST once parsed will strictly speaking not be a tree any longer,
 but let's stick to the term "tree walker" since "graph walker" is
 according to Google an unfamiliar used term.

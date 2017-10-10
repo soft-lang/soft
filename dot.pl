@@ -22,7 +22,7 @@ foreach my $Row (@$Rows) {
     my $Phase   = $Row->[2];
     my $DOT     = $Row->[3];
     write_file("./dot/${DOTID}_${Program}_${Phase}.dot", $DOT);
-    `dot -Tpdf -o ./dot/${DOTID}_${Program}_${Phase}.pdf ./dot/${DOTID}_${Program}_${Phase}.dot`;
+    `dot -Tpng -o ./dot/${DOTID}_${Program}_${Phase}.png ./dot/${DOTID}_${Program}_${Phase}.dot`;
     unlink("./dot/${DOTID}_${Program}_${Phase}.dot");
 }
 

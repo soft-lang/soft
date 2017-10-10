@@ -1,4 +1,4 @@
 #!/bin/sh
-rm ./dot/*.pdf
+rm ./dot/*.png
 ./dot.pl
-open ./dot/*.pdf
+open ./dot/*.png

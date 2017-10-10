@@ -1184,6 +1184,6 @@ SELECT New_Test(
 SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
 
 -- Clean-up all test data written by tests
-TRUNCATE Languages CASCADE;
+-- TRUNCATE Languages CASCADE;
 
 SELECT Notice(Colorize('Installation successful.', 'GREEN'));
