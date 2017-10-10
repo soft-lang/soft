@@ -1249,6 +1249,8 @@ where the program should start executing, normally the PROGRAM node,
 which is the only node with no children for a program, i.e. it is the
 last node created after having completely parsed the program.
 
+_TODO: Explain the tree walker and the functions_
+
 ```sql
 \ir soft/FUNCTIONS/find_node.sql
 
