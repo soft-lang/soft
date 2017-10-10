@@ -635,7 +635,10 @@ the nodes that matched the NodePattern.
 
 ```sql
 SELECT * FROM View_Node_Types;
+```
 
+
+```sql
 \ir soft/TABLES/programs.sql
 \ir soft/FUNCTIONS/new_program.sql
 SELECT New_Program(
@@ -794,7 +797,9 @@ to what other node in a different lexical environment.
 
 ```sql
 SELECT Node(_NodeID := 2);
+```
 
+```sql
 \ir soft/FUNCTIONS/get_node_lexical_environment.sql
 ```
 
@@ -809,7 +814,9 @@ of the value 0.
 
 ```sql
 SELECT Get_Node_Lexical_Environment(_NodeID := 2);
+```
 
+```sql
 \ir soft/VIEWS/view_nodes.sql
 ```
 
@@ -817,7 +824,9 @@ Human friendly view showing all Nodes
 
 ```sql
 SELECT * FROM View_Nodes;
+```
 
+```sql
 \ir soft/VIEWS/view_edges.sql
 ```
 
