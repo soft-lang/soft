@@ -670,7 +670,7 @@ Nodes are of different NodeTypes and can be either
 originating from the source code, or they can be abstract
 nodes created by the parser, where the `PrimitiveValue`s
 are computed when evalutating the node,
-or they never have any values at all,
+or they might not have any value at all,
 depending on the NodeType.
 
 ```sql
