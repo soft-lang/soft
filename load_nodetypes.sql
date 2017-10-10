@@ -1,6 +1,8 @@
-SET search_path TO soft, public, pg_temp;
+SET search_path TO soft, pg_temp;
 
-TRUNCATE NodeTypes, Nodes, Programs, Edges, Log, Tests;
+\set ON_ERROR_STOP 1
+
+TRUNCATE NodeTypes, Nodes, Programs, Edges, Log, Tests, DOTs;
 
 CREATE TEMP TABLE ImportNodeTypes (
 RowID          serial NOT NULL,

@@ -21,7 +21,6 @@ _IllegalCharacters   integer[];
 _TokenNodeID         integer;
 _OK                  boolean;
 _Tokens              integer;
-_LogSeverity         severity;
 _NodeSeverity        severity;
 _Wrapping            text[];
 _RecreatedSourceCode text;
@@ -31,14 +30,12 @@ SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID,
     Nodes.PrimitiveValue,
-    Programs.PhaseID,
-    Languages.LogSeverity
+    Programs.PhaseID
 INTO STRICT
     _ProgramID,
     _LanguageID,
     _SourceCode,
-    _PhaseID,
-    _LogSeverity
+    _PhaseID
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID

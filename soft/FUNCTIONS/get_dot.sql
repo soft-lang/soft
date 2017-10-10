@@ -1,17 +1,9 @@
-CREATE OR REPLACE FUNCTION Get_DOT(_Language text, _Program text)
+CREATE OR REPLACE FUNCTION Get_DOT(_ProgramID integer)
 RETURNS SETOF text
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID integer;
 BEGIN
-
-SELECT Programs.ProgramID
-INTO STRICT    _ProgramID
-FROM Programs
-INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
-WHERE Languages.Language = _Language
-AND   Programs.Program   = _Program;
 
 RETURN QUERY
 SELECT format(E'"%s.%s" [label="%s" %s];',

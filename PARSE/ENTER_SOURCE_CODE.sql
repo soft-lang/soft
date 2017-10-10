@@ -35,7 +35,6 @@ _IllegalNodePatterns        text[];
 _Children                   integer;
 _Parents                    integer;
 _Killed                     integer;
-_LogSeverity                severity;
 _NodeSeverity               severity;
 _ProgramNodePattern         text;
 _ProgramNodeID              integer;
@@ -45,12 +44,10 @@ BEGIN
 
 SELECT
     Nodes.ProgramID,
-    NodeTypes.LanguageID,
-    Languages.LogSeverity
+    NodeTypes.LanguageID
 INTO STRICT
     _ProgramID,
-    _LanguageID,
-    _LogSeverity
+    _LanguageID
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
@@ -175,16 +172,7 @@ LOOP
 
     _ChildNodeString := COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID;
 
-    PERFORM Log(
-        _NodeID   := _ChildNodeID,
-        _Severity := COALESCE(_NodeSeverity,'DEBUG2'),
-        _Message  := format('%s%s <- %s <- %s',
-            Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
-            CASE WHEN _NodeSeverity = 'DEBUG5' THEN ' <- ' || Colorize(_NodePattern, 'CYAN') END,
-            Colorize(_MatchedNodes, 'BLUE'),
-            One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'MAGENTA'))
-        )
-    );
+    PERFORM Set_Program_Node(_NodeID := _ChildNodeID);
 
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, _ChildNodeString);
 
@@ -232,6 +220,18 @@ LOOP
             _Killed := _Killed + 1;
         END IF;
     END LOOP;
+
+    PERFORM Log(
+        _NodeID   := _ChildNodeID,
+        _Severity := COALESCE(_NodeSeverity,'DEBUG2'),
+        _Message  := format('%s%s <- %s <- %s',
+            Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
+            CASE WHEN _NodeSeverity = 'DEBUG5' THEN ' <- ' || Colorize(_NodePattern, 'CYAN') END,
+            Colorize(_MatchedNodes, 'BLUE'),
+            One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'MAGENTA'))
+        ),
+        _SaveDOT := TRUE
+    );
 
     IF _EpilogueNodeTypeID IS NOT NULL THEN
         _EpilogueNodeID := New_Node(

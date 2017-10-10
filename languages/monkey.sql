@@ -2,7 +2,6 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Language(
     _Language              := 'monkey',
-    _LogSeverity           := 'NOTICE',
     _VariableBinding       := 'CAPTURE_BY_VALUE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE,

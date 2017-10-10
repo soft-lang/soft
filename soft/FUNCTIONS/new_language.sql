@@ -1,6 +1,5 @@
 CREATE OR REPLACE FUNCTION New_Language(
 _Language              text,
-_LogSeverity           severity,
 _VariableBinding       variablebinding,
 _ImplicitReturnValues  boolean,
 _StatementReturnValues boolean,
@@ -16,8 +15,8 @@ DECLARE
 _LanguageID integer;
 BEGIN
 
-INSERT INTO Languages ( Language,  LogSeverity,  ImplicitReturnValues,  StatementReturnValues,  VariableBinding,  ZeroBasedNumbering,  TruthyNonBooleans,  NilIfArrayOutOfBounds,  NilIfMissingHashKey)
-VALUES                (_Language, _LogSeverity, _ImplicitReturnValues, _StatementReturnValues, _VariableBinding, _ZeroBasedNumbering, _TruthyNonBooleans, _NilIfArrayOutOfBounds, _NilIfMissingHashKey)
+INSERT INTO Languages ( Language,  ImplicitReturnValues,  StatementReturnValues,  VariableBinding,  ZeroBasedNumbering,  TruthyNonBooleans,  NilIfArrayOutOfBounds,  NilIfMissingHashKey)
+VALUES                (_Language, _ImplicitReturnValues, _StatementReturnValues, _VariableBinding, _ZeroBasedNumbering, _TruthyNonBooleans, _NilIfArrayOutOfBounds, _NilIfMissingHashKey)
 RETURNING    LanguageID
 INTO STRICT _LanguageID;
 

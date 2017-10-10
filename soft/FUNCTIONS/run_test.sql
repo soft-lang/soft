@@ -27,18 +27,6 @@ _TestResult         boolean;
 _Error              text;
 BEGIN
 
-SELECT LogSeverity
-INTO STRICT _DefaultLogSeverity
-FROM Languages
-WHERE Language = _Language;
-
-_LogSeverity := COALESCE(_LogSeverity, _DefaultLogSeverity);
-
-UPDATE Languages
-SET LogSeverity = _LogSeverity
-WHERE Language = _Language
-RETURNING TRUE INTO STRICT _OK;
-
 SELECT
     Tests.TestID,
     Tests.ProgramID,
@@ -47,7 +35,8 @@ SELECT
     Tests.ExpectedTypes,
     Tests.ExpectedValues,
     Tests.ExpectedError,
-    Tests.ExpectedLog
+    Tests.ExpectedLog,
+    Programs.LogSeverity
 INTO STRICT
     _TestID,
     _ProgramID,
@@ -56,12 +45,20 @@ INTO STRICT
     _ExpectedTypes,
     _ExpectedValues,
     _ExpectedError,
-    _ExpectedLog
+    _ExpectedLog,
+    _DefaultLogSeverity
 FROM Tests
 INNER JOIN Programs  ON Programs.ProgramID   = Tests.ProgramID
 INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
 WHERE Languages.Language = _Language
 AND   Programs.Program   = _Program;
+
+_LogSeverity := COALESCE(_LogSeverity, _DefaultLogSeverity);
+
+UPDATE Programs
+SET LogSeverity = _LogSeverity
+WHERE ProgramID = _ProgramID
+RETURNING TRUE INTO STRICT _OK;
 
 UPDATE Tests
 SET StartedAt = clock_timestamp()
@@ -146,9 +143,9 @@ ELSE
     _TestResult := FALSE;
 END IF;
 
-UPDATE Languages
+UPDATE Programs
 SET LogSeverity = _DefaultLogSeverity
-WHERE Language = _Language
+WHERE ProgramID = _ProgramID
 RETURNING TRUE INTO STRICT _OK;
 
 UPDATE Tests

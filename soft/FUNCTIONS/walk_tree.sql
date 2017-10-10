@@ -45,7 +45,15 @@ FOR UPDATE OF Programs;
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG4',
-    _Message  := format('%s %s', _Direction, Colorize(Node(_NodeID)))
+    _Message  := format('%s %s', _Direction, Colorize(Node(_NodeID))),
+    _SaveDOT  := CASE
+        WHEN Phase(_PhaseID) NOT IN ('TOKENIZE','PARSE','DISCARD','REDUCE') THEN TRUE
+        WHEN Phase(_PhaseID) = 'TOKENIZE' AND Node_Type(_NodeID) = 'SOURCE_CODE' AND _Direction = 'LEAVE' THEN TRUE
+        WHEN Phase(_PhaseID) = 'PARSE'    AND Node_Type(_NodeID) = 'SOURCE_CODE' AND _Direction = 'LEAVE' THEN TRUE
+        WHEN Phase(_PhaseID) = 'DISCARD'  AND Node_Type(_NodeID) = 'SOURCE_CODE' AND _Direction = 'LEAVE' THEN TRUE
+        WHEN Phase(_PhaseID) = 'REDUCE'   AND Node_Type(_NodeID) = 'PROGRAM'     AND _Direction = 'LEAVE' THEN TRUE
+        ELSE FALSE
+    END
 );
 
 IF NOT EXISTS (

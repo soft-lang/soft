@@ -7,7 +7,8 @@ _ExpectedValue  text      DEFAULT NULL,
 _ExpectedTypes  regtype[] DEFAULT NULL,
 _ExpectedValues text[]    DEFAULT NULL,
 _ExpectedError  text      DEFAULT NULL,
-_ExpectedLog    text      DEFAULT NULL
+_ExpectedLog    text      DEFAULT NULL,
+_LogSeverity    severity  DEFAULT 'NOTICE'
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -26,7 +27,11 @@ _OK               boolean;
 _Error            text;
 BEGIN
 
-_ProgramID := New_Program(_Language, _Program);
+_ProgramID := New_Program(
+    _Language    := _Language,
+    _Program     := _Program,
+    _LogSeverity := _LogSeverity
+);
 
 INSERT INTO Tests ( ProgramID,  ExpectedType,  ExpectedValue,  ExpectedTypes,  ExpectedValues,  ExpectedError,  ExpectedLog)
 VALUES            (_ProgramID, _ExpectedType, _ExpectedValue, _ExpectedTypes, _ExpectedValues, _ExpectedError, _ExpectedLog)

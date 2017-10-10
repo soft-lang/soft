@@ -5,7 +5,6 @@ AS $$
 DECLARE
 _ProgramID     integer;
 _LanguageID    integer;
-_LogSeverity   severity;
 _DidWork       boolean;
 _NOPNodeID     integer;
 _NodeTypeID    integer;
@@ -21,12 +20,10 @@ BEGIN
 
 SELECT
     Nodes.ProgramID,
-    NodeTypes.LanguageID,
-    Languages.LogSeverity
+    NodeTypes.LanguageID
 INTO STRICT
     _ProgramID,
-    _LanguageID,
-    _LogSeverity
+    _LanguageID
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
@@ -64,6 +61,18 @@ LOOP
     AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ParentNodeID = Nodes.NodeID)  = 1
     AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ChildNodeID  = Nodes.NodeID) <= 1
     LOOP
+        PERFORM Set_Program_Node(_NodeID := _NOPNodeID);
+        PERFORM Log(
+            _NodeID   := _NOPNodeID,
+            _Severity := 'DEBUG2',
+            _Message  := format('%s -> %s -> %s',
+                Colorize(Node(_ParentNodeID),'GREEN'),
+                Colorize(Node(_NOPNodeID),'RED'),
+                Colorize(Node(_ChildNodeID),'GREEN')
+            ),
+            _SaveDOT := TRUE
+        );
+        PERFORM Set_Program_Node(_NodeID := _NodeID);
         SELECT ChildNodeID                                INTO STRICT _ChildNodeID  FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID;
         SELECT ParentNodeID                               INTO        _ParentNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID  = _NOPNodeID;
         IF FOUND THEN
@@ -74,15 +83,6 @@ LOOP
         END IF;
         SELECT Kill_Node(NodeID)                          INTO STRICT _OK           FROM Nodes WHERE DeathPhaseID IS NULL AND NodeID       = _NOPNodeID;
         _Killed := _Killed + 1;
-        PERFORM Log(
-            _NodeID   := _NodeID,
-            _Severity := 'DEBUG2',
-            _Message  := format('%s -> %s -> %s',
-                Colorize(Node(_ParentNodeID),'GREEN'),
-                Colorize(Node(_NOPNodeID),'RED'),
-                Colorize(Node(_ChildNodeID),'GREEN')
-            )
-        );
         IF _PrimitiveType IS NOT NULL THEN
             UPDATE Nodes
             SET NodeTypeID = _NodeTypeID

@@ -2,6 +2,8 @@ ROLLBACK;
 
 \set AUTOCOMMIT ON
 
+\set ON_ERROR_STOP 1
+
 SET client_encoding TO 'UTF8';
 
 SET search_path TO soft;
@@ -76,7 +78,6 @@ CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 -- and multiple semantic settings that all need to be defined.
 SELECT New_Language(
     _Language              := 'TestLanguage',
-    _LogSeverity           := 'DEBUG5',
     _VariableBinding       := 'CAPTURE_BY_VALUE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE,
@@ -507,8 +508,9 @@ SELECT * FROM View_Node_Types;
 \ir soft/TABLES/programs.sql
 \ir soft/FUNCTIONS/new_program.sql
 SELECT New_Program(
-    _Language := 'TestLanguage',
-    _Program  := 'AddTwoNumbers'
+    _Language    := 'TestLanguage',
+    _Program     := 'AddTwoNumbers',
+    _LogSeverity := 'DEBUG5'
 );
 -- A program has a name that is unique per language,
 -- that is, multiple programs with one and the same name
@@ -617,6 +619,93 @@ SELECT New_Edge(
 --  \-> ADD <-/
 
 -------------------------------------------------------------------------------
+\echo GRAPHVIZ DOT GENERATION OF THE ABSTRACT SYNTAX TREE
+-------------------------------------------------------------------------------
+
+\ir soft/TABLES/dots.sql
+-- Graphviz DOT files will be stored to the DOTs table
+
+\ir soft/FUNCTIONS/node.sql
+-- Returns a formatted text string for the NodeID
+-- on the format [NodeType][NodeType rank]=[PrimitiveValue]
+-- or if it's referencing a node, the referenced node
+-- is specified with ->:
+--
+-- Nodes in different lexical environments
+-- but that originate from the same node,
+-- get the same node text label,
+-- but different colors, making it visually
+-- easy for the eye to see what node in
+-- a lexical environment that corresponds
+-- to what other node in a different lexical environment.
+SELECT Node(_NodeID := 2);
+
+\ir soft/FUNCTIONS/get_node_lexical_environment.sql
+-- Returns a number for the lexical environment
+-- which the NodeID shared with all other nodes
+-- part of the same clone.
+--
+-- If the node is an original node from the initial
+-- Abstract Syntax Tree (AST) before starting to
+-- evaluate the tree, it will have a lexical environment
+-- of the value 0.
+SELECT Get_Node_Lexical_Environment(_NodeID := 2);
+
+\ir soft/VIEWS/view_nodes.sql
+-- Human friendly view showing all Nodes
+SELECT * FROM View_Nodes;
+
+\ir soft/VIEWS/view_edges.sql
+-- Human friendly view showing all Edges
+SELECT * FROM View_Edges;
+
+\ir soft/FUNCTIONS/get_node_color.sql
+-- All nodes in the same lexical environment
+-- are drawn with the same color.
+--
+-- We use the "set312" color scheme from Graphviz,
+-- which provides 12 very distinct colors.
+--
+-- If running out of colors, a unique combination
+-- of two different colors of these 12 will be used,
+-- that is, if the program needs more than 12
+-- lexcial environments.
+-- This makes it easier to visually see what nodes
+-- belong to the same lexical environment,
+-- as if only using single colors, one would have
+-- to look carefully to see the difference between
+-- e.g. two shades of blue, but by combining two
+-- very different colors, it's easy to spot
+-- nodes of the same color mix.
+SELECT Get_Node_Color(_NodeID := 2);
+
+\ir soft/FUNCTIONS/get_node_attributes.sql
+-- Returns the node attributes to be used
+-- in the Graphviz DOT file generated for the AST.
+--
+-- * Walkable nodes are drawn with shape=ellipse
+--   and non-walkable nodes i.e. terminal nodes
+--   are drawn with shape=box.
+--
+-- * The current program node i.e. where we're at,
+--   is drawn with a thicker pen width around
+--   the shape, to make it visually easy to see
+--   where we are in the program.
+SELECT Get_Node_Attributes(_NodeID := 2);
+
+\ir soft/FUNCTIONS/get_dot.sql
+-- Generates a Graphviz DOT compatible file for the AST.
+SELECT Get_DOT(_ProgramID := 1);
+
+\ir soft/FUNCTIONS/save_dot.sql
+-- Calls Get_DOT() and saves to DOTs table
+SELECT Save_DOT(_ProgramID := 1);
+
+\ir soft/VIEWS/view_dots.sql
+-- Human friendly view showing all Graphviz DOTs
+SELECT * FROM View_DOTs;
+
+-------------------------------------------------------------------------------
 \echo LOGGING AND DEBUGGING
 -------------------------------------------------------------------------------
 
@@ -694,82 +783,6 @@ SELECT One_Line($$1
 3$$);
 
 -------------------------------------------------------------------------------
-\echo GRAPHVIZ DOT GENERATION OF THE ABSTRACT SYNTAX TREE
--------------------------------------------------------------------------------
-
-\ir soft/FUNCTIONS/node.sql
--- Returns a formatted text string for the NodeID
--- on the format [NodeType][NodeType rank]=[PrimitiveValue]
--- or if it's referencing a node, the referenced node
--- is specified with ->:
---
--- Nodes in different lexical environments
--- but that originate from the same node,
--- get the same node text label,
--- but different colors, making it visually
--- easy for the eye to see what node in
--- a lexical environment that corresponds
--- to what other node in a different lexical environment.
-SELECT Node(_NodeID := 2);
-
-\ir soft/FUNCTIONS/get_node_lexical_environment.sql
--- Returns a number for the lexical environment
--- which the NodeID shared with all other nodes
--- part of the same clone.
---
--- If the node is an original node from the initial
--- Abstract Syntax Tree (AST) before starting to
--- evaluate the tree, it will have a lexical environment
--- of the value 0.
-SELECT Get_Node_Lexical_Environment(_NodeID := 2);
-
-\ir soft/VIEWS/view_nodes.sql
--- Human friendly view showing all Nodes
-SELECT * FROM View_Nodes;
-
-\ir soft/VIEWS/view_edges.sql
--- Human friendly view showing all Edges
-SELECT * FROM View_Edges;
-
-\ir soft/FUNCTIONS/get_node_color.sql
--- All nodes in the same lexical environment
--- are drawn with the same color.
---
--- We use the "set312" color scheme from Graphviz,
--- which provides 12 very distinct colors.
---
--- If running out of colors, a unique combination
--- of two different colors of these 12 will be used,
--- that is, if the program needs more than 12
--- lexcial environments.
--- This makes it easier to visually see what nodes
--- belong to the same lexical environment,
--- as if only using single colors, one would have
--- to look carefully to see the difference between
--- e.g. two shades of blue, but by combining two
--- very different colors, it's easy to spot
--- nodes of the same color mix.
-SELECT Get_Node_Color(_NodeID := 2);
-
-\ir soft/FUNCTIONS/get_node_attributes.sql
--- Returns the node attributes to be used
--- in the Graphviz DOT file generated for the AST.
---
--- * Walkable nodes are drawn with shape=ellipse
---   and non-walkable nodes i.e. terminal nodes
---   are drawn with shape=box.
---
--- * The current program node i.e. where we're at,
---   is drawn with a thicker pen width around
---   the shape, to make it visually easy to see
---   where we are in the program.
-SELECT Get_Node_Attributes(_NodeID := 2);
-
-\ir soft/FUNCTIONS/get_dot.sql
--- Returns a Graphviz DOT compatible file for the AST.
-SELECT Get_DOT(_Language := 'TestLanguage', _Program := 'AddTwoNumbers');
-
--------------------------------------------------------------------------------
 \echo TEST CREATION
 -------------------------------------------------------------------------------
 
@@ -784,7 +797,8 @@ SELECT New_Test(
     _Program       := 'ShouldComputeToTen',
     _SourceCode    := '1 + 2 - - 3 * 4 - 15 / (2 + 1)',
     _ExpectedType  := 'integer',
-    _ExpectedValue := '10'
+    _ExpectedValue := '10',
+    _LogSeverity   := 'DEBUG5'
 );
 
 -------------------------------------------------------------------------------
@@ -1145,4 +1159,7 @@ SELECT Set_Program_Node(_NodeID := 1);
 
 SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
 
+-- Clean-up all test data written by tests
 TRUNCATE Languages CASCADE;
+
+SELECT Notice(Colorize('Installation successful.', 'GREEN'));
