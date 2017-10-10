@@ -834,7 +834,9 @@ Human friendly view showing all Edges
 
 ```sql
 SELECT * FROM View_Edges;
+```
 
+```sql
 \ir soft/FUNCTIONS/get_node_color.sql
 ```
 
@@ -858,7 +860,9 @@ nodes of the same color mix.
 
 ```sql
 SELECT Get_Node_Color(_NodeID := 2);
+```
 
+```sql
 \ir soft/FUNCTIONS/get_node_attributes.sql
 ```
 
@@ -876,7 +880,9 @@ in the Graphviz DOT file generated for the AST.
 
 ```sql
 SELECT Get_Node_Attributes(_NodeID := 2);
+```
 
+```sql
 \ir soft/FUNCTIONS/get_dot.sql
 ```
 
@@ -884,7 +890,9 @@ Generates a Graphviz DOT compatible file for the AST.
 
 ```sql
 SELECT Get_DOT(_ProgramID := 1);
+```
 
+```sql
 \ir soft/FUNCTIONS/save_dot.sql
 ```
 
@@ -892,7 +900,9 @@ Calls `Get_DOT()` and saves to DOTs table
 
 ```sql
 SELECT Save_DOT(_ProgramID := 1);
+```
 
+```sql
 \ir soft/VIEWS/view_dots.sql
 ```
 
@@ -938,7 +948,9 @@ This is needed since we cannot do RAISE NOTICE directly in psql.
 
 ```sql
 SELECT Notice('Hello world!');
+```
 
+```sql
 \ir soft/FUNCTIONS/colorize.sql
 ```
 
@@ -946,7 +958,9 @@ Let's us colorize the input text.
 
 ```sql
 SELECT Notice(Colorize(_Text := 'Hello green world!', _Color := 'GREEN'));
+```
 
+```sql
 \ir soft/FUNCTIONS/log.sql
 ```
 
@@ -977,7 +991,9 @@ SELECT Notice(Highlight_Characters(
     _Characters := ARRAY[7,8,9],
     _Color      := 'RED'
 ));
+```
 
+```sql
 \ir soft/FUNCTIONS/get_parent_nodes.sql
 ```
 
@@ -987,7 +1003,9 @@ This should return its two parent nodes, 1 and 2, together with itself, 3:
 
 ```sql
 SELECT Get_Parent_Nodes(_NodeID := 3);
+```
 
+```sql
 \ir soft/FUNCTIONS/get_source_code_fragment.sql
 ```
 
@@ -999,7 +1017,9 @@ The below will highlight `30` and `70` in `30+70`, but not the `+`:
 
 ```sql
 SELECT Notice(Get_Source_Code_Fragment(_Nodes := 'INTEGER2 INTEGER4', _Color := 'RED'));
+```
 
+```sql
 \ir soft/FUNCTIONS/one_line.sql
 ```
 
@@ -1060,6 +1080,7 @@ SELECT Dereference(_NodeID := 6);
 ## VARIOUS HELPER FUNCTIONS
 
 Various helper-functions:
+
 ```sql
 \ir soft/FUNCTIONS/language.sql
 ```
@@ -1078,7 +1099,9 @@ Returns the Phase name for a PhaseID
 
 ```sql
 SELECT Phase(_PhaseID := 1);
+```
 
+```sql
 \ir soft/FUNCTIONS/node_type.sql
 ```
 
@@ -1086,7 +1109,9 @@ Returns the NodeType name for a NodeTypeID
 
 ```sql
 SELECT Node_Type(_NodeID := 1);
+```
 
+```sql
 \ir soft/FUNCTIONS/primitive_type.sql
 ```
 
@@ -1094,7 +1119,9 @@ Returns the PrimitiveType for a node
 
 ```sql
 SELECT Primitive_Type(_NodeID := 2);
+```
 
+```sql
 \ir soft/FUNCTIONS/primitive_value.sql
 ```
 
@@ -1279,7 +1306,9 @@ SELECT Determine_Return_Type(
     _InputArgTypes    := ARRAY['boolean', 'anyelement', 'anyelement']::regtype[],
     _ParentValueTypes := ARRAY['boolean', 'integer', 'integer']::regtype[]
 );
+```
 
+```sql
 \ir soft/FUNCTIONS/matching_input_types.sql
 ```
 
@@ -1298,7 +1327,9 @@ SELECT Set_Node_Value(
     _PrimitiveType  := 'integer'::regtype,
     _PrimitiveValue := '70'
 );
+```
 
+```sql
 \ir soft/FUNCTIONS/enter_node.sql
 ```
 
@@ -1308,7 +1339,9 @@ If there is a matching `[Phase].ENTER_[NodeType]()` function, it is executed.
 
 ```sql
 SELECT Enter_Node(_NodeID := 2);
+```
 
+```sql
 \ir soft/FUNCTIONS/eval_node.sql
 ```
 
@@ -1629,7 +1662,9 @@ SELECT New_Test(
     _ExpectedValue := '10',
     _LogSeverity   := 'DEBUG5'
 );
+```
 
+```sql
 \ir soft/FUNCTIONS/run_test.sql
 ```
 
