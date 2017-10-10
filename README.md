@@ -375,7 +375,7 @@ This will match:
 `VALUE1 PLUS2 VALUE3`
 
 Thanks to NodeID being unique,
-we can simply use replace() to replace this snippet
+we can simply use `replace()` to replace this snippet
 in the text string representing the full program,
 since we know it will match only at one place.
 
