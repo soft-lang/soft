@@ -67,34 +67,31 @@ CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 \ir soft/TYPES/severity.sql
 ```
 
-Used for logging and borrows the levels from PostgreSQL.
-DEBUG5..1, INFO, NOTICE, WARNING, ERROR, LOG, FATAL, PANIC
+Used for logging. Borrows the levels from PostgreSQL.
 
 ```sql
 \ir soft/TYPES/variablebinding.sql
 ```
 
 Controls how values are captured.
-CAPTURE_BY_REFERENCE, CAPTURE_BY_VALUE
 
 ```sql
 \ir soft/TYPES/direction.sql
 ```
 
-Controls if walking up or down the AST.
-ENTER, LEAVE
+The direction we are traversing the AST, is either `ENTER` or `LEAVE`.
 
 ```sql
 \ir soft/TYPES/nil.sql
 ```
 
-Used by languages to represent the 'nil' value.
+Used by languages that need to represent the `nil` value.
 
 ```sql
 \ir soft/TYPES/batchjobstate.sql
 ```
 
-Used by Run_Test() to tell if we should run it AGAIN or if we're DONE.
+Used by `Run_Test()` to tell if we should run it `AGAIN` or if we're `DONE`.
 
 ## LANGUAGES
 
