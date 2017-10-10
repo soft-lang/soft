@@ -678,7 +678,7 @@ ALTER TABLE Programs ADD FOREIGN KEY (NodeID) REFERENCES Nodes(NodeID);
 ```
 
 Each program has a current NodeID where we're currently at.
-This is aka as the *Program Counter* (PC).
+This is also known as the *Program Counter* (PC).
 
 ```sql
 SELECT New_Node(
