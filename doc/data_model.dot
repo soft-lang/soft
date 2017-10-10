@@ -15,4 +15,7 @@ digraph {
     Phases -> Log
     Programs -> Tests
     Languages -> BuiltInFunctions
+    Programs -> DOTs
+    Phases -> DOTs
+    DOTs -> Log
 }
