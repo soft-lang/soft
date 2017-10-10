@@ -1242,11 +1242,15 @@ SELECT Set_Program_Node(_NodeID := 1);
 
 ![layout](https://raw.githubusercontent.com/soft-lang/soft/master/doc/tree_walker.gif)
 
-The AST once parsed will strictly speaking not be a tree any longer,
-but let's stick to the term "tree walker" since "graph walker" is
-according to Google an unfamiliar used term.
+The above animation shows how the tree walker will traverse the example program `ShouldComputeToTen`
+under the `TESTING` section further down.
 
-Walking the tree starts with calling Enter_Node() with the NodeID
+The AST once parsed will strictly speaking not always be a tree any longer,
+since there might be self-reference due to e.g. recursive functions,
+but let's stick to the term *tree walker* anyways since *graph walker*
+sounds awkward.
+
+Walking the tree starts with calling `Enter_Node()` with the NodeID
 where the program should start executing, normally the PROGRAM node,
 which is the only node with no children for a program, i.e. it is the
 last node created after having completely parsed the program.
