@@ -1144,3 +1144,5 @@ SELECT Set_Program_Node(_NodeID := 1);
 \ir BUILT_IN_FUNCTIONS/REST.sql
 
 SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
+
+TRUNCATE Languages CASCADE;

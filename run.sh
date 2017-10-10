@@ -1,5 +1,5 @@
 #!/bin/bash
-psql -q -X -f install.sql
+psql -q -X -f install-and-test.sql
 
 psql -q -X -f languages/monkey.sql
 
