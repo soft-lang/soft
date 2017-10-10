@@ -1275,25 +1275,34 @@ _TODO: Explain the tree walker and the functions_
 
 ## SEMANTIC FUNCTIONALITY
 
-All directories and functions from here on have names in ALL CAPS
-to visually distinguish them from the core functionality above. 
+So far we have only implemented the core functionality of the compiler,
+but not provided any semantic functionality at all to actually do anything.
+We have defined a simple grammar for our language, but for anything
+to happen, we need to add functions that will do things when we
+`ENTER`, _evaluate_ or `LEAVE` a node.
 
-Each phase has its own database schema and its own directory.
+The functionality provided is more than we need for our test language,
+but since this document is the installation script,
+we need to add all of it here, even though using some parts of it.
+
+All directories and functions from here on have names in _ALL CAPS_
+to visually distinguish them from the core functionality above.
+
+Each `PHASE` has its own _database schema_ and its own _file directory_.
 
 The files are given the same name as the NodeTypes.NodeType
 they represent, prefixed with `ENTER_`, `LEAVE_` or no prefix,
 to control if the function should be called when you `ENTER`
 or `LEAVE` the node.
 
-Functions without the `ENTER`/`LEAVE` prefix are called when the
-node is evaluated.
+Functions without any prefix are called when the node is _evaluated_.
 
 Functions are called in this order:
-1. [Phase]/ENTER_[NodeType].sql
-1. [Phase]/[NodeType].sql
-1. [Phase]/LEAVE_[NodeType].sql
+1. `[Phase].ENTER_[NodeType]()`
+1. `[Phase].[NodeType]()`
+1. `[Phase].LEAVE_[NodeType]()`
 
-Each Walkable node is visited exactly _two times_,
+Each `Walkable` node is visited exactly _two times_,
 once when *entering* the node, and once when *leaving* the node,
 i.e. when descending.
 
