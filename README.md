@@ -1339,8 +1339,6 @@ or if there is no next `Phase`, the program has reached its final `Phase` and wi
 
 ```sql
 SELECT Next_Node(_NodeID := 2);
-
-\ir soft/FUNCTIONS/walk_tree.sql
 ```
 
 
@@ -1372,8 +1370,6 @@ SELECT Set_Program_Node(_NodeID := 5);
 SELECT Kill_Node(_NodeID := 1);
 SELECT Kill_Node(_NodeID := 3);
 SELECT Get_Program_Node(1);
-
-\ir soft/FUNCTIONS/run.sql
 ```
 
 ```sql
@@ -1414,7 +1410,17 @@ This is to reduce the risk for typos when defining the grammar for a language.
 
 ```sql
 SELECT Valid_Node_Pattern('TestLanguage', '(VALUE PLUS VALUE)');
+
+\ir soft/FUNCTIONS/walk_tree.sql
 ```
+
+Called in a loop by `Run()` until program exits.
+
+```sql
+\ir soft/FUNCTIONS/run.sql
+```
+
+Runs the program by calling `Walk_Tree()` until the program exits.
 
 ## FINDING NODES IN THE GRAPH
 
