@@ -384,7 +384,7 @@ the nodes that matched the pattern with the NodeType
 concatenated with the NodeID, which will get NodeID 6,
 since we had five nodes before.
 
-Since ADD grows into a VALUE, the resulting text will be:
+Since `ADD` *grows into* a `VALUE`, the resulting text will be:
 `VALUE6 PLUS4 INTEGER5`
 
 Next, the same NodePattern will match again,
