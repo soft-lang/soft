@@ -306,7 +306,7 @@ SELECT New_Node_Type(
 
 In our test language we only have support for integers,
 but if we would have support for e.g. boolean, text, numeric, etc,
-they would also get `NodeGroup := 'VALUE'`, to allow refering to them
+they would also get `NodeGroup := 'VALUE'`, to allow referring to them
 as a group in the grammar.
 
 ```sql
@@ -352,8 +352,8 @@ we would get `INTEGER1 PLUS2 INTEGER3 PLUS4 INTEGER5`.
 
 Thanks to NodeID being unique, and thanks to the space
 in between each node, we are guaranteed that whatever
-the NodePattern regex matches, will match at exactly
-one place, which will allow us to simply replace
+the NodePattern regex matches, it will match at exactly
+one place, which allows us to simply replace
 the nodes it matched directly in the text string,
 and then start over and see what next NodePattern
 that matches the new sequence of nodes.
@@ -399,11 +399,11 @@ this will be enough to understand the NodePatterns
 in the grammar below.
 
 The order in which you create NodeTypes by calling `New_Node_Type()`
-that determine their precedence, unless specified explicitly via
+determine their precedence, unless explicitly specified via
 the `Precedence` input param.
 
 Just like with `LiteralPatterns`, there must be exactly one capture group.
-If you need multiple paranthesis, use `(?:)` to avoid capturing them.
+If you need multiple parentheses, use `(?:)` to avoid capturing them.
 
 ```sql
 SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'VALUE', _NodePattern := '(?:^| )((?#VALUE))(?: |$)');
@@ -450,14 +450,14 @@ of tokens that can be part of a sub expression, but the tokens matched
 must then be parsed isolated separately from the main parsing process,
 which is achieved by using the `GrowInto` and `GrowFrom` params.
 
-The regex for a sub expression always matches the inner-most paranthesis
+The regex for a sub expression always matches the inner-most parentheses
 not containing any sub expressions that have not already been parsed,
 thanks to `LPAREN` and `RPAREN` being neither a `VALUE` nor part of the `OPS` node group.
-We only want to match at the beginning or right after an operator token. i.e. part ofthe `OPS` node group.
+We only want to match at the beginning or right after an operator token. i.e. part of the `OPS` node group.
 
 The sub expression is itself also part of the NodeGroup `VALUE`,
 meaning it will also be raised to a `VALUE` in the next parsing iteration
-unless consumed by some other NodePattern with higher percedence.
+unless consumed by some other NodePattern with higher precedence.
 
 ```sql
 SELECT New_Node_Type(
@@ -495,7 +495,7 @@ SELECT New_Node_Type(
 );
 ```
 
-This matches a paranthesis group and has the highest precedence, since it's the first NodeType for `_GrowInto := 'VALUE'`.
+This matches a parentheses group and has the highest precedence, since it's the first NodeType for `_GrowInto := 'VALUE'`.
 
 ```sql
 SELECT New_Node_Type(
@@ -509,11 +509,11 @@ SELECT New_Node_Type(
 The NodePattern might look a bit complicated, so let's explain it:
 We want `(MINUS VALUE)` to match, but only if *NOT* preceded by a `VALUE` or a `RPAREN`,
 as that would mean it's a `SUBTRACT` operator instead.
-Here we make use of the `(?!)` regex feature, which is negative lookahead,
+Here we make use of the `(?!)` regex feature, which is negative look ahead,
 which means we match here if the regex expression inside `(?!)` does *NOT* match
 whatever comes after, which in this case is `[A-Z_]+ `.
 Thanks to the capture group being only `(MINUS VALUE)`, we don't consume
-the text matched before or after, it is merely used to enfore we
+the text matched before or after, it is merely used to enforce we
 match where we want to, also known as Context Sensitive Parsing.
 
 ```sql
@@ -526,9 +526,9 @@ since they are *context free* meaning they should always match
 regardless of what comes before or after.
 
 This is the first time we make use of `Precedence`, so let's explain it here:
-Normally, all NodeTypes have a unique percedence, given by their `NodeTypeID`,
+Normally, all NodeTypes have a unique precedence, given by their `NodeTypeID`,
 that is, the same order as they were created by calling `New_Node_Type()`.
-However, sometimes it is necessary that the percedence is the same
+However, sometimes it is necessary that the precedence is the same
 as some other NodeType(s), otherwise we wouldn't do `DIVIDE` and `MULTIPLY`
 from left-to-right, but all of one or the other first, depending on
 what order they are defined.
@@ -654,7 +654,7 @@ The first one `AddTwoNumbers` is only to demonstrate
 how to directly create Nodes and Edges,
 but won't result in a runnable program.
 
-The second program will be defined futher down,
+The second program will be defined further down,
 and uses `New_Test()`/`Run_Test()` to also run the program.
 
 ## ABSTRACT SYNTAX TREE DATA MODEL
@@ -668,7 +668,7 @@ Nodes are of different NodeTypes and can be either
 `Literal` nodes created by the tokenizer with `PrimitiveValue`s
 originating from the source code, or they can be abstract
 nodes created by the parser, where the `PrimitiveValue`s
-are computed when evalutating the node,
+are computed when evaluating the node,
 or they might not have any value at all,
 depending on the NodeType.
 
@@ -903,7 +903,7 @@ This installs a lookup-table with the ANSI escape codes
 for various colors, to make the output from the compiler
 a bit more colorful, e.g. fragments in a text can be highlighted
 in a different color to make it stand out what part of the
-source code we are refering to.
+source code we are referring to.
 
 ```sql
 \ir soft/TABLES/log.sql
@@ -994,7 +994,7 @@ SELECT Notice(Get_Source_Code_Fragment(_Nodes := 'INTEGER2 INTEGER4', _Color := 
 \ir soft/FUNCTIONS/one_line.sql
 ```
 
-Replaces all white space with a single space charater
+Replaces all white space with a single space character
 to make log messages containing source code fragments
 more compact.
 
@@ -1396,7 +1396,7 @@ SELECT Set_Walkable(_NodeID := 5, _Walkable := TRUE);
 \ir soft/FUNCTIONS/set_edge_parent.sql
 ```
 
-Change the `ParentNodeID` for an existig `EdgeID`.
+Change the `ParentNodeID` for an existing `EdgeID`.
 
 ```sql
 SELECT Set_Edge_Parent(_EdgeID := 1, _ParentNodeID := 2);
