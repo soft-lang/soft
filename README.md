@@ -1251,33 +1251,207 @@ but let's stick to the term *tree walker* anyways since *graph walker*
 sounds awkward.
 
 Walking the tree starts with calling `Enter_Node()` with the NodeID
-where the program should start executing, normally the PROGRAM node,
+where the program should start executing, normally the `PROGRAM` node,
 which is the only node with no children for a program, i.e. it is the
 last node created after having completely parsed the program.
 
 _TODO: Explain the tree walker and the functions_
 
 ```sql
-\ir soft/FUNCTIONS/find_node.sql
-
 \ir soft/FUNCTIONS/determine_return_type.sql
-\ir soft/FUNCTIONS/set_node_value.sql
+```
+
+Semantic functionality is implemented as database functions.
+If such a function returns `anyelement`, the actual type
+that will be returned is inferred from the input arg types
+in the AST.
+
+```sql
+SELECT Determine_Return_Type(
+    _InputArgTypes    := ARRAY['boolean', 'anyelement', 'anyelement']::regtype[],
+    _ParentValueTypes := ARRAY['boolean', 'integer', 'integer']::regtype[]
+);
+
 \ir soft/FUNCTIONS/matching_input_types.sql
+```
+
+Similar to `Determine_Return_Type()`, but returns `true` if
+the `InputArgTypes` matches the `ParentValueTypes`, and `false` otherwise.
+
+```sql
+\ir soft/FUNCTIONS/set_node_value.sql
+```
+
+Sets the `PrimitiveType` and `PrimitiveValue` for the node.
+
+```sql
+SELECT Set_Node_Value(
+    _NodeID         := 2,
+    _PrimitiveType  := 'integer'::regtype,
+    _PrimitiveValue := '70'
+);
+
+\ir soft/FUNCTIONS/enter_node.sql
+```
+
+Called when a node is `ENTER`ed.
+Sets the `Program Counter` (PC) to the input NodeID.
+If there is a matching `[Phase].ENTER_[NodeType]()` function, it is executed.
+
+```sql
+SELECT Enter_Node(_NodeID := 2);
+
+\ir soft/FUNCTIONS/eval_node.sql
+```
+
+Called when a node is visited and executes `[Phase].[NodeType]()`,
+if there is a function declared for the NodeType.
+
+If there *is* a function for the NodeType, then the argument types *MUST* match,
+otherwise a *Type mismatch* excpetion is thrown.
+
+The node parent's values are passed as arguments to the function.
+
+The result from the computation is stored in the node's `PrimitiveType` and `PrimitiveValue` columns.
+
+```sql
+\ir soft/FUNCTIONS/leave_node.sql
+```
+
+Called when `LEAVE`ing a node.
+Does *not* set the `Program Counter` (PC), since that must have been done by the caller already.
+If there is a matching `[Phase].LEAVE_[NodeType]()` function, it is executed.
+
+```sql
+UPDATE Programs SET Direction = 'LEAVE' WHERE Program = 'AddTwoNumbers';
+SELECT Leave_Node(_NodeID := 2);
+
+\ir soft/FUNCTIONS/next_node.sql
+```
+
+Must only be called when the `Direction` is `LEAVE`.
+Walks to the next node on the same level, if there are more nodes
+with higher EdgeIDs connected to the same `ParentNode` as the current node,
+or if the current node is the last node on the level,
+the function will descend the the `ChildNode`,
+or if there is no child, it will move on to the next `Phase`,
+or if there is no next `Phase`, the program has reached its final `Phase` and will therefore exit.
+
+```sql
+SELECT Next_Node(_NodeID := 2);
 
 \ir soft/FUNCTIONS/walk_tree.sql
-\ir soft/FUNCTIONS/enter_node.sql
-\ir soft/FUNCTIONS/eval_node.sql
-\ir soft/FUNCTIONS/leave_node.sql
-\ir soft/FUNCTIONS/next_node.sql
+```
+
+
+```sql
 \ir soft/FUNCTIONS/get_program_node.sql
+```
+
+Returns the *program node* for the program,
+which might or might not be called `PROGRAM`.
+
+Instead of looking for a node of type `PROGRAM`,
+the function looks for a single node that isn't a parent
+to any children nodes, meaning it is the one and only
+*last* node created, connecting all parts of the graph
+via its parent nodes.
+
+To test this function, we will need to get rid of some
+unconnected nodes in our first test program,
+so that NodeID 5 will be the only node with no children nodes.
+
+*TODO: I just realized the functions Set_Program_Node() and Get_Program_Node()
+must be renamed, since Set_Program_Node() actually sets Programs.NodeID,
+i.e. the Program Counter (PC), whereras Get_Program_Node() does something
+completely different, namely returning the NodeID that is actually the PROGRAM,
+which is not the same thing. Set_Program_Counter_Node() would be a better name.*
+
+```sql
+SELECT Set_Program_Node(_NodeID := 5);
+SELECT Kill_Node(_NodeID := 1);
+SELECT Kill_Node(_NodeID := 3);
+SELECT Get_Program_Node(1);
+
 \ir soft/FUNCTIONS/run.sql
-\ir soft/FUNCTIONS/descend.sql
+```
+
+```sql
 \ir soft/FUNCTIONS/set_walkable.sql
+```
+
+Sets `Nodes.Walkable` to `true` or `false`.
+
+This is used by the semantic functions to control
+if the tree walker should, when getting there,
+walk to a node or not.
+
+This is useful e.g. for `IF` expressions/statements
+to open/close the `true` or `false` branch
+depending on the calculated boolean `condition`
+for the `IF`.
+
+This is also used by function calls, to know if we
+are returning from a function, or if we're going
+to make a new call to the function.
+
+```sql
+SELECT Set_Walkable(_NodeID := 5, _Walkable := TRUE);
 
 \ir soft/FUNCTIONS/set_edge_parent.sql
+```
+
+Change the `ParentNodeID` for an existig `EdgeID`.
+
+```sql
+SELECT Set_Edge_Parent(_EdgeID := 1, _ParentNodeID := 2);
 
 \ir soft/FUNCTIONS/valid_node_pattern.sql
 ```
+
+Checks that a `NodePattern` only contain valid `NodeType`s.
+This is to reduce the risk for typos when defining the grammar for a language.
+
+```sql
+SELECT Valid_Node_Pattern('TestLanguage', '(VALUE PLUS VALUE)');
+```
+
+## FINDING NODES IN THE GRAPH
+
+```sql
+\ir soft/FUNCTIONS/find_node.sql
+```
+
+This is a helper-functions used by the functions
+implementing semantic functionality below,
+used to from a starting node, find some other node,
+by describing the path to it.
+
+The syntax for the path is:
+
+^([`<-`|`->`] `[NodeType]`)+$
+
+`<-` means the right side is a `child`.
+`->` means the right side is a `parent`.
+
+The path is expanded to a normal SQL query.
+
+The function supports descending down the
+tree to look for nodes matching the pattern,
+which is used to map what `VARIABLE` an `IDENTIFIER`
+refers to during the `MAP_VARIABLES` phase.
+
+```sql
+SELECT Find_Node(
+    _NodeID  := 2,
+    _Descend := FALSE,
+    _Strict  := TRUE,
+    _Paths   := ARRAY['-> ADD']
+);
+```
+
+This means we want to follow an `Edge` where `ParentNodeID=2` and where
+the `ChildNodeID` should point to a node of type `ADD`.
 
 ## SEMANTIC FUNCTIONALITY
 

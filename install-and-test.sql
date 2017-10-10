@@ -1017,7 +1017,6 @@ SELECT Set_Program_Node(_NodeID := 1);
 \ir soft/FUNCTIONS/next_node.sql
 \ir soft/FUNCTIONS/get_program_node.sql
 \ir soft/FUNCTIONS/run.sql
-\ir soft/FUNCTIONS/descend.sql
 \ir soft/FUNCTIONS/set_walkable.sql
 
 -- Tree modifying:
