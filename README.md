@@ -289,7 +289,7 @@ so let's explain it before moving on:
 * If you need multiple parenthesis, use `(?:)` to avoid capturing.
 * The text captured is stored as the `Nodes.PrimitiveValue`.
 
-If our test language would have support for double-quotes text string, which it don't,
+If our test language would have support for double-quotes text string, which it doesn't,
 the `LiteralPattern` would be: `"((?:[^"\\]|\\.)*)"`
 This would make the double-quotes (") to *NOT* be included in the `PrimitiveValue`,
 since the capture group captures whatever is in between the double-quotes.
