@@ -29,7 +29,7 @@ Mankind are currently wasting enormous energy in this space.
 ### HOW BAD IS IT?
 
 Compiler | Parser | LoC | Size
--------- | ------ | -------------
+-------- | ------ | --- | ----
 WebAssembly | https://github.com/WebAssembly/spec/blob/master/interpreter/text/parser.mly | 753 lines | 23.8 KB
 Go | https://github.com/golang/go/blob/master/src/go/parser/parser.go | 2522 lines | 62.3 KB
 PL/pgSQL | https://github.com/postgres/postgres/blob/master/src/pl/plpgsql/src/pl_gram.y | 4012 lines | 103 KB
