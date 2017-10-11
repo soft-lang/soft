@@ -102,6 +102,3 @@ To be successful:
 * The parser must parse the language the same way the humans who write code in it do. (Should be possible)
 * Ability to define different grammatical errors directly in the grammar, to provide informative messages to the user. (Difficult but doable)
 * Sufficient time and space performance. (Should be possible, if the parser is implemented in a language with a faster compiler than PL/pgSQL, or if the PL/pgSQL compiler is reimplemented to run faster.)
-
-### THE SOFT PARSER
-
