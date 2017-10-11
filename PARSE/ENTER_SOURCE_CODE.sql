@@ -196,7 +196,8 @@ LOOP
     IF _PrologueNodeTypeID IS NOT NULL THEN
         _PrologueNodeID := New_Node(
             _ProgramID  := _ProgramID,
-            _NodeTypeID := _PrologueNodeTypeID
+            _NodeTypeID := _PrologueNodeTypeID,
+            _Walkable   := FALSE
         );
         PERFORM New_Edge(
             _ParentNodeID := _PrologueNodeID,
