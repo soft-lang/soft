@@ -1,4 +1,4 @@
 #!/bin/sh
-rm ./dot/*.png
+rm -f ./dot/*.png
 ./dot.pl
 open ./dot/*.png

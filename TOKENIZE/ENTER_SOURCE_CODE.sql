@@ -26,6 +26,13 @@ _Wrapping            text[];
 _RecreatedSourceCode text;
 BEGIN
 
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := COALESCE(_NodeSeverity, 'DEBUG1'),
+    _Message  := 'Tokenizing begins',
+    _SaveDOT  := TRUE
+);
+
 SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID,
@@ -132,6 +139,14 @@ LOOP
     _Tokens := _Tokens + 1;
 
     IF _Wrapping[2] <> '' THEN
+        -- To be able to verify we are able to
+        -- recreate the source code *exactly*,
+        -- we need to preserve the wrapping,
+        -- such as e.g. the two " in a
+        -- double-quoted string,
+        -- but we want it dead during our phase,
+        -- since we don't want to bother the
+        -- next phase with nonsense.
         PERFORM Kill_Node(
             _NodeID :=  New_Node(
                 _ProgramID      := _ProgramID,
@@ -143,18 +158,19 @@ LOOP
         _Tokens := _Tokens + 1;
     END IF;
 
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := COALESCE(_NodeSeverity, 'DEBUG2'),
-        _Message  := format('%s <- %s',
-            Colorize(Node(_TokenNodeID), 'CYAN'),
-            Colorize(One_Line(_Literal), 'MAGENTA')
-        )
-    );
-
     PERFORM New_Edge(
         _ParentNodeID := _TokenNodeID,
         _ChildNodeID  := _NodeID
+    );
+
+    PERFORM Log(
+        _NodeID   := _TokenNodeID,
+        _Severity := COALESCE(_NodeSeverity, 'DEBUG5'),
+        _Message  := format('%s <- %s',
+            Colorize(Node(_TokenNodeID), 'CYAN'),
+            Colorize(One_Line(_Literal), 'MAGENTA')
+        ),
+        _SaveDOT  := TRUE
     );
 
     _AtChar := _AtChar + _LiteralLength;

@@ -1,25 +1,22 @@
-CREATE OR REPLACE FUNCTION Get_Node_Attributes(_NodeID integer)
+CREATE OR REPLACE FUNCTION Get_Node_Attributes(_NodeID integer, _HighlightNodeID integer)
 RETURNS text
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramNode     boolean;
 _Walkable        boolean;
 _Style           text;
 _Shape           text;
 _Fillcolor       text;
 _Penwidth        text;
+_ReferenceNodeID integer;
 _ColorScheme     text    := 'set312';
 _NumColors       integer := 12;
-_ReferenceNodeID integer;
 BEGIN
 
 SELECT
-    Nodes.NodeID = Programs.NodeID,
     Nodes.Walkable,
     Nodes.ReferenceNodeID
 INTO
-    _ProgramNode,
     _Walkable,
     _ReferenceNodeID
 FROM Nodes
@@ -45,7 +42,7 @@ IF _Fillcolor !~ ':' THEN
     _Style := 'filled';
 END IF;
 
-IF _ProgramNode THEN
+IF _NodeID = _HighlightNodeID THEN
     _Penwidth := '5';
 ELSE
     _Penwidth := '';

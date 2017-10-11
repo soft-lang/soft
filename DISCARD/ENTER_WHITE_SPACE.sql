@@ -24,13 +24,13 @@ AND NodeTypes.NodeType = 'WHITE_SPACE';
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Killing white space NodeID %s', _NodeID)
+    _Message  := format('Killing white space NodeID %s', _NodeID),
+    _SaveDOT  := TRUE
 );
 
-UPDATE Programs SET Direction = 'LEAVE' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-PERFORM Next_Node(_ProgramID);
 SELECT Kill_Edge(EdgeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
 PERFORM Kill_Node(_NodeID);
+PERFORM Set_Program_Node(_NodeID := _ChildNodeID);
 
 RETURN TRUE;
 END;

@@ -41,7 +41,7 @@ ELSE
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG5',
-        _Message  := format('Leave %s', Colorize(_NodeType||_NodeID::text, 'GREEN'))
+        _Message  := format('Leave %s', Colorize(Node(_NodeID), 'GREEN'))
     );
     RETURN NULL;
 END IF;

@@ -18,6 +18,12 @@ _Killed        integer;
 _NodePattern   text;
 BEGIN
 
+PERFORM Log(
+    _NodeID   := _NodeID,
+    _Severity := 'DEBUG1',
+    _Message  := format('Reducing graph by killing unnecessary valueless middle-men nodes')
+);
+
 SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID
@@ -32,12 +38,6 @@ INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID     = _NodeID
 AND Phases.Phase       = 'REDUCE'
 AND NodeTypes.NodeType = 'PROGRAM';
-
-PERFORM Log(
-    _NodeID   := _NodeID,
-    _Severity := 'DEBUG1',
-    _Message  := format('Reducing graph by killing unnecessary valueless middle-men nodes')
-);
 
 _Killed := 0;
 LOOP
@@ -61,7 +61,6 @@ LOOP
     AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ParentNodeID = Nodes.NodeID)  = 1
     AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ChildNodeID  = Nodes.NodeID) <= 1
     LOOP
-        PERFORM Set_Program_Node(_NodeID := _NOPNodeID);
         PERFORM Log(
             _NodeID   := _NOPNodeID,
             _Severity := 'DEBUG2',
@@ -72,7 +71,6 @@ LOOP
             ),
             _SaveDOT := TRUE
         );
-        PERFORM Set_Program_Node(_NodeID := _NodeID);
         SELECT ChildNodeID                                INTO STRICT _ChildNodeID  FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID;
         SELECT ParentNodeID                               INTO        _ParentNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID  = _NOPNodeID;
         IF FOUND THEN

@@ -13,6 +13,7 @@ _ChildNodeID  integer;
 _EdgeID       integer;
 _Count        bigint;
 _Direction    direction;
+_SaveDOT      boolean;
 _OK           boolean;
 BEGIN
 
@@ -34,8 +35,8 @@ IF (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) IS NULL THEN
     RETURN FALSE;
 END IF;
 
-SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction
-INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction
+SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction, Phases.SaveDOT
+INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction,       _SaveDOT
 FROM Programs
 INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
 INNER JOIN Nodes  ON Nodes.NodeID   = Programs.NodeID
@@ -46,14 +47,7 @@ PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG4',
     _Message  := format('%s %s', _Direction, Colorize(Node(_NodeID))),
-    _SaveDOT  := CASE
-        WHEN Phase(_PhaseID) NOT IN ('TOKENIZE','PARSE','DISCARD','REDUCE') THEN TRUE
-        WHEN Phase(_PhaseID) = 'TOKENIZE' AND Node_Type(_NodeID) = 'SOURCE_CODE' AND _Direction = 'LEAVE' THEN TRUE
-        WHEN Phase(_PhaseID) = 'PARSE'    AND Node_Type(_NodeID) = 'SOURCE_CODE' AND _Direction = 'LEAVE' THEN TRUE
-        WHEN Phase(_PhaseID) = 'DISCARD'  AND Node_Type(_NodeID) = 'SOURCE_CODE' AND _Direction = 'LEAVE' THEN TRUE
-        WHEN Phase(_PhaseID) = 'REDUCE'   AND Node_Type(_NodeID) = 'PROGRAM'     AND _Direction = 'LEAVE' THEN TRUE
-        ELSE FALSE
-    END
+    _SaveDOT  := _SaveDOT
 );
 
 IF NOT EXISTS (
@@ -83,6 +77,13 @@ IF _Direction = 'ENTER' THEN
     LIMIT 1;
     IF FOUND THEN
         PERFORM Enter_Node(_ParentNodeID);
+        IF NOT EXISTS (SELECT 1 FROM Nodes WHERE NodeID = _ParentNodeID AND DeathPhaseID IS NULL) THEN
+            PERFORM Log(
+                _NodeID   := _ParentNodeID,
+                _Severity := 'DEBUG3',
+                _Message  := format('NodeID %s died when entering it', _ParentNodeID)
+            );
+        END IF;
         RETURN TRUE;
     ELSE
         UPDATE Programs SET Direction = 'LEAVE' WHERE ProgramID = _ProgramID RETURNING Direction INTO STRICT _Direction;

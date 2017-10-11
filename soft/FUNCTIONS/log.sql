@@ -49,7 +49,7 @@ END;
 PERFORM Notice(format('%s %s: "%s"', _Phase, Colorize(_Severity::text, _Color), _Message));
 
 IF _SaveDOT THEN
-    _DOTID := Save_DOT(_ProgramID := _ProgramID);
+    _DOTID := Save_DOT(_NodeID := _NodeID);
 END IF;
 
 INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTID)

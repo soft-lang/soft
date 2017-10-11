@@ -11,20 +11,18 @@ simple compilers for their own self-invented computer languages.
 
 Modern compilers have hand-written parsers, usually found in a single huge file called `parser`.
 
-No single human can ever completely understand these parsers because of
-their complexity and size.
+If we don't understand our compilers, we don't understand our languages.
 
-This is possibly one of the biggest current problems for mankind today.
+What we can't understand, we can't or at least shouldn't modify.
 
-If we can't understand our compilers, we can't understand our languages.
+If we can simplify our parsers, we can more easily make improvments
+to our languages, we can try out wild new ideas more quickly without
+having to worry about wasting time in case the idea turns out to be bad.
 
-We can't just put our faith in test coverage.
-
-We need to understand our compilers so we can develop them without pain.
-
-Developing a language means modifying its compiler.
-
-Mankind are currently wasting enormous energy in this space.
+Now, of course, there are lots of other complex things in a compiler,
+maybe the parser isn't always the biggest problem, but it is at least
+not completely unlikely some people might find them very difficult
+to understand.
 
 ### HOW BAD IS IT?
 

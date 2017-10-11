@@ -38,9 +38,9 @@ INTO
 FROM Edges
 INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
 INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
-WHERE Edges.ParentNodeID = _NodeID
-AND   Edges.DeathPhaseID IS NULL
-AND   ChildNode.Walkable IS TRUE;
+WHERE Edges.ParentNodeID     = _NodeID
+AND   ChildNode.DeathPhaseID IS NULL
+AND   ChildNode.Walkable     IS TRUE;
 
 IF _Count = 1 THEN
     SELECT
@@ -83,12 +83,13 @@ ELSIF _Count IS NULL THEN
     ORDER BY PhaseID
     LIMIT 1;
     IF FOUND THEN
+        UPDATE Programs SET PhaseID = _NextPhaseID, Direction = 'ENTER' WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG3',
-            _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA'))
+            _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA')),
+            _SaveDOT  := TRUE
         );
-        UPDATE Programs SET PhaseID = _NextPhaseID, Direction = 'ENTER' WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
         PERFORM Enter_Node(_NodeID);
         RETURN TRUE;
     END IF;

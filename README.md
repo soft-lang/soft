@@ -1,15 +1,24 @@
-# soft
+# The Soft Compiler
 
-Soft is not a hard-coded single-language compiler front end
+This is the main source code repository for [Soft].
+
+This document is not only a README but also the install and test script.
+
+[Soft] is not a hard-coded single-language compiler front end.
+
+## DATA MODEL
+
+*Show me your flowcharts and conceal your tables, and I shall continue to be mystified. Show me your tables, and I won’t usually need your flowcharts; they’ll be obvious.*
 
 ![layout](https://raw.githubusercontent.com/soft-lang/soft/master/doc/data_model.png)
 
-This document is not only a README but also the install and test script.
 
 The SQL code is extracted from this file and executed by `./install.pl`.
 
 ```sql
 ROLLBACK;
+
+\pset pager off
 
 \set AUTOCOMMIT ON
 
@@ -182,9 +191,13 @@ SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'REDUCE');
-SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'MAP_VARIABLES');
-SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'MAP_VARIABLES', _SaveDOT := TRUE);
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL',          _SaveDOT := TRUE);
 ```
+
+The `SaveDOT` input param if `TRUE` will make `Walk_Tree()` automatically save
+a DOT file with the current state of the program for each step in the program
+execution.
 
 The semantic functionality for these phases are installed at the end of
 this document under the section `SEMANTIC FUNCTIONALITY`.
@@ -879,7 +892,7 @@ in the Graphviz DOT file generated for the AST.
   where we are in the program.
 
 ```sql
-SELECT Get_Node_Attributes(_NodeID := 2);
+SELECT Get_Node_Attributes(_NodeID := 1, _HighlightNodeID := 2);
 ```
 
 ```sql
@@ -889,7 +902,7 @@ SELECT Get_Node_Attributes(_NodeID := 2);
 Generates a Graphviz DOT compatible file for the AST.
 
 ```sql
-SELECT Get_DOT(_ProgramID := 1);
+SELECT Get_DOT(_NodeID := 1);
 ```
 
 ```sql
@@ -899,7 +912,7 @@ SELECT Get_DOT(_ProgramID := 1);
 Calls `Get_DOT()` and saves to DOTs table
 
 ```sql
-SELECT Save_DOT(_ProgramID := 1);
+SELECT Save_DOT(_NodeID := 1);
 ```
 
 ```sql
@@ -1674,10 +1687,18 @@ Runs the test created by `New_Test()`:
 SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
 ```
 
-Clean-up all test data written by tests:
-
 ```sql
-TRUNCATE Languages CASCADE;
-
 SELECT Notice(Colorize('Installation successful.', 'GREEN'));
 ```
+
+If you want to clean-up all test data written,
+you can manually run `TRUNCATE soft.Languages CASCADE` in `psql`,
+but in case you want to poke around, they are not truncated by default.
+
+The `install.sh` script will now run `./dot.sh` to generate DOT-files
+for all the compilation steps, and then from these generate PNG-images
+using Graphviz `dot`, so you should to install Graphviz in case you don't
+have it already.
+
+Once installed, you should get a nice visual idea of what is going on
+during every compilation phase, step by step, instruction by instruction.

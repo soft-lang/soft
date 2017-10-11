@@ -1,16 +1,22 @@
-CREATE OR REPLACE FUNCTION Get_DOT(_ProgramID integer)
+CREATE OR REPLACE FUNCTION Get_DOT(_NodeID integer)
 RETURNS SETOF text
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_ProgramID integer;
 BEGIN
+
+SELECT       ProgramID
+INTO STRICT _ProgramID
+FROM Nodes
+WHERE NodeID = _NodeID;
 
 RETURN QUERY
 SELECT format(E'"%s.%s" [label="%s" %s];',
     Get_Node_Lexical_Environment(Nodes.NodeID),
     Nodes.NodeID,
     Node(Nodes.NodeID),
-    Get_Node_Attributes(Nodes.NodeID)
+    Get_Node_Attributes(Nodes.NodeID, _NodeID)
 )
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
@@ -29,7 +35,7 @@ SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
     Get_Node_Lexical_Environment(Edges.ChildNodeID),
     Nodes.NodeID,
     Node(Nodes.NodeID),
-    Get_Node_Attributes(Nodes.NodeID)
+    Get_Node_Attributes(Nodes.NodeID, _NodeID)
 )
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
@@ -44,7 +50,7 @@ SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
     Get_Node_Lexical_Environment(Edges.ParentNodeID),
     Nodes.NodeID,
     Node(Nodes.NodeID),
-    Get_Node_Attributes(Nodes.NodeID)
+    Get_Node_Attributes(Nodes.NodeID, _NodeID)
 )
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID

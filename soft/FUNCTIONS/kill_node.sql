@@ -31,11 +31,6 @@ ELSIF array_length(_EdgeIDsStillAlive,1) > 1 THEN
     RAISE EXCEPTION 'NodeID % has EdgeIDs that are still alive: %', _NodeID, _EdgeIDsStillAlive;
 END IF;
 
-SELECT ProgramID INTO _ProgramID FROM Programs WHERE NodeID = _NodeID;
-IF FOUND THEN
-    RAISE EXCEPTION 'NodeID % is current node for ProgramID %', _NodeID, _ProgramID;
-END IF;
-
 UPDATE Nodes
 SET DeathPhaseID = Programs.PhaseID, DeathTime = clock_timestamp()
 FROM Programs
