@@ -76,9 +76,9 @@ but we're still stuck with our hand-written parsers.
 
 I think so.
 
-Most parsing algorithms are designed for Context Free Grammars (CFG).
+Most popular parsing algorithms are designed for Context Free Grammars (CFG).
 
-Most modern programming languages are Context Sensitive (CS).
+Most modern programming languages however are Context Sensitive (CS).
 
 Trying to define a CFG for a CS language is very complicated,
 and will require lots of hacks, work arounds, tricks, and
