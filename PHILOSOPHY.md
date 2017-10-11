@@ -28,6 +28,12 @@ Mankind are currently wasting enormous energy in this space.
 
 ### HOW BAD IS IT?
 
+Below is a list of some languages and their parser source code files.
+Some languages have the parser splitted up in multiple files,
+so it might actually be worse than this.
+
+The list is sorted by lines of code.
+
 Language | Corporation | LoC | Size | Parser
 -------- | ----------- | --- | ---- | ------
 WebAssembly | N/A | 753 lines | 23.8 KB | https://github.com/WebAssembly/spec/blob/master/interpreter/text/parser.mly
