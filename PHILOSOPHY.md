@@ -55,14 +55,13 @@ I think the simpliest explanation is lack of thinking and lack of time.
 I would guess most compiler designers are primarily occupied working on some specific *language*.
 
 It's probably a hard sell trying to convince others what we need is a new *compiler* and not a new *language*,
-since it's much more exciting to talk about new language features,
-than to talk how we can do exactly the same things as before,
-but in a simpler way.
+since some might think it's more exciting to talk about new language features,
+than how we can do exactly the same things as before, but in a simpler way.
 
-Another reason is perhaps the lack of collaboration between languages.
+Another reason is perhaps the lack of collaboration and code reuse between languages and their compilers.
 
 Behind many modern languages stand a big corporations,
-and perhaps they are primarily interested in seeing improvements in their
+and perhaps they are primarily interested in prioritizing improvements in their
 own language and their own compiler.
 
 Most compilers have come into existence because someone somewhere decided we
