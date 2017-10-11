@@ -1,24 +1,6 @@
 # The Soft Compiler Philosophy
 
-Having a lot of fun and trying to simplify life on Earth.
-
-This project started because I wanted to learn about compilers.
-
-They have always fascinated me because I've never fully understood how they work. Since then I've learned that apparently no one understands them fully, because of their complexity.
-
-I suspected there was something wrong down the stack, because I couldn't
-possibly imagine compilers would need to be this complex.
-
-There are many nice tutorials on how to write small compilers for small
-languages, but for some reason the complication completely explodes
-for more complex languages.
-
-What I have found out are small but important simplifications to different
-fundamental parts of a compiler. Most notably, I've designed a new parser,
-that can cope with context sensitive languages, without having to write
-a hand-written parser, allowing the language designers to focus on the
-grammar of the language, and the compiler designers to focus on the
-code for the compiler and the semantic functionality provided by it.
+Let's have a lot of fun, learn, and simplify life on Earth!
 
 ## A NEW PARSER
 
