@@ -29,7 +29,7 @@ Mankind are currently wasting enormous energy in this space.
 ### HOW BAD IS IT?
 
 Language | Corporation | LoC | Size | Parser
--------- | ------ | --- | ----
+-------- | ----------- | --- | ---- | ------
 WebAssembly | N/A | 753 lines | 23.8 KB | https://github.com/WebAssembly/spec/blob/master/interpreter/text/parser.mly
 Go | Google | 2522 lines | 62.3 KB | https://github.com/golang/go/blob/master/src/go/parser/parser.go
 PL/pgSQL | N/A | 4012 lines | 103 KB | https://github.com/postgres/postgres/blob/master/src/pl/plpgsql/src/pl_gram.y
@@ -96,3 +96,6 @@ To be successful:
 * The parser must parse the language the same way the humans who write code in it do. (Should be possible)
 * Ability to define different grammatical errors directly in the grammar, to provide informative messages to the user. (Difficult but doable)
 * Sufficient time and space performance. (Should be possible, if the parser is implemented in a language with a faster compiler than PL/pgSQL, or if the PL/pgSQL compiler is reimplemented to run faster.)
+
+### THE SOFT PARSER
+
