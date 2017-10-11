@@ -60,7 +60,7 @@ IF _Count = 1 THEN
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG5',
-            _Message  := format('Walking from %s to next node %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_NextNodeID), 'MAGENTA'))
+            _Message  := format('Walking from %s to next node %s', Colorize(Node(_NodeID, _Short := TRUE), 'CYAN'), Colorize(Node(_NextNodeID, _Short := TRUE), 'MAGENTA'))
         );
         UPDATE Programs SET Direction = 'ENTER' WHERE ProgramID = _ProgramID RETURNING Direction INTO STRICT _Direction;
         PERFORM Enter_Node(_NextNodeID);
@@ -69,7 +69,7 @@ IF _Count = 1 THEN
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG5',
-            _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID), 'CYAN'), Colorize(Node(_ChildNodeID), 'MAGENTA'))
+            _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID, _Short := TRUE), 'CYAN'), Colorize(Node(_ChildNodeID, _Short := TRUE), 'MAGENTA'))
         );
         PERFORM Set_Program_Node(_ChildNodeID);
         RETURN TRUE;

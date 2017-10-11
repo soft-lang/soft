@@ -167,7 +167,7 @@ LOOP
         _NodeID   := _TokenNodeID,
         _Severity := COALESCE(_NodeSeverity, 'DEBUG5'),
         _Message  := format('%s <- %s',
-            Colorize(Node(_TokenNodeID), 'CYAN'),
+            Colorize(Node(_TokenNodeID, _Short := TRUE), 'CYAN'),
             Colorize(One_Line(_Literal), 'MAGENTA')
         ),
         _SaveDOT  := TRUE

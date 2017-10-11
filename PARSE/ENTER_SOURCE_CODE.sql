@@ -68,6 +68,7 @@ WHERE Edges.ChildNodeID  = _NodeID
 AND   Nodes.DeathPhaseID IS NULL
 AND   Edges.DeathPhaseID IS NULL;
 
+-- Freeing tokens from the source code node so that they can be parsed
 PERFORM Kill_Edge(EdgeID) FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NodeID;
 
 SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
@@ -77,7 +78,8 @@ _ProgramNodePattern := format('^%s(\d+)$',_ProgramNodeType);
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG1',
-    _Message  := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA'))
+    _Message  := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA')),
+    _SaveDOT  := TRUE
 );
 
 _Children := 0;

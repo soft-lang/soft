@@ -60,8 +60,8 @@ than how we can do exactly the same things as before, but in a simpler way.
 
 Another reason is perhaps the lack of collaboration and code reuse between languages and their compilers.
 
-Behind many modern languages stand a big corporations,
-and perhaps they are primarily interested in prioritizing improvements in their
+Behind many modern languages stand big corporations,
+that perhaps are primarily interested in prioritizing improvements in their
 own language and their own compiler.
 
 Most compilers have come into existence because someone somewhere decided we

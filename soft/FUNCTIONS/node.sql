@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Node(_NodeID integer)
+CREATE OR REPLACE FUNCTION Node(_NodeID integer, _Short boolean DEFAULT FALSE)
 RETURNS text
 LANGUAGE plpgsql
 STRICT
@@ -38,7 +38,7 @@ _Label := format('%s%s',_NodeType,_Rank);
 
 IF _ReferenceNodeID IS NOT NULL THEN
     _Label := _Label || '->' || Node(_ReferenceNodeID);
-ELSIF _PrimitiveValue IS NOT NULL THEN
+ELSIF _PrimitiveValue IS NOT NULL AND NOT _Short THEN
     _Label := _Label || '=' || _PrimitiveValue;
 END IF;
 

@@ -15,8 +15,8 @@ SELECT New_Phase(_Language := 'monkey', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'monkey', _Phase := 'REDUCE');
-SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES');
-SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL');
+SELECT New_Phase(_Language := 'monkey', _Phase := 'MAP_VARIABLES', _SaveDOT := TRUE);
+SELECT New_Phase(_Language := 'monkey', _Phase := 'EVAL',          _SaveDOT := TRUE);
 
 SELECT New_Built_In_Function(_Language := 'monkey', _Identifier := 'len',   _ImplementationFunction := 'LENGTH');
 SELECT New_Built_In_Function(_Language := 'monkey', _Identifier := 'first', _ImplementationFunction := 'FIRST');

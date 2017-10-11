@@ -37,7 +37,7 @@ SELECT
     Tests.ExpectedError,
     Tests.ExpectedLog,
     Programs.LogSeverity
-INTO STRICT
+INTO
     _TestID,
     _ProgramID,
     _ExpectedType,
@@ -52,6 +52,9 @@ INNER JOIN Programs  ON Programs.ProgramID   = Tests.ProgramID
 INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
 WHERE Languages.Language = _Language
 AND   Programs.Program   = _Program;
+IF NOT FOUND THEN
+    RAISE EXCEPTION 'No program named "%" for language "%"', _Program, _Language;
+END IF;
 
 _LogSeverity := COALESCE(_LogSeverity, _DefaultLogSeverity);
 

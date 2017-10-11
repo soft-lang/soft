@@ -11,8 +11,10 @@ BEGIN
 
 _Env := Get_Node_Lexical_Environment(_NodeID);
 
-IF _Env < _NumColors THEN
-    _Fillcolor := format('/%s/%s', _ColorScheme, _Env+1);
+IF _Env = 0 THEN
+    _Fillcolor := 'white';
+ELSIF _Env <= _NumColors THEN
+    _Fillcolor := format('/%s/%s', _ColorScheme, _Env);
 ELSE
     SELECT format('/%s/%s:/%s/%s', _ColorScheme, C1, _ColorScheme, C2)
     INTO _Fillcolor
