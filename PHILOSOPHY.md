@@ -1,6 +1,6 @@
 # The Soft Compiler Philosophy
 
-Let's have a lot of fun, learn, and simplify life on Earth!
+Let's have a lot of fun, learn, invent, and simplify life on Earth!
 
 ## A NEW PARSER
 
