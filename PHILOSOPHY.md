@@ -46,7 +46,7 @@ Swift (Part 1) | Apple | 5951 lines | 207 KB | https://github.com/apple/swift/bl
 Swift (Part 2) | Apple | 6140 lines | 210 KB | https://github.com/apple/swift/blob/master/lib/Parse/ParseDecl.cpp
 Swift (Total) | Apple | 12091 lines | 417 KB
 SQL |  | 15926 lines | 421 KB | https://github.com/postgres/postgres/blob/master/src/backend/parser/gram.y
-C++ (GCC) | N/A | 39489 lines | 1.2M | https://github.com/gcc-mirror/gcc/blob/master/gcc/cp/parser.c
+C++ (GCC) |  | 39489 lines | 1.2M | https://github.com/gcc-mirror/gcc/blob/master/gcc/cp/parser.c
 
 ### HOW DID WE END UP HERE?
 
