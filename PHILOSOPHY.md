@@ -28,21 +28,21 @@ Mankind are currently wasting enormous energy in this space.
 
 ### HOW BAD IS IT?
 
-Compiler | Parser | LoC | Size
+Language | LoC | Size | Parser
 -------- | ------ | --- | ----
-WebAssembly | https://github.com/WebAssembly/spec/blob/master/interpreter/text/parser.mly | 753 lines | 23.8 KB
-Go | https://github.com/golang/go/blob/master/src/go/parser/parser.go | 2522 lines | 62.3 KB
-PL/pgSQL | https://github.com/postgres/postgres/blob/master/src/pl/plpgsql/src/pl_gram.y | 4012 lines | 103 KB
-Python | https://github.com/python/cpython/blob/master/Python/ast.c | 5297 lines | 161 KB
-Rust | https://github.com/rust-lang/rust/blob/master/src/libsyntax/parse/parser.rs | 6363 lines | 249 KB
-C++ | https://github.com/llvm-mirror/clang/blob/master/lib/Parse/ParseDecl.cpp | 6822 lines  | 247 KB
-D | https://github.com/dlang/dmd/blob/master/src/ddmd/parse.d | 8594 lines | 268 KB
-C# | https://github.com/dotnet/roslyn/blob/master/src/Compilers/CSharp/Portable/Parser/LanguageParser.cs | 11425 lines | 473 KB
- | https://github.com/apple/swift/blob/master/lib/ParseSIL/ParseSIL.cpp | 5951 lines | 207 KB
- | https://github.com/apple/swift/blob/master/lib/Parse/ParseDecl.cpp | 6140 lines | 210 KB
-Swift | | 12091 lines | 417 KB
-SQL | https://github.com/postgres/postgres/blob/master/src/backend/parser/gram.y | 15926 lines | 421 KB
-C++ | https://github.com/gcc-mirror/gcc/blob/master/gcc/cp/parser.c | 39489 lines | 1.2M
+WebAssembly | 753 lines | 23.8 KB | https://github.com/WebAssembly/spec/blob/master/interpreter/text/parser.mly
+Go | 2522 lines | 62.3 KB | https://github.com/golang/go/blob/master/src/go/parser/parser.go
+PL/pgSQL | 4012 lines | 103 KB | https://github.com/postgres/postgres/blob/master/src/pl/plpgsql/src/pl_gram.y
+Python | 5297 lines | 161 KB | https://github.com/python/cpython/blob/master/Python/ast.c
+Rust | 6363 lines | 249 KB | https://github.com/rust-lang/rust/blob/master/src/libsyntax/parse/parser.rs
+C++ (Clang) | 6822 lines  | 247 KB | https://github.com/llvm-mirror/clang/blob/master/lib/Parse/ParseDecl.cpp
+D | 8594 lines | 268 KB | https://github.com/dlang/dmd/blob/master/src/ddmd/parse.d
+C# | 11425 lines | 473 KB | https://github.com/dotnet/roslyn/blob/master/src/Compilers/CSharp/Portable/Parser/LanguageParser.cs
+Swift (Part 1) | 5951 lines | 207 KB | https://github.com/apple/swift/blob/master/lib/ParseSIL/ParseSIL.cpp
+Swift (Part 2) | 6140 lines | 210 KB | https://github.com/apple/swift/blob/master/lib/Parse/ParseDecl.cpp
+Swift (Total) | 12091 lines | 417 KB
+SQL | 15926 lines | 421 KB | https://github.com/postgres/postgres/blob/master/src/backend/parser/gram.y
+C++ (GCC) | 39489 lines | 1.2M | https://github.com/gcc-mirror/gcc/blob/master/gcc/cp/parser.c
 
 ### HOW DID WE END UP HERE?
 
