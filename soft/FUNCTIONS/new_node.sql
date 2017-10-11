@@ -62,35 +62,39 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION New_Node(
-_Program        text,
-_NodeType       text,
-_PrimitiveType  regtype   DEFAULT NULL,
-_PrimitiveValue text      DEFAULT NULL
+_Language         text,
+_Program          text,
+_NodeType         text,
+_PrimitiveType    regtype   DEFAULT NULL,
+_PrimitiveValue   text      DEFAULT NULL,
+_Walkable         boolean   DEFAULT NULL,
+_ClonedFromNodeID integer   DEFAULT NULL,
+_ClonedRootNodeID integer   DEFAULT NULL,
+_ReferenceNodeID  integer   DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID integer;
-_NodeTypeID integer;
+_NodeID integer;
 BEGIN
-SELECT
-    Programs.ProgramID,
-    NodeTypes.NodeTypeID
-INTO STRICT
-    _ProgramID,
-    _NodeTypeID
+SELECT New_Node(
+    _ProgramID        := Programs.ProgramID,
+    _NodeTypeID       := NodeTypes.NodeTypeID,
+    _PrimitiveType    := _PrimitiveType,
+    _PrimitiveValue   := _PrimitiveValue,
+    _Walkable         := _Walkable,
+    _ClonedFromNodeID := _ClonedFromNodeID,
+    _ClonedRootNodeID := _ClonedRootNodeID,
+    _ReferenceNodeID  := _ReferenceNodeID
+)
+INTO STRICT _NodeID
 FROM Programs
-INNER JOIN Phases    ON Phases.PhaseID = Programs.PhaseID
-INNER JOIN NodeTypes ON NodeTypes.LanguageID = Phases.LanguageID
-WHERE Programs.Program = _Program
-AND NodeTypes.NodeType = _NodeType;
-
-RETURN New_Node(
-    _ProgramID      := _ProgramID,
-    _NodeTypeID     := _NodeTypeID,
-    _PrimitiveType  := _PrimitiveType,
-    _PrimitiveValue := _PrimitiveValue
-);
+INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
+INNER JOIN NodeTypes ON NodeTypes.LanguageID = Languages.LanguageID
+WHERE Languages.Language = _Language
+AND   Programs.Program   = _Program
+AND   NodeTypes.NodeType = _NodeType;
+RETURN _NodeID;
 END;
 $$;

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Get_DOT(_NodeID integer)
+CREATE OR REPLACE FUNCTION Get_DOTIR(_NodeID integer)
 RETURNS SETOF text
 LANGUAGE plpgsql
 AS $$
@@ -12,9 +12,8 @@ FROM Nodes
 WHERE NodeID = _NodeID;
 
 RETURN QUERY
-SELECT format(E'"%s.%s" [label="%s" %s];',
-    Get_Node_Lexical_Environment(Nodes.NodeID),
-    Nodes.NodeID,
+SELECT format(E'"%s" [label="%s" %s];',
+    Serialize_Node(Nodes.NodeID),
     Node(Nodes.NodeID),
     Get_Node_Attributes(Nodes.NodeID, _NodeID)
 )
@@ -25,7 +24,10 @@ AND Nodes.DeathPhaseID IS NULL
 ORDER BY Nodes.NodeID;
 
 RETURN QUERY
-SELECT format('"%s.%s" -> "%s.%s";', Get_Node_Lexical_Environment(ParentNodeID), ParentNodeID, Get_Node_Lexical_Environment(ChildNodeID), ChildNodeID)
+SELECT format('"%s" -> "%s";',
+    Serialize_Node(ParentNodeID),
+    Serialize_Node(ChildNodeID)
+)
 FROM Edges
 WHERE Edges.ProgramID = _ProgramID
 AND Edges.DeathPhaseID IS NULL

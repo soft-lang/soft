@@ -25,7 +25,7 @@ PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG3',
     _Message  := format('Killing white space NodeID %s', _NodeID),
-    _SaveDOT  := TRUE
+    _SaveDOTIR  := TRUE
 );
 
 SELECT Kill_Edge(EdgeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;

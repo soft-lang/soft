@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION Log(
-_NodeID   integer,
-_Severity severity,
-_Message  text,
-_SaveDOT  boolean DEFAULT FALSE
+_NodeID    integer,
+_Severity  severity,
+_Message   text,
+_SaveDOTIR boolean DEFAULT FALSE
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -15,7 +15,7 @@ _Phase       text;
 _LogID       integer;
 _Color       text;
 _LogSeverity severity;
-_DOTID       integer;
+_DOTIRID       integer;
 BEGIN
 SELECT
     Nodes.ProgramID,
@@ -48,12 +48,12 @@ END;
 
 PERFORM Notice(format('%s %s: "%s"', _Phase, Colorize(_Severity::text, _Color), _Message));
 
-IF _SaveDOT THEN
-    _DOTID := Save_DOT(_NodeID := _NodeID);
+IF _SaveDOTIR THEN
+    _DOTIRID := Save_DOTIR(_NodeID := _NodeID);
 END IF;
 
-INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTID)
-SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTID
+INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTIRID)
+SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTIRID
 FROM Programs WHERE ProgramID = _ProgramID
 RETURNING LogID INTO STRICT _LogID;
 RETURN _LogID;

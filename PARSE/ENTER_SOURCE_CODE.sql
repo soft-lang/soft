@@ -79,7 +79,7 @@ PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG1',
     _Message  := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA')),
-    _SaveDOT  := TRUE
+    _SaveDOTIR  := TRUE
 );
 
 _Children := 0;
@@ -233,7 +233,7 @@ LOOP
             Colorize(_MatchedNodes, 'BLUE'),
             One_Line(Get_Source_Code_Fragment(_MatchedNodes, 'MAGENTA'))
         ),
-        _SaveDOT := TRUE
+        _SaveDOTIR := TRUE
     );
 
     IF _EpilogueNodeTypeID IS NOT NULL THEN

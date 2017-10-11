@@ -88,7 +88,7 @@ ELSIF _Count IS NULL THEN
             _NodeID   := _NodeID,
             _Severity := 'DEBUG3',
             _Message  := format('Phase %s completed, moving on to phase %s', Colorize(Phase(_PhaseID), 'CYAN'), Colorize(Phase(_NextPhaseID), 'MAGENTA')),
-            _SaveDOT  := TRUE
+            _SaveDOTIR  := TRUE
         );
         PERFORM Enter_Node(_NodeID);
         RETURN TRUE;

@@ -6,6 +6,6 @@ PhaseID              integer     NOT NULL REFERENCES Phases(PhaseID),
 Severity             severity    NOT NULL,
 Message              text        NOT NULL,
 Logtime              timestamptz NOT NULL DEFAULT now(),
-DOTID                integer              REFERENCES DOTs(DOTID),
+DOTIRID              integer              REFERENCES DOTIR(DOTIRID),
 PRIMARY KEY (LogID)
 );

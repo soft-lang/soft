@@ -13,7 +13,7 @@ _ChildNodeID  integer;
 _EdgeID       integer;
 _Count        bigint;
 _Direction    direction;
-_SaveDOT      boolean;
+_SaveDOTIR    boolean;
 _OK           boolean;
 BEGIN
 
@@ -35,8 +35,8 @@ IF (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) IS NULL THEN
     RETURN FALSE;
 END IF;
 
-SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction, Phases.SaveDOT
-INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction,       _SaveDOT
+SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction, Phases.SaveDOTIR
+INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction,       _SaveDOTIR
 FROM Programs
 INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
 INNER JOIN Nodes  ON Nodes.NodeID   = Programs.NodeID
@@ -47,7 +47,7 @@ PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG4',
     _Message  := format('%s %s', _Direction, Colorize(Node(_NodeID, _Short := TRUE))),
-    _SaveDOT  := _SaveDOT
+    _SaveDOTIR  := _SaveDOTIR
 );
 
 IF NOT EXISTS (

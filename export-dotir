@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use DBI;
+use DBD::Pg;
+use File::Slurp qw(write_file);
+
+$| = 1;
+
+my $DBH = DBI->connect("dbi:Pg:", '', '', {pg_enable_utf8 => 1}) or die "Unable to connect";
+
+my $View_DOTIR = $DBH->prepare('SELECT * FROM soft.View_DOTIR');
+
+$View_DOTIR->execute();
+
+my $Rows = $View_DOTIR->fetchall_arrayref();
+
+`rm -f dotir/*.png`;
+`rm -f dotir/*.dot`;
+
+foreach my $Row (@$Rows) {
+    my $DOTIRID   = $Row->[0];
+    my $Program = $Row->[1];
+    my $Phase   = $Row->[2];
+    my $DOTIR   = $Row->[3];
+    write_file("dotir/${DOTIRID}_${Program}_${Phase}.dot", $DOTIR);
+    `dot -Tpng -o dotir/${DOTIRID}_${Program}_${Phase}.png dotir/${DOTIRID}_${Program}_${Phase}.dot`;
+}
+
+$View_DOTIR->finish();
+
+$DBH->disconnect();

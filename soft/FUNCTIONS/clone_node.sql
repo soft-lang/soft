@@ -87,8 +87,7 @@ PERFORM New_Edge(
             _SelfRef          := _SelfRef
         )
     END,
-    _ChildNodeID      := _ClonedNodeID,
-    _ClonedRootNodeID := _ClonedRootNodeID
+    _ChildNodeID := _ClonedNodeID
 )
 FROM (
     SELECT

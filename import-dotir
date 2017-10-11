@@ -1,0 +1,138 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use DBI;
+use DBD::Pg;
+use JSON;
+use Data::Dumper;
+
+$| = 1;
+
+my $Filename = $ARGV[0];
+
+open(my $FH, '<:encoding(UTF-8)', $Filename) or die "Could not open file '$Filename' $!";
+
+
+my $Program = {};
+my $Nodes   = {};
+my $Edges   = [];
+
+sub UnQuote {
+    my $Str = shift;
+    $Str =~ s/\\"/"/g;
+    return $Str;
+}
+
+while (my $Row = <$FH>) {
+    chomp $Row;
+    if ($Row =~ m/^dotir="(\{(?:[^"\\]|\\.)*\})";$/) {
+        $Program = JSON::from_json(UnQuote($1));
+    } elsif ($Row =~ m/^"(\{(?:[^"\\]|\\.)*\})" \[/) {
+        my $Node = JSON::from_json(UnQuote($1));
+        $Nodes->{$Node->{NodeID}} = $Node;
+    } elsif ($Row =~ m/^"(\{(?:[^"\\]|\\.)*\})" -> "(\{(?:[^"\\]|\\.)*})";$/) {
+        my $ParentNode = JSON::from_json(UnQuote($1));
+        my $ChildNode  = JSON::from_json(UnQuote($2));
+        push @$Edges, [$ParentNode->{NodeID}, $ChildNode->{NodeID}];
+    }
+}
+
+print Dumper $Program;
+print Dumper $Nodes;
+print Dumper $Edges;
+
+
+close($FH);
+
+my $DBH = DBI->connect("dbi:Pg:", '', '', {pg_enable_utf8 => 1}) or die "Unable to connect";
+
+$DBH->begin_work();
+
+$DBH->do('SET search_path TO soft');
+
+my $New_Program = $DBH->prepare('SELECT soft.New_Program(
+    _Language := $1,
+    _Program  := $2
+)');
+
+my $Set_Program_Phase = $DBH->prepare('SELECT soft.Set_Program_Phase(
+    _Language := $1,
+    _Program  := $2,
+    _Phase    := $3
+)');
+
+my $Set_Program_Node = $DBH->prepare('SELECT soft.Set_Program_Node(
+    _NodeID    := $1,
+    _Direction := $2::direction
+)');
+
+my $New_Node = $DBH->prepare('SELECT soft.New_Node(
+    _Language         := $1,
+    _Program          := $2,
+    _NodeType         := $3,
+    _PrimitiveType    := $4::regtype,
+    _PrimitiveValue   := $5,
+    _Walkable         := $6::boolean,
+    _ClonedFromNodeID := $7,
+    _ClonedRootNodeID := $8,
+    _ReferenceNodeID  := $9
+)');
+
+my $New_Edge = $DBH->prepare('SELECT soft.New_Edge(
+    _ParentNodeID := $1,
+    _ChildNodeID  := $2
+)');
+
+$New_Program->execute(
+    $Program->{Language},
+    $Program->{Program}
+);
+my ($ProgramID) = $New_Program->fetchrow_array();
+
+$Set_Program_Phase->execute(
+    $Program->{Language},
+    $Program->{Program},
+    $Program->{Phase}
+);
+
+my $NewNodeIDs = {};
+
+foreach my $OldNodeID (sort {$a <=> $b} keys %{$Nodes}) {
+    my $Node = $Nodes->{$OldNodeID};
+    $New_Node->execute(
+        $Program->{Language},
+        $Program->{Program},
+        $Node->{NodeType},
+        defined($Node->{PrimitiveType})  ? $Node->{PrimitiveType}  : undef,
+        defined($Node->{PrimitiveValue}) ? $Node->{PrimitiveValue} : undef,
+        $Node->{Walkable},
+        defined($Node->{ClonedFromNodeID}) ? $NewNodeIDs->{$Node->{ClonedFromNodeID}} : undef,
+        defined($Node->{ClonedRootNodeID}) ? $NewNodeIDs->{$Node->{ClonedRootNodeID}} : undef,
+        defined($Node->{ReferenceNodeID})  ? $NewNodeIDs->{$Node->{ReferenceNodeID}}  : undef
+    );
+    my ($NewNodeID) = $New_Node->fetchrow_array();
+    $NewNodeIDs->{$OldNodeID} = $NewNodeID;
+}
+
+foreach my $Edge (@{$Edges}) {
+    $New_Edge->execute(
+        $NewNodeIDs->{$Edge->[0]},
+        $NewNodeIDs->{$Edge->[1]}
+    );
+}
+
+$Set_Program_Node->execute(
+    ($Program->{NodeID} eq '') ? undef : $NewNodeIDs->{$Program->{NodeID}},
+    $Program->{Direction}
+);
+
+$DBH->commit();
+
+$New_Program->finish();
+$Set_Program_Phase->finish();
+$Set_Program_Node->finish();
+$New_Node->finish();
+$New_Edge->finish();
+
+$DBH->disconnect();

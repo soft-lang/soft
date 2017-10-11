@@ -2,24 +2,24 @@
 use strict;
 use warnings;
 
-my $filename = 'README.md';
+my $Filename = 'README.md';
 
-open(my $fh, '<:encoding(UTF-8)', $filename) or die "Could not open file '$filename' $!";
+open(my $FH, '<:encoding(UTF-8)', $Filename) or die "Could not open file '$Filename' $!";
 
-my $is_sql = 0;
-while (my $row = <$fh>) {
-    chomp $row;
-    if ($row =~ m/^```sql$/) {
-        $is_sql = 1;
+my $IS_SQL = 0;
+while (my $Row = <$FH>) {
+    chomp $Row;
+    if ($Row =~ m/^```sql$/) {
+        $IS_SQL = 1;
         next;
     }
-    if ($row =~ m/^```$/) {
-        $is_sql = 0;
+    if ($Row =~ m/^```$/) {
+        $IS_SQL = 0;
         next;
     }
-    if ($is_sql) {
-        print "$row\n";
+    if ($IS_SQL) {
+        print "$Row\n";
     }
 }
 
-close($fh);
+close($FH);

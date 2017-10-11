@@ -30,7 +30,7 @@ PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := COALESCE(_NodeSeverity, 'DEBUG1'),
     _Message  := 'Tokenizing begins',
-    _SaveDOT  := TRUE
+    _SaveDOTIR  := TRUE
 );
 
 SELECT
@@ -170,7 +170,7 @@ LOOP
             Colorize(Node(_TokenNodeID, _Short := TRUE), 'CYAN'),
             Colorize(One_Line(_Literal), 'MAGENTA')
         ),
-        _SaveDOT  := TRUE
+        _SaveDOTIR  := TRUE
     );
 
     _AtChar := _AtChar + _LiteralLength;
