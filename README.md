@@ -1,10 +1,8 @@
 # The Soft Compiler
 
-This is the main source code repository for [Soft].
+Soft is not a hard-coded single-language compiler front end.
 
 This document is not only a README but also the install and test script.
-
-[Soft] is not a hard-coded single-language compiler front end.
 
 ## DATA MODEL
 
