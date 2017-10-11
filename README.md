@@ -652,11 +652,13 @@ SELECT * FROM View_Node_Types;
 ```sql
 \ir soft/TABLES/programs.sql
 \ir soft/FUNCTIONS/new_program.sql
+
 SELECT New_Program(
     _Language    := 'TestLanguage',
     _Program     := 'AddTwoNumbers',
     _LogSeverity := 'DEBUG5'
 );
+
 ```
 
 A program has a name that is unique per language,
@@ -846,6 +848,17 @@ Human friendly view showing all Edges
 ```sql
 SELECT * FROM View_Edges;
 ```
+
+```sql
+\ir soft/VIEWS/view_programs.sql
+```
+
+Human friendly view showing all Programs
+
+```sql
+SELECT * FROM View_Programs;
+```
+
 
 ```sql
 \ir soft/FUNCTIONS/get_node_color.sql

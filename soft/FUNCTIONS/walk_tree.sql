@@ -81,7 +81,7 @@ IF _Direction = 'ENTER' THEN
             PERFORM Log(
                 _NodeID   := _ParentNodeID,
                 _Severity := 'DEBUG3',
-                _Message  := format('NodeID %s died when entering it', _ParentNodeID)
+                _Message  := format('%s died when entering it', Node(_ParentNodeID, _Short := TRUE))
             );
         END IF;
         RETURN TRUE;
@@ -100,14 +100,14 @@ IF NOT EXISTS (SELECT 1 FROM Nodes WHERE NodeID = _NodeID AND DeathPhaseID IS NU
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := format('NodeID %s died when leaving it', _NodeID)
+        _Message  := format('%s died when leaving it', Node(_NodeID, _Short := TRUE))
     );
     RETURN TRUE;
 ELSIF _NodeID <> (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) THEN
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := format('Current program node moved by function', _NodeID)
+        _Message  := 'Current program node moved by function'
     );
     RETURN TRUE;
 END IF;

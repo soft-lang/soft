@@ -33,16 +33,11 @@ IF EXISTS (
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := format('Leave %s and execute function %I.%I', Colorize(_NodeType||_NodeID::text, 'GREEN'), Colorize(_Phase, 'CYAN'), Colorize(_Function, 'MAGENTA'))
+        _Message  := format('Execute function %I.%I', Colorize(_Phase, 'CYAN'), Colorize(_Function, 'MAGENTA'))
     );
     EXECUTE format('SELECT %I.%I(_NodeID := %s::integer)', _Phase, _Function, _NodeID);
     RETURN TRUE;
 ELSE
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG5',
-        _Message  := format('LEAVE %s', Colorize(Node(_NodeID, _Short := TRUE)))
-    );
     RETURN NULL;
 END IF;
 
