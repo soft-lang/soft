@@ -23,7 +23,7 @@ PRIMARY KEY (RowID),
 UNIQUE (Language, NodeType)
 );
 
-\COPY ImportNodeTypes (Language, NodeType, PrimitiveType, NodeGroup, Precedence, Literal, LiteralPattern, NodePattern, Prologue, Epilogue, GrowFrom, GrowInto, NodeSeverity) FROM ~/src/soft/languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
+\COPY ImportNodeTypes (Language, NodeType, PrimitiveType, NodeGroup, Precedence, Literal, LiteralPattern, NodePattern, Prologue, Epilogue, GrowFrom, GrowInto, NodeSeverity) FROM languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
 
 SELECT COUNT(*) FROM (
     SELECT New_Node_Type(
@@ -49,6 +49,6 @@ INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
 AND NodeTypes.NodePattern IS NOT NULL;
 
 -- Normalize file since external editor might use quotes differently:
-\COPY (SELECT * FROM View_Node_Types) TO ~/src/soft/languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
+\COPY (SELECT * FROM View_Node_Types) TO languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
 
 DROP TABLE ImportNodeTypes;
