@@ -12,9 +12,11 @@ FROM Nodes
 WHERE NodeID = _NodeID;
 
 RETURN QUERY
-SELECT format(E'"%s" [label="%s" %s];',
-    Serialize_Node(Nodes.NodeID),
+SELECT format(E'"%s.%s" [label="%s" dotir="%s" %s];',
+    Get_Node_Lexical_Environment(Nodes.NodeID),
+    Nodes.NodeID,
     Node(Nodes.NodeID),
+    Serialize_Node(Nodes.NodeID),
     Get_Node_Attributes(Nodes.NodeID, _NodeID)
 )
 FROM Nodes
@@ -22,17 +24,6 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.ProgramID = _ProgramID
 AND Nodes.DeathPhaseID IS NULL
 ORDER BY Nodes.NodeID;
-
-RETURN QUERY
-SELECT format('"%s" -> "%s";',
-    Serialize_Node(ParentNodeID),
-    Serialize_Node(ChildNodeID)
-)
-FROM Edges
-WHERE Edges.ProgramID = _ProgramID
-AND Edges.DeathPhaseID IS NULL
-AND Get_Node_Lexical_Environment(ParentNodeID) = Get_Node_Lexical_Environment(ChildNodeID)
-ORDER BY Edges.EdgeID;
 
 RETURN QUERY
 SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
@@ -67,20 +58,48 @@ AND   Get_Node_Lexical_Environment(Nodes.NodeID) <> Get_Node_Lexical_Environment
 ORDER BY 1;
 
 RETURN QUERY
-SELECT format('"%s.%s" -> "%s.%s";', Get_Node_Lexical_Environment(ChildNodeID), ParentNodeID, Get_Node_Lexical_Environment(ChildNodeID), ChildNodeID)
-FROM Edges
-WHERE Edges.ProgramID = _ProgramID
-AND Edges.DeathPhaseID IS NULL
-AND Get_Node_Lexical_Environment(ParentNodeID) <> Get_Node_Lexical_Environment(ChildNodeID)
-ORDER BY Edges.EdgeID;
-
-RETURN QUERY
-SELECT format('"%s.%s" -> "%s.%s";', Get_Node_Lexical_Environment(ParentNodeID), ParentNodeID, Get_Node_Lexical_Environment(ParentNodeID), ChildNodeID)
-FROM Edges
-WHERE Edges.ProgramID = _ProgramID
-AND Edges.DeathPhaseID IS NULL
-AND Get_Node_Lexical_Environment(ParentNodeID) <> Get_Node_Lexical_Environment(ChildNodeID)
-ORDER BY Edges.EdgeID;
+SELECT format FROM (
+    SELECT
+        EdgeID,
+        format('"%s.%s" -> "%s.%s";',
+                Get_Node_Lexical_Environment(ParentNodeID),
+                ParentNodeID,
+                Get_Node_Lexical_Environment(ChildNodeID),
+                ChildNodeID
+        )
+    FROM Edges
+    WHERE ProgramID = _ProgramID
+    AND DeathPhaseID IS NULL
+    AND Get_Node_Lexical_Environment(ParentNodeID) = Get_Node_Lexical_Environment(ChildNodeID)
+    UNION ALL
+    SELECT
+        EdgeID,
+        format('"%s.%s" -> "%s.%s";',
+            Get_Node_Lexical_Environment(ChildNodeID),
+            ParentNodeID,
+            Get_Node_Lexical_Environment(ChildNodeID),
+            ChildNodeID
+        )
+    FROM Edges
+    WHERE ProgramID = _ProgramID
+    AND DeathPhaseID IS NULL
+    AND Get_Node_Lexical_Environment(ParentNodeID) <> Get_Node_Lexical_Environment(ChildNodeID)
+    UNION ALL
+    SELECT
+        EdgeID,
+        format('"%s.%s" -> "%s.%s";',
+            Get_Node_Lexical_Environment(ParentNodeID),
+            ParentNodeID,
+            Get_Node_Lexical_Environment(ParentNodeID),
+            ChildNodeID,
+            EdgeID
+        )
+    FROM Edges
+    WHERE ProgramID = _ProgramID
+    AND DeathPhaseID IS NULL
+    AND Get_Node_Lexical_Environment(ParentNodeID) <> Get_Node_Lexical_Environment(ChildNodeID)
+) AS X
+ORDER BY EdgeID;
 
 RETURN;
 END;

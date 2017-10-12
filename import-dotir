@@ -26,22 +26,22 @@ sub UnQuote {
 
 while (my $Row = <$FH>) {
     chomp $Row;
-    if ($Row =~ m/^dotir="(\{(?:[^"\\]|\\.)*\})";$/) {
-        $Program = JSON::from_json(UnQuote($1));
-    } elsif ($Row =~ m/^"(\{(?:[^"\\]|\\.)*\})" \[/) {
-        my $Node = JSON::from_json(UnQuote($1));
-        $Nodes->{$Node->{NodeID}} = $Node;
-    } elsif ($Row =~ m/^"(\{(?:[^"\\]|\\.)*\})" -> "(\{(?:[^"\\]|\\.)*})";$/) {
-        my $ParentNode = JSON::from_json(UnQuote($1));
-        my $ChildNode  = JSON::from_json(UnQuote($2));
-        push @$Edges, [$ParentNode->{NodeID}, $ChildNode->{NodeID}];
+    if ($Row =~ m/dotir="(\{(?:[^"\\]|\\.)*\})"/) {
+        my $Hash = JSON::from_json(UnQuote($1));
+        if (exists $Hash->{Program}) {
+            $Program = $Hash;
+        } elsif(exists $Hash->{NodeID}) {
+            $Nodes->{$Hash->{NodeID}} = $Hash;
+        } else {
+            die "No Program nor any NodeID hash key found";
+        }
+    } elsif ($Row =~ m/^"\d+\.(\d+)" -> "\d+\.(\d+)";$/) {
+        push @{$Edges}, {
+            ParentNodeID => $1,
+            ChildNodeID  => $2
+        };
     }
 }
-
-print Dumper $Program;
-print Dumper $Nodes;
-print Dumper $Edges;
-
 
 close($FH);
 
@@ -115,11 +115,14 @@ foreach my $OldNodeID (sort {$a <=> $b} keys %{$Nodes}) {
     $NewNodeIDs->{$OldNodeID} = $NewNodeID;
 }
 
-foreach my $Edge (@{$Edges}) {
+my $Seen = {};
+foreach my $Edge (@$Edges) {
+    next if exists $Seen->{$Edge->{ParentNodeID}}->{$Edge->{ChildNodeID}};
     $New_Edge->execute(
-        $NewNodeIDs->{$Edge->[0]},
-        $NewNodeIDs->{$Edge->[1]}
+        $NewNodeIDs->{$Edge->{ParentNodeID}},
+        $NewNodeIDs->{$Edge->{ChildNodeID}}
     );
+    $Seen->{$Edge->{ParentNodeID}}->{$Edge->{ChildNodeID}} = 1;
 }
 
 $Set_Program_Node->execute(
@@ -136,3 +139,5 @@ $New_Node->finish();
 $New_Edge->finish();
 
 $DBH->disconnect();
+
+print "Program '$Program->{Program}' in language '$Program->{Language}' restored. ProgramID: $ProgramID\n";

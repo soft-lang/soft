@@ -18,7 +18,7 @@ label="%2$s %3$s";
         ['Program',          Programs.Program],
         ['Language',         Languages.Language],
         ['Phase',            Phases.Phase],
-        ['Direction',        Programs.Direction::text],
+        ['Direction',        DOTIR.Direction::text],
         ['NodeID',           COALESCE(DOTIR.NodeID::text,'')]
     ])::text,'"','\"'),
     Programs.Program,
