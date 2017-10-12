@@ -24,7 +24,7 @@ _ResultTypes      regtype[];
 _ResultValues     text[];
 BEGIN
 
-_Program := clock_timestamp()::text;
+_Program := regexp_replace(clock_timestamp()::text,'[^0-9]+','','g');
 
 _ProgramID := New_Program(
     _Language    := _Language,
