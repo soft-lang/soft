@@ -1726,6 +1726,16 @@ SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
 ```
 
 ```sql
+\ir soft/FUNCTIONS/soft.sql
+```
+
+Run code directly without having to come up with a name for your program.
+
+```sql
+SELECT * FROM Soft('TestLanguage','1+2','DEBUG5');
+```
+
+```sql
 SELECT Notice(Colorize('Installation successful.', 'GREEN'));
 ```
 
