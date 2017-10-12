@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION Log(
 _NodeID    integer,
 _Severity  severity,
-_Message   text,
+_Message   text    DEFAULT NULL,
 _SaveDOTIR boolean DEFAULT FALSE
 )
 RETURNS integer
@@ -46,11 +46,15 @@ _Color := CASE
     WHEN _Severity > 'WARNING' THEN 'RED'
 END;
 
-PERFORM Notice(format('%s %s: "%s"', _Phase, Colorize(_Severity::text, _Color), _Message));
-
 IF _SaveDOTIR THEN
     _DOTIRID := Save_DOTIR(_NodeID := _NodeID);
 END IF;
+
+IF _Message IS NULL THEN
+    RETURN NULL;
+END IF;
+
+PERFORM Notice(format('%s %s: "%s"', _Phase, Colorize(_Severity::text, _Color), _Message));
 
 INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTIRID)
 SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTIRID

@@ -17,3 +17,5 @@ CHECK (BirthPhaseID <= DeathPhaseID),
 CHECK ((DeathPhaseID IS NULL) = (DeathTime IS NULL)),
 CHECK ((ReferenceNodeID IS NULL) OR (PrimitiveType IS NULL AND PrimitiveValue IS NULL))
 );
+
+CREATE INDEX ON Nodes(ClonedRootNodeID);

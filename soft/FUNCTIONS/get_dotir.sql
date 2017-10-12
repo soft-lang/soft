@@ -71,7 +71,7 @@ SELECT format FROM (
     WHERE ProgramID = _ProgramID
     AND DeathPhaseID IS NULL
     AND Get_Node_Lexical_Environment(ParentNodeID) = Get_Node_Lexical_Environment(ChildNodeID)
-    UNION ALL
+    UNION
     SELECT
         EdgeID,
         format('"%s.%s" -> "%s.%s";',
@@ -84,7 +84,7 @@ SELECT format FROM (
     WHERE ProgramID = _ProgramID
     AND DeathPhaseID IS NULL
     AND Get_Node_Lexical_Environment(ParentNodeID) <> Get_Node_Lexical_Environment(ChildNodeID)
-    UNION ALL
+    UNION
     SELECT
         EdgeID,
         format('"%s.%s" -> "%s.%s";',

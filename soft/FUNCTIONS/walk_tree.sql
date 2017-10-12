@@ -46,7 +46,6 @@ FOR UPDATE OF Programs;
 PERFORM Log(
     _NodeID    := _NodeID,
     _Severity  := 'DEBUG4',
-    _Message   := format('%s %s', _Direction, Colorize(Node(_NodeID, _Short := TRUE))),
     _SaveDOTIR := _SaveDOTIR
 );
 
