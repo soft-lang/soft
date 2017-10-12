@@ -20,6 +20,7 @@ CHECK ((DeathPhaseID IS NULL) = (DeathTime IS NULL)),
 CHECK ((ReferenceNodeID IS NULL) OR (PrimitiveType IS NULL AND PrimitiveValue IS NULL))
 );
 
-CREATE INDEX ON Nodes(ClonedRootNodeID);
-CREATE INDEX ON Nodes(NodeTypeID);
-CREATE INDEX ON Nodes(ProgramID);
+CREATE INDEX ON Nodes(ClonedRootNodeID) WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Nodes(NodeTypeID) WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Nodes(ProgramID) WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Nodes(ProgramID,NodeTypeID) WHERE DeathPhaseID IS NULL;

@@ -11,6 +11,11 @@ PrimitiveValue text
 )
 LANGUAGE plpgsql
 AS $$
+-- This function allows quickly invoking a program
+-- from source code, without giving it a name.
+-- Its name will be the md5() of the source code,
+-- so we can detect if we've already compiled it,
+-- and if so, it will be reused.
 DECLARE
 _Program          text;
 _ProgramID        integer;
@@ -24,27 +29,32 @@ _ResultTypes      regtype[];
 _ResultValues     text[];
 BEGIN
 
-_Program := regexp_replace(clock_timestamp()::text,'[^0-9]+','','g');
+-- Unnamed program
+_Program := md5(_SourceCode);
 
-_ProgramID := New_Program(
-    _Language    := _Language,
-    _Program     := _Program,
-    _LogSeverity := _LogSeverity
-);
-
-SELECT
-    New_Node(
+SELECT Programs.ProgramID
+INTO _ProgramID
+FROM Programs
+INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
+WHERE Languages.Language = _Language
+AND   Programs.Program   = _Program;
+IF NOT FOUND THEN
+    _ProgramID := New_Program(
+        _Language    := _Language,
+        _Program     := _Program,
+        _LogSeverity := _LogSeverity
+    );
+    PERFORM New_Node(
         _ProgramID      := _ProgramID,
         _NodeTypeID     := NodeTypes.NodeTypeID,
         _PrimitiveType  := 'text'::regtype,
         _PrimitiveValue := _SourceCode
     )
-INTO STRICT
-    _SourceCodeNodeID
-FROM NodeTypes
-INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
-WHERE Languages.Language = _Language
-AND   NodeTypes.NodeType = 'SOURCE_CODE';
+    FROM NodeTypes
+    INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
+    WHERE Languages.Language = _Language
+    AND   NodeTypes.NodeType = 'SOURCE_CODE';
+END IF;
 
 SELECT
     Run.OK,

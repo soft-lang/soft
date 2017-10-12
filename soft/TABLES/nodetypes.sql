@@ -36,4 +36,4 @@ ALTER TABLE NodeTypes ADD FOREIGN KEY (LanguageID, EpilogueNodeTypeID) REFERENCE
 ALTER TABLE NodeTypes ADD FOREIGN KEY (LanguageID, GrowFromNodeTypeID) REFERENCES NodeTypes(LanguageID, NodeTypeID);
 ALTER TABLE NodeTypes ADD FOREIGN KEY (LanguageID, GrowIntoNodeTypeID) REFERENCES NodeTypes(LanguageID, NodeTypeID);
 
-CREATE INDEX ON NodeTypes(LanguageID);
+CREATE INDEX ON NodeTypes(LanguageID, NodeType);

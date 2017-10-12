@@ -12,3 +12,12 @@ CHECK (ParentNodeID <> ChildNodeID),
 CHECK (BirthPhaseID <= DeathPhaseID),
 CHECK ((DeathPhaseID IS NULL) = (DeathTime IS NULL))
 );
+
+CREATE INDEX ON Edges(ChildNodeID, EdgeID)  WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Edges(ParentNodeID, EdgeID) WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Edges(ProgramID)    WHERE DeathPhaseID IS NULL;
+
+
+
+CREATE INDEX ON Edges(ChildNodeID, ParentNodeID, EdgeID)  WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Edges(ParentNodeID, ChildNodeID, EdgeID) WHERE DeathPhaseID IS NULL;
