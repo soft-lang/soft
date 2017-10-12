@@ -2,7 +2,7 @@ CREATE VIEW View_Nodes AS
 SELECT
 Nodes.NodeID,
 Node(Nodes.NodeID),
-Get_Node_Lexical_Environment(Nodes.NodeID) AS Environment,
+Nodes.Environment,
 Programs.Program,
 Languages.Language,
 NodeTypes.NodeType,

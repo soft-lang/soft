@@ -3,16 +3,13 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ClonedFromNodeID integer;
 _ClonedRootNodeID integer;
 _Env              integer;
 BEGIN
 
 SELECT
-    ClonedFromNodeID,
     ClonedRootNodeID
 INTO STRICT
-    _ClonedFromNodeID,
     _ClonedRootNodeID
 FROM Nodes
 WHERE NodeID = _NodeID;

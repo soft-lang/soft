@@ -12,10 +12,11 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_BirthPhaseID integer;
-_NodeID       integer;
-_OK           boolean;
-_CastTest     text;
+_BirthPhaseID    integer;
+_NodeID          integer;
+_NodeLabelNumber integer;
+_OK              boolean;
+_CastTest        text;
 BEGIN
 
 SELECT PhaseID INTO STRICT _BirthPhaseID FROM Programs WHERE ProgramID = _ProgramID;
@@ -56,6 +57,20 @@ INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  Pri
 VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID)
 RETURNING    NodeID
 INTO STRICT _NodeID;
+
+SELECT ROW_NUMBER INTO STRICT _NodeLabelNumber
+FROM (
+    SELECT NodeID, ROW_NUMBER() OVER () FROM (
+        SELECT NodeID FROM Nodes WHERE NodeTypeID = _NodeTypeID ORDER BY NodeID
+    ) AS X
+) AS Y
+WHERE NodeID = COALESCE(_ClonedFromNodeID, _NodeID);
+
+UPDATE Nodes SET
+    Environment     = Get_Node_Lexical_Environment(NodeID),
+    NodeLabelNumber = _NodeLabelNumber
+WHERE NodeID = _NodeID
+RETURNING TRUE INTO STRICT _OK;
 
 RETURN _NodeID;
 END;

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Expand_Token_Groups(_NodePattern text, _LanguageID integer)
+CREATE OR REPLACE FUNCTION Expand_Node_Pattern(_NodePattern text, _LanguageID integer)
 RETURNS text
 LANGUAGE plpgsql
 STABLE

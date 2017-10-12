@@ -678,6 +678,7 @@ and uses `New_Test()`/`Run_Test()` to also run the program.
 ```sql
 \ir soft/TABLES/nodes.sql
 \ir soft/FUNCTIONS/new_node.sql
+\ir soft/FUNCTIONS/get_node_lexical_environment.sql
 ```
 
 Nodes are of different NodeTypes and can be either
@@ -825,23 +826,6 @@ to what other node in a different lexical environment.
 
 ```sql
 SELECT Node(_NodeID := 2);
-```
-
-```sql
-\ir soft/FUNCTIONS/get_node_lexical_environment.sql
-```
-
-Returns a number for the lexical environment
-which the NodeID shared with all other nodes
-part of the same clone.
-
-If the node is an original node from the initial
-Abstract Syntax Tree (AST) before starting to
-evaluate the tree, it will have a lexical environment
-of the value 0.
-
-```sql
-SELECT Get_Node_Lexical_Environment(_NodeID := 2);
 ```
 
 ```sql
@@ -1255,14 +1239,14 @@ SELECT * FROM View_Nodes;
 Below are some helper-functions used by `"PARSE"."ENTER_SOURCE_CODE"()`:
 
 ```sql
-\ir soft/FUNCTIONS/expand_token_groups.sql
+\ir soft/FUNCTIONS/expand_node_pattern.sql
 ```
 
 This expands NodeGroups and appends `\d+` to each NodeType also `[A-Z_]+`
 which is the regex pattern to signify *any node type*.
 
 ```sql
-SELECT Expand_Token_Groups(
+SELECT Expand_Node_Pattern(
     _NodePattern := NodeTypes.NodePattern,
     _LanguageID  := Languages.LanguageID
 )

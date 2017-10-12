@@ -82,6 +82,12 @@ PERFORM Log(
     _SaveDOTIR  := TRUE
 );
 
+UPDATE NodeTypes
+SET ExpandedNodePattern = Expand_Node_Pattern(NodePattern, LanguageID)
+WHERE LanguageID        = _LanguageID
+AND NodePattern         IS NOT NULL
+AND ExpandedNodePattern IS NULL;
+
 _Children := 0;
 _Parents  := 0;
 _Killed   := 0;
@@ -98,7 +104,7 @@ LOOP
         NodeTypes.NodeType,
         NodeTypes.PrimitiveType,
         NodeTypes.NodePattern,
-        Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID),
+        NodeTypes.ExpandedNodePattern,
         NodeTypes.PrologueNodeTypeID,
         NodeTypes.EpilogueNodeTypeID,
         NodeTypes.GrowFromNodeTypeID,
@@ -120,13 +126,13 @@ LOOP
     FROM NodeTypes
     LEFT JOIN NodeTypes AS GrowFromNodeType ON GrowFromNodeType.NodeTypeID = NodeTypes.GrowFromNodeTypeID
     WHERE NodeTypes.LanguageID = _LanguageID
-    AND _Nodes ~ Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)
+    AND _Nodes ~ NodeTypes.ExpandedNodePattern
     AND NodeTypes.GrowIntoNodeTypeID IS NOT DISTINCT FROM _GrowIntoNodeTypeID
     ORDER BY
         Precedence(NodeTypes.NodeTypeID),
         -- If multiple node pattern with the same precedence matches,
         -- then select the node pattern that matches first:
-        strpos(_Nodes, substring(_Nodes from Expand_Token_Groups(NodeTypes.NodePattern, NodeTypes.LanguageID)))
+        strpos(_Nodes, substring(_Nodes from NodeTypes.ExpandedNodePattern))
     LIMIT 1;
     IF NOT FOUND THEN
         IF _Nodes ~ ('^'||_GrowIntoNodeType||'\d+$') THEN

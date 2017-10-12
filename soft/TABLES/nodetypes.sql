@@ -1,19 +1,20 @@
 CREATE TABLE NodeTypes (
-NodeTypeID         serial  NOT NULL,
-NodeType           text    NOT NULL,
-LanguageID         integer NOT NULL REFERENCES Languages(LanguageID),
-PrimitiveType      regtype,
-NodeGroup          text,
-Precedence         text,
-Literal            text,
-LiteralLength      integer,
-LiteralPattern     text,
-NodePattern        text,
-PrologueNodeTypeID integer,
-EpilogueNodeTypeID integer,
-GrowFromNodeTypeID integer,
-GrowIntoNodeTypeID integer,
-NodeSeverity       severity,
+NodeTypeID          serial  NOT NULL,
+NodeType            text    NOT NULL,
+LanguageID          integer NOT NULL REFERENCES Languages(LanguageID),
+PrimitiveType       regtype,
+NodeGroup           text,
+Precedence          text,
+Literal             text,
+LiteralLength       integer,
+LiteralPattern      text,
+NodePattern         text,
+PrologueNodeTypeID  integer,
+EpilogueNodeTypeID  integer,
+GrowFromNodeTypeID  integer,
+GrowIntoNodeTypeID  integer,
+NodeSeverity        severity,
+ExpandedNodePattern text,
 PRIMARY KEY (NodeTypeID),
 CHECK (NodeType ~ '^[A-Z_]+$'),
 UNIQUE (LanguageID, NodeTypeID),
@@ -34,3 +35,5 @@ ALTER TABLE NodeTypes ADD FOREIGN KEY (LanguageID, PrologueNodeTypeID) REFERENCE
 ALTER TABLE NodeTypes ADD FOREIGN KEY (LanguageID, EpilogueNodeTypeID) REFERENCES NodeTypes(LanguageID, NodeTypeID);
 ALTER TABLE NodeTypes ADD FOREIGN KEY (LanguageID, GrowFromNodeTypeID) REFERENCES NodeTypes(LanguageID, NodeTypeID);
 ALTER TABLE NodeTypes ADD FOREIGN KEY (LanguageID, GrowIntoNodeTypeID) REFERENCES NodeTypes(LanguageID, NodeTypeID);
+
+CREATE INDEX ON NodeTypes(LanguageID);

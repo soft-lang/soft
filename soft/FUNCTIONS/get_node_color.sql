@@ -3,18 +3,20 @@ RETURNS text
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Env         integer;
+_Environment integer;
 _Fillcolor   text;
 _ColorScheme text    := 'set312';
 _NumColors   integer := 12;
 BEGIN
 
-_Env := Get_Node_Lexical_Environment(_NodeID);
+SELECT       Environment
+INTO STRICT _Environment
+FROM Nodes WHERE NodeID = _NodeID;
 
-IF _Env = 0 THEN
+IF _Environment = 0 THEN
     _Fillcolor := 'white';
-ELSIF _Env <= _NumColors THEN
-    _Fillcolor := format('/%s/%s', _ColorScheme, _Env);
+ELSIF _Environment <= _NumColors THEN
+    _Fillcolor := format('/%s/%s', _ColorScheme, _Environment);
 ELSE
     SELECT format('/%s/%s:/%s/%s', _ColorScheme, C1, _ColorScheme, C2)
     INTO _Fillcolor
@@ -24,7 +26,7 @@ ELSE
         CROSS JOIN generate_series(1,12) AS C2
         WHERE C1 <> C2
     ) AS X
-    WHERE ROW_NUMBER = _Env;
+    WHERE ROW_NUMBER = _Environment;
 END IF;
 
 RETURN _Fillcolor;
