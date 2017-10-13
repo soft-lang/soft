@@ -1,4 +1,5 @@
 #!/bin/bash
+./install
+cp languages/monkey/node_types.csv node_types.csv
 psql -q -X -f languages/monkey.sql
-psql -q -X -1 -v ON_ERROR_STOP=1 -f load_nodetypes.sql
-psql -q -X -1 -f languages/monkey/test.sql
+mv node_types.csv languages/monkey/node_types.csv

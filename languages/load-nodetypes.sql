@@ -1,9 +1,3 @@
-SET search_path TO soft, pg_temp;
-
-\set ON_ERROR_STOP 1
-
-TRUNCATE NodeTypes, Nodes, Programs, Edges, Log, Tests, DOTIR;
-
 CREATE TEMP TABLE ImportNodeTypes (
 RowID          serial NOT NULL,
 Language       text   NOT NULL,
@@ -23,7 +17,7 @@ PRIMARY KEY (RowID),
 UNIQUE (Language, NodeType)
 );
 
-\COPY ImportNodeTypes (Language, NodeType, PrimitiveType, NodeGroup, Precedence, Literal, LiteralPattern, NodePattern, Prologue, Epilogue, GrowFrom, GrowInto, NodeSeverity) FROM languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
+\COPY ImportNodeTypes (Language, NodeType, PrimitiveType, NodeGroup, Precedence, Literal, LiteralPattern, NodePattern, Prologue, Epilogue, GrowFrom, GrowInto, NodeSeverity) FROM node_types.csv WITH CSV HEADER QUOTE '"';
 
 SELECT COUNT(*) FROM (
     SELECT New_Node_Type(
@@ -48,7 +42,7 @@ FROM NodeTypes
 INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
 AND NodeTypes.NodePattern IS NOT NULL;
 
--- Normalize file since external editor might use quotes differently:
-\COPY (SELECT * FROM View_Node_Types) TO languages/monkey/node_types.csv WITH CSV HEADER QUOTE '"';
-
 DROP TABLE ImportNodeTypes;
+
+-- Normalize file since external editor might use quotes differently:
+\COPY (SELECT * FROM View_Node_Types) TO node_types.csv WITH CSV HEADER QUOTE '"';

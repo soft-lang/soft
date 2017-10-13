@@ -655,8 +655,7 @@ SELECT * FROM View_Node_Types;
 
 SELECT New_Program(
     _Language    := 'TestLanguage',
-    _Program     := 'AddTwoNumbers',
-    _LogSeverity := 'DEBUG5'
+    _Program     := 'AddTwoNumbers'
 );
 
 ```
@@ -1694,8 +1693,7 @@ SELECT New_Test(
     _Program       := 'ShouldComputeToTen',
     _SourceCode    := '1 + 2 - - 3 * 4 - 15 / (2 + 1)',
     _ExpectedType  := 'integer',
-    _ExpectedValue := '10',
-    _LogSeverity   := 'DEBUG5'
+    _ExpectedValue := '10'
 );
 ```
 
@@ -1706,7 +1704,7 @@ SELECT New_Test(
 Runs the test created by `New_Test()`:
 
 ```sql
-SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
+SELECT Run_Test('TestLanguage','ShouldComputeToTen');
 ```
 
 ```sql
@@ -1716,7 +1714,7 @@ SELECT Run_Test('TestLanguage','ShouldComputeToTen','DEBUG5');
 Run code directly without having to come up with a name for your program.
 
 ```sql
-SELECT * FROM Soft('TestLanguage','1+2','DEBUG5');
+SELECT * FROM Soft('TestLanguage','1+2');
 ```
 
 ```sql
