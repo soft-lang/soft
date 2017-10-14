@@ -1607,6 +1607,7 @@ left most match is selected.
 
 ```sql
 \ir REDUCE/ENTER_PROGRAM.sql
+\ir REDUCE/ENTER_UNPARSEABLE.sql
 ```
 
 The `REDUCE` phase shrinks the AST by eliminating
@@ -1714,7 +1715,10 @@ SELECT Run_Test('TestLanguage','ShouldComputeToTen');
 Run code directly without having to come up with a name for your program.
 
 ```sql
-SELECT * FROM Soft('TestLanguage','1+2');
+SELECT * FROM Soft(
+    _SourceCode := '1+2',
+    _Language   := 'TestLanguage'
+);
 ```
 
 ```sql

@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION Soft(
-_Language    text,
 _SourceCode  text,
+_Language    text     DEFAULT 'monkey',
 _LogSeverity severity DEFAULT 'NOTICE'
 )
 RETURNS TABLE (

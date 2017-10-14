@@ -112,7 +112,7 @@ LOOP
     END IF;
 
     IF _LiteralLength > length(_Literal) THEN
-        _Wrapping := regexp_split_to_array(_Matches[1], _Literal);
+        _Wrapping := regexp_split_to_array(_Matches[1], '(?q)'||_Literal);
         IF (array_length(_Wrapping,1) <> 2) THEN
             RAISE EXCEPTION 'Expected exactly two array elements but got: %', _Wrapping;
         END IF;
