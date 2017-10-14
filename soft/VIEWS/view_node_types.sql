@@ -11,11 +11,15 @@ SELECT * FROM (
     NodeTypes.NodePattern,
     Prologue.NodeType AS Prologue,
     Epilogue.NodeType AS Epilogue,
+    GrowFrom.NodeType AS GrowFrom,
+    GrowInto.NodeType AS GrowInto,
     NodeTypes.NodeSeverity
     FROM NodeTypes
     INNER JOIN Languages             ON Languages.LanguageID = NodeTypes.LanguageID
     LEFT  JOIN NodeTypes AS Prologue ON Prologue.NodeTypeID  = NodeTypes.PrologueNodeTypeID
     LEFT  JOIN NodeTypes AS Epilogue ON Epilogue.NodeTypeID  = NodeTypes.EpilogueNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowFrom ON GrowFrom.NodeTypeID  = NodeTypes.GrowFromNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowInto ON GrowInto.NodeTypeID  = NodeTypes.GrowIntoNodeTypeID
     WHERE NodeTypes.Literal        IS NULL
     AND   NodeTypes.LiteralPattern IS NULL
     AND   NodeTypes.NodePattern    IS NULL
@@ -34,11 +38,15 @@ SELECT * FROM (
     NodeTypes.NodePattern,
     Prologue.NodeType AS Prologue,
     Epilogue.NodeType AS Epilogue,
+    GrowFrom.NodeType AS GrowFrom,
+    GrowInto.NodeType AS GrowInto,
     NodeTypes.NodeSeverity
     FROM NodeTypes
     INNER JOIN Languages             ON Languages.LanguageID = NodeTypes.LanguageID
     LEFT  JOIN NodeTypes AS Prologue ON Prologue.NodeTypeID  = NodeTypes.PrologueNodeTypeID
     LEFT  JOIN NodeTypes AS Epilogue ON Epilogue.NodeTypeID  = NodeTypes.EpilogueNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowFrom ON GrowFrom.NodeTypeID  = NodeTypes.GrowFromNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowInto ON GrowInto.NodeTypeID  = NodeTypes.GrowIntoNodeTypeID
     WHERE NodeTypes.Literal IS NOT NULL
     ORDER BY Languages.Language, NodeTypes.LiteralLength DESC, NodeTypes.NodeGroup, NodeTypes.Literal
 ) AS Literals
@@ -55,11 +63,15 @@ SELECT * FROM (
     NodeTypes.NodePattern,
     Prologue.NodeType AS Prologue,
     Epilogue.NodeType AS Epilogue,
+    GrowFrom.NodeType AS GrowFrom,
+    GrowInto.NodeType AS GrowInto,
     NodeTypes.NodeSeverity
     FROM NodeTypes
     INNER JOIN Languages             ON Languages.LanguageID = NodeTypes.LanguageID
     LEFT  JOIN NodeTypes AS Prologue ON Prologue.NodeTypeID  = NodeTypes.PrologueNodeTypeID
     LEFT  JOIN NodeTypes AS Epilogue ON Epilogue.NodeTypeID  = NodeTypes.EpilogueNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowFrom ON GrowFrom.NodeTypeID  = NodeTypes.GrowFromNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowInto ON GrowInto.NodeTypeID  = NodeTypes.GrowIntoNodeTypeID
     WHERE NodeTypes.LiteralPattern IS NOT NULL
     ORDER BY Languages.Language, Precedence(NodeTypes.NodeTypeID), NodeTypes.NodeGroup, NodeTypes.NodeType
 ) AS LiteralPatterns
@@ -76,11 +88,15 @@ SELECT * FROM (
     NodeTypes.NodePattern,
     Prologue.NodeType AS Prologue,
     Epilogue.NodeType AS Epilogue,
+    GrowFrom.NodeType AS GrowFrom,
+    GrowInto.NodeType AS GrowInto,
     NodeTypes.NodeSeverity
     FROM NodeTypes
     INNER JOIN Languages             ON Languages.LanguageID = NodeTypes.LanguageID
     LEFT  JOIN NodeTypes AS Prologue ON Prologue.NodeTypeID  = NodeTypes.PrologueNodeTypeID
     LEFT  JOIN NodeTypes AS Epilogue ON Epilogue.NodeTypeID  = NodeTypes.EpilogueNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowFrom ON GrowFrom.NodeTypeID  = NodeTypes.GrowFromNodeTypeID
+    LEFT  JOIN NodeTypes AS GrowInto ON GrowInto.NodeTypeID  = NodeTypes.GrowIntoNodeTypeID
     WHERE NodeTypes.NodePattern IS NOT NULL
     ORDER BY Languages.Language, Precedence(NodeTypes.NodeTypeID), NodeTypes.NodeGroup, NodeTypes.NodeType
 ) AS NodePatterns
