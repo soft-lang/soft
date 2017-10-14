@@ -205,7 +205,6 @@ this document under the section `SEMANTIC FUNCTIONALITY`.
 ```sql
 \ir soft/TABLES/nodetypes.sql
 \ir soft/FUNCTIONS/new_node_type.sql
-\ir soft/VIEWS/view_node_types.sql
 ```
 
 Different languages might have different syntax for one and the same thing.
@@ -643,11 +642,6 @@ the nodes that matched the NodePattern.
 If a `Prologue` is specified, a `Node` of its type will be
 created and connected automatically *after* connecting
 the nodes that matched the NodePattern.
-
-```sql
-SELECT * FROM View_Node_Types;
-```
-
 
 ```sql
 \ir soft/TABLES/programs.sql
@@ -1277,6 +1271,7 @@ SELECT Get_Capturing_Group(
 );
 
 \ir soft/FUNCTIONS/precedence.sql
+\ir soft/VIEWS/view_node_types.sql
 ```
 
 Returns the precedence for the node type.
