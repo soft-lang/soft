@@ -14,24 +14,29 @@ _EdgeID       integer;
 _Count        bigint;
 _Direction    direction;
 _SaveDOTIR    boolean;
+_Phase        text;
+_Severity     severity;
 _OK           boolean;
 BEGIN
 
-IF EXISTS (
-    SELECT 1 FROM Log
-    INNER JOIN Phases ON Phases.PhaseID = Log.PhaseID
-    WHERE Log.ProgramID  = _ProgramID
-    AND   Log.Severity  >= Phases.StopSeverity
-) THEN
+SELECT
+    Phases.Phase,
+    Log.Severity
+INTO
+    _Phase,
+    _Severity
+FROM Log
+INNER JOIN Phases ON Phases.PhaseID = Log.PhaseID
+WHERE Log.ProgramID  = _ProgramID
+AND   Log.Severity  >= Phases.StopSeverity
+LIMIT 1;
+IF FOUND THEN
+    PERFORM Notice(Colorize(format('Stopping due to %s during %s', _Severity, _Phase), 'RED'));
     RETURN FALSE;
 END IF;
 
 IF (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) IS NULL THEN
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG4',
-        _Message  := format('No program node, exiting')
-    );
+    RAISE NOTICE 'No program node for ProgramID %, exiting', _ProgramID;
     RETURN FALSE;
 END IF;
 

@@ -27,9 +27,9 @@ ORDER BY Nodes.NodeID;
 RETURN QUERY
 SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
     Child.Environment,
-    Child.NodeID,
-    Node(Child.NodeID),
-    Get_Node_Attributes(Child.NodeID, _NodeID)
+    Parent.NodeID,
+    Node(Parent.NodeID),
+    Get_Node_Attributes(Parent.NodeID, _NodeID)
 )
 FROM Nodes AS Parent
 INNER JOIN Edges          ON Edges.ParentNodeID = Parent.NodeID

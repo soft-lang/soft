@@ -16,6 +16,7 @@ _ExpectedTypes      regtype[];
 _ExpectedValues     text[];
 _ExpectedError      text;
 _ExpectedLog        text;
+_ExpectedSTDOUT     text[];
 _ProgramNodeID      integer;
 _ResultNodeID       integer;
 _ResultType         regtype;
@@ -36,6 +37,7 @@ SELECT
     Tests.ExpectedValues,
     Tests.ExpectedError,
     Tests.ExpectedLog,
+    Tests.ExpectedSTDOUT,
     Programs.LogSeverity
 INTO
     _TestID,
@@ -46,6 +48,7 @@ INTO
     _ExpectedValues,
     _ExpectedError,
     _ExpectedLog,
+    _ExpectedSTDOUT,
     _DefaultLogSeverity
 FROM Tests
 INNER JOIN Programs  ON Programs.ProgramID   = Tests.ProgramID
@@ -122,6 +125,12 @@ OR     _OK AND EXISTS (
         Log.Severity::text,
         NodeTypes.NodeType
     ) = _ExpectedLog
+)
+OR _ExpectedSTDOUT = (
+    SELECT array_agg(Log.Message ORDER BY Log.LogID)
+    FROM Log
+    WHERE Log.ProgramID = _ProgramID
+    AND   Log.Severity  = 'STDOUT'
 ) THEN
     PERFORM Log(
         _NodeID   := _ProgramNodeID,

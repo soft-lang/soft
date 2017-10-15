@@ -79,25 +79,28 @@ FROM X
 WHERE Matching_Input_Types(X.InputArgTypes, _ParentValueTypes)
 AND NOT EXISTS (SELECT 1 FROM X AS X2 WHERE X2.InputArgTypes = _ParentValueTypes)
 OR X.InputArgTypes = _ParentValueTypes;
-IF NOT FOUND THEN
+IF FOUND THEN
+    IF _Count IS DISTINCT FROM 1 THEN
+        RAISE EXCEPTION 'Multiple matches for: %.%(%), Count %', _Phase, _FunctionName, _ParentValueTypes, _Count;
+    END IF;
+
+    _SQL := format('SELECT %I.%I(%s)::text', _Phase, _FunctionName, _ParentArgValues);
+
+    IF _ReturnType = 'anyelement'::regtype THEN
+        _ReturnType := Determine_Return_Type(_InputArgTypes, _ParentValueTypes);
+    END IF;
+
+    EXECUTE _SQL INTO STRICT _ReturnValue;
+
+    EXECUTE format('SELECT %L::%s::text', _ReturnValue, _ReturnType) INTO STRICT _CastTest;
+    IF _ReturnValue IS DISTINCT FROM _CastTest THEN
+        RAISE EXCEPTION 'ReturnValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _ReturnValue, _CastTest, _ReturnType;
+    END IF;
+ELSIF (Language(_NodeID)).TruthyNonBooleans THEN
+    _ReturnType  := 'boolean'::regtype;
+    _ReturnValue := 'true';
+ELSE
     RAISE EXCEPTION 'Type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes;
-END IF;
-
-IF _Count IS DISTINCT FROM 1 THEN
-    RAISE EXCEPTION 'Multiple matches for: %.%(%), Count %', _Phase, _FunctionName, _ParentValueTypes, _Count;
-END IF;
-
-_SQL := format('SELECT %I.%I(%s)::text', _Phase, _FunctionName, _ParentArgValues);
-
-IF _ReturnType = 'anyelement'::regtype THEN
-    _ReturnType := Determine_Return_Type(_InputArgTypes, _ParentValueTypes);
-END IF;
-
-EXECUTE _SQL INTO STRICT _ReturnValue;
-
-EXECUTE format('SELECT %L::%s::text', _ReturnValue, _ReturnType) INTO STRICT _CastTest;
-IF _ReturnValue IS DISTINCT FROM _CastTest THEN
-    RAISE EXCEPTION 'ReturnValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _ReturnValue, _CastTest, _ReturnType;
 END IF;
 
 PERFORM Set_Node_Value(_NodeID := _NodeID, _PrimitiveType := _ReturnType, _PrimitiveValue := _ReturnValue);

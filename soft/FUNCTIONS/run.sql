@@ -49,7 +49,7 @@ LOOP
     EXCEPTION WHEN OTHERS THEN
         OK    := FALSE;
         Error := SQLERRM;
-        EXIT;
+        RETURN;
     END;
 END LOOP;
 RETURN;

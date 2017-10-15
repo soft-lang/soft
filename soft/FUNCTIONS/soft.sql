@@ -65,10 +65,13 @@ INTO STRICT
 FROM Run(_Language, _Program);
 
 IF NOT OK THEN
+    RETURN NEXT;
     RETURN;
 END IF;
 
 _ResultNodeID := Dereference((SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID));
+
+PERFORM Notice('AST: ' || Colorize(Explain_Node(Get_Program_Node(_ProgramID)), 'YELLOW'));
 
 RETURN QUERY
 SELECT

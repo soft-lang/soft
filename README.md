@@ -1148,6 +1148,26 @@ the value for the referenced node is returned.
 SELECT Primitive_Value(_NodeID := 2);
 ```
 
+```sql
+\ir soft/FUNCTIONS/print_node.sql
+```
+
+Print node to STDOUT.
+
+```sql
+SELECT Print_Node(_NodeID := 2);
+```
+
+```sql
+\ir soft/FUNCTIONS/explain_node.sql
+```
+
+Show AST for node.
+
+```sql
+SELECT Explain_Node(_NodeID := 2);
+```
+
 ## CLONING OF NODES
 
 To clone a node means creating new Nodes with the same `PrimitiveValue`s
@@ -1645,6 +1665,7 @@ to the `VARIABLE`.
 \ir EVAL/LEAVE_INDEX.sql
 \ir EVAL/LEAVE_LET_STATEMENT.sql
 \ir EVAL/LEAVE_PROGRAM.sql
+\ir EVAL/LEAVE_PRINT_STATEMENT.sql
 \ir EVAL/LEAVE_RETURN_STATEMENT.sql
 \ir EVAL/LEAVE_STATEMENTS.sql
 \ir EVAL/LESS_THAN.sql

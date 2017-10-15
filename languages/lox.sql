@@ -1,7 +1,7 @@
 SET search_path TO soft, public, pg_temp;
 
 \set ON_ERROR_STOP 1
-\set language monkey
+\set language lox
 
 BEGIN;
 
@@ -36,7 +36,7 @@ SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'puts',  _
 
 \ir :language/test.sql
 
-CREATE OR REPLACE FUNCTION monkey(
+CREATE OR REPLACE FUNCTION lox(
 _SourceCode  text,
 _LogSeverity severity DEFAULT 'NOTICE'
 ) RETURNS TABLE (
@@ -48,7 +48,7 @@ PrimitiveValue text
 LANGUAGE sql
 AS $$
 SELECT * FROM Soft(
-    _Language    := 'monkey',
+    _Language    := 'lox',
     _SourceCode  := $1,
     _LogSeverity := $2
 )

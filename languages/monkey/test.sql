@@ -1,7 +1,9 @@
 SET search_path TO soft, public, pg_temp;
 
+\set language monkey
+
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestEvalIntegerExpression:'||N,
     _SourceCode    := TestEvalIntegerExpression.T[N][1],
     _ExpectedType  := 'integer',
@@ -28,7 +30,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestEvalIntegerExpression.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestEvalBooleanExpression:'||N,
     _SourceCode    := TestEvalBooleanExpression.T[N][1],
     _ExpectedType  := 'boolean',
@@ -59,7 +61,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestEvalBooleanExpression.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestBangOperator:'||N,
     _SourceCode    := TestBangOperator.T[N][1],
     _ExpectedType  := 'boolean',
@@ -77,7 +79,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestBangOperator.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestIfElseExpressions:'||N,
     _SourceCode    := TestIfElseExpressions.T[N][1],
     _ExpectedType  := TestIfElseExpressions.T[N][2]::regtype,
@@ -96,7 +98,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestIfElseExpressions.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestReturnStatements:'||N,
     _SourceCode    := TestReturnStatements.T[N][1],
     _ExpectedType  := 'integer',
@@ -131,7 +133,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestReturnStatements.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestErrorHandling:'||N,
     _SourceCode    := TestErrorHandling.T[N][1],
     _ExpectedError := TestErrorHandling.T[N][2]
@@ -192,14 +194,14 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestErrorHandling.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:undeclared',
     _SourceCode    := $$foobar$$,
     _ExpectedLog   := 'MAP_VARIABLES ERROR IDENTIFIER'
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestLetStatements:'||N,
     _SourceCode    := TestLetStatements.T[N][1],
     _ExpectedType  := 'integer',
@@ -215,7 +217,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestLetStatements.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestFunctionApplication:'||N,
     _SourceCode    := TestFunctionApplication.T[N][1],
     _ExpectedType  := 'integer',
@@ -233,7 +235,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestFunctionApplication.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestEnclosingEnvironments',
     _SourceCode    := $$
         let first = 10;
@@ -253,7 +255,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestClosures',
     _SourceCode    := $$
         let newAdder = fn(x) {
@@ -268,7 +270,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestStringLiteral',
     _SourceCode    := $$"Hello World!"$$,
     _ExpectedType  := 'text'::regtype,
@@ -276,7 +278,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestStringConcatenation',
     _SourceCode    := $$"Hello" + " " + "World!"$$,
     _ExpectedType  := 'text'::regtype,
@@ -284,7 +286,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestBuiltinFunctions1:'||N,
     _SourceCode    := TestBuiltinFunctions.T[N][1],
     _ExpectedType  := TestBuiltinFunctions.T[N][2]::regtype,
@@ -307,7 +309,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestBuiltinFunctions.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestBuiltinFunctions2:'||N,
     _SourceCode    := TestBuiltinFunctions.T[N][1],
     _ExpectedError := TestBuiltinFunctions.T[N][2]
@@ -323,7 +325,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestBuiltinFunctions.T,1)) AS N;
 
 SELECT New_Test(
-    _Language       := 'monkey',
+    _Language       := :'language',
     _Program        := 'evaluator_test.go:TestBuiltinFunctions3',
     _SourceCode     := $$rest([1, 2, 3])$$,
     _ExpectedTypes  := ARRAY['integer','integer']::regtype[],
@@ -331,7 +333,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language       := 'monkey',
+    _Language       := :'language',
     _Program        := 'evaluator_test.go:TestBuiltinFunctions4',
     _SourceCode     := $$push([], 1)$$,
     _ExpectedTypes  := ARRAY['integer']::regtype[],
@@ -339,7 +341,14 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language       := 'monkey',
+    _Language       := :'language',
+    _Program        := 'evaluator_test.go:TestBuiltinFunctions5',
+    _SourceCode     := $$puts("hello", "world!")$$,
+    _ExpectedSTDOUT := ARRAY['hello','world!']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
     _Program        := 'evaluator_test.go:TestArrayLiterals',
     _SourceCode     := $$[1, 2 * 2, 3 + 3]$$,
     _ExpectedTypes  := ARRAY['integer','integer','integer']::regtype[],
@@ -347,7 +356,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestArrayIndexExpressions:'||N,
     _SourceCode    := TestArrayIndexExpressions.T[N][1],
     _ExpectedType  := TestArrayIndexExpressions.T[N][2]::regtype,
@@ -409,7 +418,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestArrayIndexExpressions.T,1)) AS N;
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestHashLiterals',
     _SourceCode    := $$
         let two = "two";
@@ -435,7 +444,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'evaluator_test.go:TestHashIndexExpressions:'||N,
     _SourceCode    := TestHashIndexExpressions.T[N][1],
     _ExpectedType  := TestHashIndexExpressions.T[N][2]::regtype,
@@ -454,7 +463,7 @@ SELECT New_Test(
 CROSS JOIN generate_series(1,array_length(TestHashIndexExpressions.T,1)) AS N;
 
 SELECT New_Test(
-    _Language       := 'monkey',
+    _Language       := :'language',
     _Program        := 'Test-Driving Arrays',
     _SourceCode     := $$
         let map = fn(arr, f) {
@@ -476,7 +485,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'fibonacci',
     _SourceCode    := $$
         let fibonacci = fn(x) {
@@ -495,7 +504,7 @@ SELECT New_Test(
 );
 
 SELECT New_Test(
-    _Language      := 'monkey',
+    _Language      := :'language',
     _Program       := 'factorial',
     _SourceCode    := $$
         let factorial = fn(n) {

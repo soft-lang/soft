@@ -8,6 +8,7 @@ _ExpectedTypes  regtype[] DEFAULT NULL,
 _ExpectedValues text[]    DEFAULT NULL,
 _ExpectedError  text      DEFAULT NULL,
 _ExpectedLog    text      DEFAULT NULL,
+_ExpectedSTDOUT text[]    DEFAULT NULL,
 _LogSeverity    severity  DEFAULT 'NOTICE'
 )
 RETURNS integer
@@ -33,8 +34,8 @@ _ProgramID := New_Program(
     _LogSeverity := _LogSeverity
 );
 
-INSERT INTO Tests ( ProgramID,  ExpectedType,  ExpectedValue,  ExpectedTypes,  ExpectedValues,  ExpectedError,  ExpectedLog)
-VALUES            (_ProgramID, _ExpectedType, _ExpectedValue, _ExpectedTypes, _ExpectedValues, _ExpectedError, _ExpectedLog)
+INSERT INTO Tests ( ProgramID,  ExpectedType,  ExpectedValue,  ExpectedTypes,  ExpectedValues,  ExpectedError,  ExpectedLog,  ExpectedSTDOUT)
+VALUES            (_ProgramID, _ExpectedType, _ExpectedValue, _ExpectedTypes, _ExpectedValues, _ExpectedError, _ExpectedLog, _ExpectedSTDOUT)
 RETURNING    TestID
 INTO STRICT _TestID;
 

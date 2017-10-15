@@ -6,6 +6,8 @@ CREATE TYPE severity AS ENUM (
 'DEBUG1',
 'INFO',
 'NOTICE',
+'STDOUT',
+'STDERR',
 'WARNING',
 'ERROR',
 'LOG',
