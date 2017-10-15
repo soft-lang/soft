@@ -48,7 +48,11 @@ LEFT  JOIN Nodes AS ElseBranch    ON ElseBranch.NodeID    = E.ParentNodes[3];
 IF _ConditionNodeType = 'boolean'::regtype THEN
     _Condition := _ConditionNodeValue::boolean;
 ELSIF (Language(_NodeID)).TruthyNonBooleans THEN
-    _Condition := TRUE;
+    IF _ConditionNodeType = 'nil'::regtype THEN
+        _Condition := FALSE;
+    ELSE
+        _Condition := TRUE;
+    END IF;
 ELSE
     RAISE EXCEPTION 'NodeID % ConditionNodeID % If condition expression is not a boolean value but of type "%"', _NodeID, _ConditionNodeID, _ConditionNodeType;
 END IF;

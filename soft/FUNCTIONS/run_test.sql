@@ -126,12 +126,12 @@ OR     _OK AND EXISTS (
         NodeTypes.NodeType
     ) = _ExpectedLog
 )
-OR _ExpectedSTDOUT = (
+OR _ExpectedSTDOUT = COALESCE((
     SELECT array_agg(Log.Message ORDER BY Log.LogID)
     FROM Log
     WHERE Log.ProgramID = _ProgramID
     AND   Log.Severity  = 'STDOUT'
-) THEN
+),ARRAY[NULL]::text[]) THEN
     PERFORM Log(
         _NodeID   := _ProgramNodeID,
         _Severity := 'NOTICE',
