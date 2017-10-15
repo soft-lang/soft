@@ -1,7 +1,6 @@
 CREATE VIEW View_Node_Types AS
 SELECT * FROM (
     SELECT
-    Languages.Language,
     NodeTypes.NodeType,
     NodeTypes.PrimitiveType,
     NodeTypes.NodeGroup,
@@ -28,7 +27,6 @@ SELECT * FROM (
 UNION ALL
 SELECT * FROM (
     SELECT
-    Languages.Language,
     NodeTypes.NodeType,
     NodeTypes.PrimitiveType,
     NodeTypes.NodeGroup,
@@ -53,7 +51,6 @@ SELECT * FROM (
 UNION ALL
 SELECT * FROM (
     SELECT
-    Languages.Language,
     NodeTypes.NodeType,
     NodeTypes.PrimitiveType,
     NodeTypes.NodeGroup,
@@ -78,7 +75,6 @@ SELECT * FROM (
 UNION ALL
 SELECT * FROM (
     SELECT
-    Languages.Language,
     NodeTypes.NodeType,
     NodeTypes.PrimitiveType,
     NodeTypes.NodeGroup,
