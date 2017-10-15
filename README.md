@@ -61,6 +61,9 @@ CREATE SCHEMA "REDUCE";
 DROP SCHEMA IF EXISTS "MAP_VARIABLES" CASCADE;
 CREATE SCHEMA "MAP_VARIABLES";
 
+DROP SCHEMA IF EXISTS "SHORT_CIRCUIT" CASCADE;
+CREATE SCHEMA "SHORT_CIRCUIT";
+
 DROP SCHEMA IF EXISTS "EVAL" CASCADE;
 CREATE SCHEMA "EVAL";
 
@@ -190,6 +193,7 @@ SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'PARSE');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'MAP_VARIABLES', _SaveDOTIR := TRUE);
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'SHORT_CIRCUIT', _SaveDOTIR := TRUE);
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL',          _SaveDOTIR := TRUE);
 ```
 
@@ -1646,6 +1650,21 @@ and connects it by killing the `IDENTIFIER`
 node and replacing it with a new `Edge`
 to the `VARIABLE`.
 
+### SHORT_CIRCUIT
+
+```sql
+\ir SHORT_CIRCUIT/LEAVE_LOGICAL_AND.sql
+\ir SHORT_CIRCUIT/LEAVE_LOGICAL_OR.sql
+```
+
+The `SHORT_CIRCUIT` phase looks blocks
+the path to evaluate the right argument
+for the `AND` and `OR` operators,
+which will be made walkable again upon
+evaluation of the left argument,
+depending on if the left argument was
+`TRUE` or  `FALSE`.
+
 ### EVAL
 
 ```sql
@@ -1665,6 +1684,9 @@ to the `VARIABLE`.
 \ir EVAL/LEAVE_IF_STATEMENT.sql
 \ir EVAL/LEAVE_INDEX.sql
 \ir EVAL/LEAVE_LET_STATEMENT.sql
+\ir EVAL/LEAVE_LOGICAL_AND.sql
+\ir EVAL/LEAVE_LOGICAL_OR.sql
+\ir EVAL/LEAVE_ASSIGNMENT.sql
 \ir EVAL/LEAVE_PROGRAM.sql
 \ir EVAL/LEAVE_PRINT_STATEMENT.sql
 \ir EVAL/LEAVE_RETURN_STATEMENT.sql

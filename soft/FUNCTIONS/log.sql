@@ -12,6 +12,7 @@ _ProgramID   integer;
 _Program     text;
 _PhaseID     integer;
 _Phase       text;
+_NodeType    text;
 _LogID       integer;
 _Color       text;
 _LogSeverity severity;
@@ -22,14 +23,17 @@ SELECT
     Programs.Program,
     Phases.PhaseID,
     Phases.Phase,
+    NodeTypes.NodeType,
     Programs.LogSeverity
 INTO STRICT
     _ProgramID,
     _Program,
     _PhaseID,
     _Phase,
+    _NodeType,
     _LogSeverity
 FROM Nodes
+INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
@@ -54,7 +58,7 @@ IF _Message IS NULL THEN
     RETURN NULL;
 END IF;
 
-PERFORM Notice(format('%s %s: "%s"', _Phase, Colorize(_Severity::text, _Color), _Message));
+PERFORM Notice(format('%s %s %s: "%s"', _Phase, _NodeType, Colorize(_Severity::text, _Color), _Message));
 
 INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTIRID)
 SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTIRID

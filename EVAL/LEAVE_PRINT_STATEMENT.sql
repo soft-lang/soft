@@ -18,6 +18,11 @@ AND Nodes.DeathPhaseID IS NULL;
 
 PERFORM Print_Node(_PrintValueNodeID);
 
+PERFORM Set_Reference_Node(
+    _ReferenceNodeID := _PrintValueNodeID,
+    _NodeID          := _NodeID
+);
+
 RETURN;
 END;
 $$;

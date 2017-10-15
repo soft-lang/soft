@@ -23,6 +23,7 @@ SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := :'language', _Phase := 'PARSE');
 SELECT New_Phase(_Language := :'language', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _SaveDOTIR := TRUE);
+SELECT New_Phase(_Language := :'language', _Phase := 'SHORT_CIRCUIT', _SaveDOTIR := TRUE);
 SELECT New_Phase(_Language := :'language', _Phase := 'EVAL',          _SaveDOTIR := TRUE);
 
 SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'len',   _ImplementationFunction := 'LENGTH');
