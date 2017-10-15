@@ -35,6 +35,8 @@ SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'puts',  _
 
 \ir load-nodetypes.sql
 
+\ir truthy-non-booleans.sql
+
 \ir :language/test.sql
 
 CREATE OR REPLACE FUNCTION lox(

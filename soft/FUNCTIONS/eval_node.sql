@@ -96,9 +96,6 @@ IF FOUND THEN
     IF _ReturnValue IS DISTINCT FROM _CastTest THEN
         RAISE EXCEPTION 'ReturnValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _ReturnValue, _CastTest, _ReturnType;
     END IF;
-ELSIF (Language(_NodeID)).TruthyNonBooleans THEN
-    _ReturnType  := 'boolean'::regtype;
-    _ReturnValue := 'true';
 ELSE
     RAISE EXCEPTION 'Type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes;
 END IF;

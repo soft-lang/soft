@@ -75,7 +75,6 @@ ELSIF NOT _RightConditionEvaluated THEN
     PERFORM Set_Walkable(_RightConditionNodeID, TRUE);
     RETURN;
 ELSIF _RightConditionEvaluated THEN
-    RAISE NOTICE '_LeftConditionNodeType % _LeftConditionNodeValue % _RightConditionEvaluated % _RightConditionNodeType % _RightConditionNodeValue %', _LeftConditionNodeType, _LeftConditionNodeValue, _RightConditionEvaluated, _RightConditionNodeType, _RightConditionNodeValue;
     PERFORM Set_Node_Value(
         _NodeID         := _NodeID,
         _PrimitiveType  := _RightConditionNodeType,
