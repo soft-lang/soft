@@ -21,6 +21,7 @@ SELECT New_Language(
 SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := :'language', _Phase := 'PARSE');
+SELECT New_Phase(_Language := :'language', _Phase := 'VALIDATE');
 SELECT New_Phase(_Language := :'language', _Phase := 'REDUCE');
 SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _SaveDOTIR := TRUE);
 SELECT New_Phase(_Language := :'language', _Phase := 'SHORT_CIRCUIT', _SaveDOTIR := TRUE);
@@ -88,8 +89,9 @@ DROP TABLE ImportNodeTypes;
 \ir :language/test.sql
 
 CREATE OR REPLACE FUNCTION lox(
-_SourceCode  text,
-_LogSeverity severity DEFAULT 'NOTICE'
+_SourceCode    text,
+_LogSeverity   severity DEFAULT 'NOTICE',
+_RunUntilPhase text     DEFAULT NULL
 ) RETURNS TABLE (
 OK             boolean,
 Error          text,
@@ -99,9 +101,10 @@ PrimitiveValue text
 LANGUAGE sql
 AS $$
 SELECT * FROM Soft(
-    _Language    := 'lox',
-    _SourceCode  := $1,
-    _LogSeverity := $2
+    _Language      := 'lox',
+    _SourceCode    := $1,
+    _LogSeverity   := $2,
+    _RunUntilPhase := $3
 )
 $$;
 

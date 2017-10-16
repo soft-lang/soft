@@ -69,7 +69,7 @@ LOOP
                 Colorize(Node(_NOPNodeID),'RED'),
                 Colorize(Node(_ChildNodeID),'GREEN')
             ),
-            _SaveDOTIR := TRUE
+            _SaveDOTIR := FALSE
         );
         SELECT ChildNodeID                                INTO STRICT _ChildNodeID  FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NOPNodeID;
         SELECT ParentNodeID                               INTO        _ParentNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID  = _NOPNodeID;

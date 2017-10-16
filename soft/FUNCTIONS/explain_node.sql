@@ -14,7 +14,7 @@ _Arguments      text;
 BEGIN
 
 IF NOT (SELECT Walkable FROM Nodes WHERE NodeID = _NodeID) THEN
-    RETURN Primitive_Value(_NodeID);
+    RETURN format ('%s(%s)', Node_Type(_NodeID), Primitive_Value(_NodeID));
 END IF;
 
 SELECT string_agg(Explain_Node(

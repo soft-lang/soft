@@ -58,6 +58,9 @@ CREATE SCHEMA "PARSE";
 DROP SCHEMA IF EXISTS "REDUCE" CASCADE;
 CREATE SCHEMA "REDUCE";
 
+DROP SCHEMA IF EXISTS "VALIDATE" CASCADE;
+CREATE SCHEMA "VALIDATE";
+
 DROP SCHEMA IF EXISTS "MAP_VARIABLES" CASCADE;
 CREATE SCHEMA "MAP_VARIABLES";
 
@@ -191,10 +194,11 @@ i.e. `ORDER BY PhaseID`:
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'TOKENIZE');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'PARSE');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'VALIDATE');
 SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'REDUCE');
-SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'MAP_VARIABLES', _SaveDOTIR := TRUE);
-SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'SHORT_CIRCUIT', _SaveDOTIR := TRUE);
-SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL',          _SaveDOTIR := TRUE);
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'MAP_VARIABLES');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'SHORT_CIRCUIT');
+SELECT New_Phase(_Language := 'TestLanguage', _Phase := 'EVAL', _SaveDOTIR := TRUE);
 ```
 
 The `SaveDOTIR` input param if `TRUE` will make `Walk_Tree()` automatically save
@@ -1600,6 +1604,7 @@ against all literal NodeTypes Literal or LiteralPattern.
 
 ```sql
 \ir DISCARD/ENTER_WHITE_SPACE.sql
+\ir DISCARD/ENTER_COMMENT.sql
 ```
 
 The `DISCARD` phase eliminates `WHITE_SPACE` nodes.
@@ -1621,6 +1626,16 @@ the NodePatterns defined in NodeTypes,
 in Precedence order, and if two NodeTypes
 of the same Precedence match, then the
 left most match is selected.
+
+### VALIDATE
+
+```sql
+\ir VALIDATE/ENTER_ASSIGNMENT.sql
+```
+
+The `VALIDATE` phase inspects the AST to check for
+grammatical errors that were not detected during the
+parse phase.
 
 ### REDUCE
 

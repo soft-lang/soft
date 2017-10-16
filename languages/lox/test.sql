@@ -2,6 +2,293 @@ SET search_path TO soft, public, pg_temp;
 
 \set language lox
 
+-- CLOSURE
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/assign_to_closure.lox',
+    _SourceCode     := $$
+var f;
+var g;
+
+{
+  var local = "local";
+  fun f_() {
+    print local;
+    local = "after f";
+    print local;
+  }
+  f = f_;
+
+  fun g_() {
+    print local;
+    local = "after g";
+    print local;
+  }
+  g = g_;
+}
+
+f();
+// expect: local
+// expect: after f
+
+g();
+// expect: after f
+// expect: after g
+$$,
+    _ExpectedSTDOUT := ARRAY['local','f','f','g']
+);
+
+
+-- CALL
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'call/string.lox',
+    _SourceCode     := $$
+"str"(); // expect runtime error: Can only call functions and classes.
+$$,
+    _ExpectedLog := 'PARSE ERROR CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'call/object.lox',
+    _SourceCode     := $$
+class Foo {}
+
+var foo = Foo();
+foo(); // expect runtime error: Can only call functions and classes.
+$$,
+    _ExpectedLog := 'PARSE ERROR CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'call/num.lox',
+    _SourceCode     := $$
+123(); // expect runtime error: Can only call functions and classes.
+$$,
+    _ExpectedLog := 'PARSE ERROR CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'call/nil.lox',
+    _SourceCode     := $$
+nil(); // expect runtime error: Can only call functions and classes.
+$$,
+    _ExpectedLog := 'PARSE ERROR CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'call/bool.lox',
+    _SourceCode     := $$
+true(); // expect runtime error: Can only call functions and classes.
+$$,
+    _ExpectedLog := 'PARSE ERROR CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES'
+);
+
+-- BOOL
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'bool/not.lox',
+    _SourceCode     := $$
+print !true;    // expect: false
+print !false;   // expect: true
+print !!true;   // expect: true
+$$,
+    _ExpectedSTDOUT := ARRAY['false','true','true']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'bool/equality.lox',
+    _SourceCode     := $$
+print true == true;    // expect: true
+print true == false;   // expect: false
+print false == true;   // expect: false
+print false == false;  // expect: true
+
+// Not equal to other types.
+print true == 1;        // expect: false
+print false == 0;       // expect: false
+print true == "true";   // expect: false
+print false == "false"; // expect: false
+print false == "";      // expect: false
+
+print true != true;    // expect: false
+print true != false;   // expect: true
+print false != true;   // expect: true
+print false != false;  // expect: false
+
+// Not equal to other types.
+print true != 1;        // expect: true
+print false != 0;       // expect: true
+print true != "true";   // expect: true
+print false != "false"; // expect: true
+print false != "";      // expect: true
+$$,
+    _ExpectedSTDOUT := ARRAY['true','false','false','true','false','false','false','false','false','false','true','true','false','true','true','true','true','true']
+);
+
+-- BLOCK
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'block/empty.lox',
+    _SourceCode     := $$
+{} // By itself.
+
+// In a statement.
+if (true) {}
+if (false) {} else {}
+
+print "ok"; // expect: ok
+$$,
+    _ExpectedSTDOUT := ARRAY['ok']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'block/scope.lox',
+    _SourceCode     := $$
+var a = "outer";
+
+{
+  var a = "inner";
+  print a; // expect: inner
+}
+
+print a; // expect: outer
+$$,
+    _ExpectedSTDOUT := ARRAY['inner','outer']
+);
+
+-- ASSIGNMENT
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/associativity.lox',
+    _SourceCode     := $$
+var a = "a";
+var b = "b";
+var c = "c";
+
+// Assignment is right-associative.
+a = b = c;
+print a; // expect: c
+print b; // expect: c
+print c; // expect: c
+$$,
+    _ExpectedSTDOUT := ARRAY['c','c','c']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/global.lox',
+    _SourceCode     := $$
+var a = "before";
+print a; // expect: before
+
+a = "after";
+print a; // expect: after
+
+print a = "arg"; // expect: arg
+print a; // expect: arg
+$$,
+    _ExpectedSTDOUT := ARRAY['before','after','arg','arg']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/grouping.lox',
+    _SourceCode     := $$
+var a = "a";
+(a) = "value"; // Error at '=': Invalid assignment target.
+$$,
+    _ExpectedLog := 'VALIDATE ERROR ASSIGNMENT'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/infix_operator.lox',
+    _SourceCode     := $$
+var a = "a";
+var b = "b";
+a + b = "value"; // Error at '=': Invalid assignment target.
+$$,
+    _ExpectedLog := 'VALIDATE ERROR ASSIGNMENT'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/local.lox',
+    _SourceCode     := $$
+{
+  var a = "before";
+  print a; // expect: before
+
+  a = "after";
+  print a; // expect: after
+
+  print a = "arg"; // expect: arg
+  print a; // expect: arg
+}
+$$,
+    _ExpectedSTDOUT := ARRAY['before','after','arg','arg']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/prefix_operator.lox',
+    _SourceCode     := $$
+var a = "a";
+!a = "value"; // Error at '=': Invalid assignment target.
+$$,
+    _ExpectedLog := 'VALIDATE ERROR ASSIGNMENT'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/syntax.lox',
+    _SourceCode     := $$
+// Assignment on RHS of variable.
+var a = "before";
+var c = a = "var";
+print a; // expect: var
+print c; // expect: var
+$$,
+    _ExpectedSTDOUT := ARRAY['var','var']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/to_this.lox',
+    _SourceCode     := $$
+class Foo {
+  Foo() {
+    this = "value"; // Error at '=': Invalid assignment target.
+  }
+}
+
+Foo();
+$$,
+    _ExpectedLog := 'VALIDATE ERROR ASSIGNMENT'
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'assignment/undefined.lox',
+    _SourceCode     := $$
+unknown = "what"; // expect runtime error: Undefined variable 'unknown'.
+$$,
+    _ExpectedLog := 'MAP_VARIABLES ERROR IDENTIFIER'
+);
+
+/*
+
 SELECT New_Test(
     _Language       := :'language',
     _Program        := 'if/logical_operator.lox:1.'||N,
@@ -113,3 +400,5 @@ SELECT New_Test(
     ] AS T
 ) AS OperatorEquals
 CROSS JOIN generate_series(1,array_length(OperatorEquals.T,1)) AS N;
+
+*/

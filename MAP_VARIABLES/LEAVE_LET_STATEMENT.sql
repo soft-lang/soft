@@ -61,7 +61,7 @@ PERFORM Set_Walkable(_VariableNodeID, FALSE);
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG2',
-    _Message  := format('%s is now declared and can be accessed by ENTER_IDENTIFIER', Colorize(Node(_NodeID), 'CYAN'))
+    _Message  := format('Variable %s is now declared', Colorize(Node(_VariableNodeID), 'GREEN'))
 );
 
 RETURN TRUE;

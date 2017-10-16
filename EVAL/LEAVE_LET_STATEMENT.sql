@@ -4,6 +4,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ParentNodes  integer[];
+_NumArgs      integer;
 _ClonedNodeID integer;
 _FromNodeID   integer;
 _ToNodeID     integer;
@@ -16,7 +17,12 @@ FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
 
-IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
+_NumArgs := array_length(_ParentNodes, 1);
+
+IF _NumArgs = 1 THEN
+    -- Variable declaration only
+    RETURN;
+ELSIF _NumArgs IS DISTINCT FROM 2 THEN
     RAISE EXCEPTION 'Let statement does not have exactly two parent nodes NodeID % ParentNodes %', _NodeID, _ParentNodes;
 END IF;
 

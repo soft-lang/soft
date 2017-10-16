@@ -170,7 +170,7 @@ LOOP
             Colorize(Node(_TokenNodeID, _Short := TRUE), 'CYAN'),
             Colorize(One_Line(_Literal), 'MAGENTA')
         ),
-        _SaveDOTIR  := TRUE
+        _SaveDOTIR  := FALSE
     );
 
     _AtChar := _AtChar + _LiteralLength;

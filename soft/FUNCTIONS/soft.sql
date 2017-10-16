@@ -1,7 +1,8 @@
 CREATE OR REPLACE FUNCTION Soft(
-_SourceCode  text,
-_Language    text     DEFAULT 'monkey',
-_LogSeverity severity DEFAULT 'NOTICE'
+_SourceCode    text,
+_Language      text     DEFAULT 'monkey',
+_LogSeverity   severity DEFAULT 'NOTICE',
+_RunUntilPhase text     DEFAULT NULL
 )
 RETURNS TABLE (
 OK             boolean,
@@ -62,7 +63,11 @@ SELECT
 INTO STRICT
     OK,
     Error
-FROM Run(_Language, _Program);
+FROM Run(
+    _Language      := _Language,
+    _Program       := _Program,
+    _RunUntilPhase := _RunUntilPhase
+);
 
 IF NOT OK THEN
     RETURN NEXT;

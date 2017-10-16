@@ -12,11 +12,10 @@ FROM Nodes
 WHERE NodeID = _NodeID;
 
 RETURN QUERY
-SELECT format(E'"%s.%s" [label="%s" dotir="%s" %s];',
+SELECT format(E'"%s.%s" [label="%s" %s];',
     Nodes.Environment,
     Nodes.NodeID,
-    Node(Nodes.NodeID),
-    Serialize_Node(Nodes.NodeID),
+    replace(Node(Nodes.NodeID),'"',''),
     Get_Node_Attributes(Nodes.NodeID, _NodeID)
 )
 FROM Nodes
@@ -28,7 +27,7 @@ RETURN QUERY
 SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
     Child.Environment,
     Parent.NodeID,
-    Node(Parent.NodeID),
+    replace(Node(Parent.NodeID),'"',''),
     Get_Node_Attributes(Parent.NodeID, _NodeID)
 )
 FROM Nodes AS Parent
@@ -44,7 +43,7 @@ RETURN QUERY
 SELECT DISTINCT format(E'"%s.%s" [label="%s" %s];',
     Parent.Environment,
     Child.NodeID,
-    Node(Child.NodeID),
+    replace(Node(Child.NodeID),'"',''),
     Get_Node_Attributes(Child.NodeID, _NodeID)
 )
 FROM Nodes AS Child

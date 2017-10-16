@@ -85,8 +85,9 @@ DROP TABLE ImportNodeTypes;
 \ir :language/test.sql
 
 CREATE OR REPLACE FUNCTION monkey(
-_SourceCode  text,
-_LogSeverity severity DEFAULT 'NOTICE'
+_SourceCode    text,
+_LogSeverity   severity DEFAULT 'NOTICE',
+_RunUntilPhase text     DEFAULT NULL
 ) RETURNS TABLE (
 OK             boolean,
 Error          text,
@@ -96,9 +97,10 @@ PrimitiveValue text
 LANGUAGE sql
 AS $$
 SELECT * FROM Soft(
-    _Language    := 'monkey',
-    _SourceCode  := $1,
-    _LogSeverity := $2
+    _Language      := 'monkey',
+    _SourceCode    := $1,
+    _LogSeverity   := $2,
+    _RunUntilPhase := $3
 )
 $$;
 

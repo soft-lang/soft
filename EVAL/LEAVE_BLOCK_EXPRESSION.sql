@@ -7,13 +7,18 @@ _LastNodeID integer;
 _OK         boolean;
 BEGIN
 
-SELECT     ParentNodeID
-INTO STRICT _LastNodeID
+SELECT ParentNodeID
+INTO    _LastNodeID
 FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL
 ORDER BY EdgeID DESC
 LIMIT 1;
+
+IF NOT FOUND THEN
+    -- Empty block
+    RETURN;
+END IF;
 
 PERFORM Set_Reference_Node(
     _ReferenceNodeID := _LastNodeID,
