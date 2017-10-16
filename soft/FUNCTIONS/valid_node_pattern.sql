@@ -14,6 +14,10 @@ SELECT LanguageID INTO STRICT _LanguageID FROM Languages WHERE Language = _Langu
 
 _PatternChars := _NodePattern;
 
+IF '' ~ _NodePattern THEN
+    -- Noop, to test if it's a valid regex
+END IF;
+
 _PatternChars := replace(_PatternChars, '[A-Z_]+', '');
 
 SELECT string_agg(DISTINCT NodeGroup,'|' ORDER BY NodeGroup)
@@ -41,10 +45,12 @@ LOOP
     );
 END LOOP;
 
-IF (_PatternChars ~ '^[()?:^$|!=* ]+$') IS NOT TRUE THEN
+IF (_PatternChars ~ '^[()?:^$|!=* +]+$') IS NOT TRUE THEN
     RAISE EXCEPTION 'Invalid node pattern "%" for language "%", remaining chars: "%"', _NodePattern, _Language, _PatternChars;
 END IF;
 
 RETURN TRUE;
+EXCEPTION WHEN invalid_regular_expression THEN
+    RAISE EXCEPTION 'invalid regular expression: % % %', _Language, _NodePattern, SQLERRM;
 END;
 $$;

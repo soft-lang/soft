@@ -188,7 +188,7 @@ LOOP
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG2',
-            _Message  := format('Begin growing %s', Colorize(_GrowFromNodeType))
+            _Message  := format('Begin growing %s from %s', Colorize(_GrowFromNodeType), Colorize(_ChildNodeType))
         );
         _GrandChildNodeID   := _ChildNodeID;
         _ChildNodeID        := NULL;
