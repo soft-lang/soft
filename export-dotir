@@ -17,7 +17,7 @@ $View_DOTIR->execute();
 my $Rows = $View_DOTIR->fetchall_arrayref();
 
 `mkdir -p dotir`;
-`rm -f dotir/*.png`;
+`rm -f dotir/*.pdf`;
 `rm -f dotir/*.dot`;
 
 foreach my $Row (@$Rows) {
@@ -26,7 +26,7 @@ foreach my $Row (@$Rows) {
     my $Phase   = $Row->[2];
     my $DOTIR   = $Row->[3];
     write_file("dotir/${DOTIRID}_${Program}_${Phase}.dot", $DOTIR);
-    `dot -Tpng -o dotir/${DOTIRID}_${Program}_${Phase}.png dotir/${DOTIRID}_${Program}_${Phase}.dot`;
+    `dot -Tpdf -o dotir/${DOTIRID}_${Program}_${Phase}.pdf dotir/${DOTIRID}_${Program}_${Phase}.dot`;
 }
 
 $View_DOTIR->finish();

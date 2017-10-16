@@ -23,10 +23,6 @@ END IF;
 _ToNodeID   := _ParentNodes[1];
 _FromNodeID := Dereference(_ParentNodes[2]);
 
-IF NOT (SELECT ClonedFromNodeID = _FromNodeID FROM Nodes WHERE NodeID = _ToNodeID) THEN
-    RAISE EXCEPTION 'NodeID % is not declared yet', _ToNodeID;
-END IF;
-
 PERFORM Copy_Node(
     _FromNodeID := _FromNodeID,
     _ToNodeID   := _ToNodeID

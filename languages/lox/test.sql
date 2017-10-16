@@ -2,7 +2,104 @@ SET search_path TO soft, public, pg_temp;
 
 \set language lox
 
+SELECT New_Test(
+    _Language      := :'language',
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
+        fun fibonacci(x) {
+            if (x == 0) {
+                return 0;
+            } else if (x == 1) {
+                return 1;
+            } else {
+                return fibonacci(x - 1) + fibonacci(x - 2);
+            }
+        }
+        print fibonacci(5);
+    $$,
+    _ExpectedSTDOUT := ARRAY['5']
+);
+
 -- CLOSURE
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/close_over_method_parameter.lox',
+    _SourceCode     := $$
+var f;
+
+class Foo {
+  method(param) {
+    fun f_() {
+      print param;
+    }
+    f = f_;
+  }
+}
+
+Foo().method("param");
+f(); // expect: param
+$$,
+    _ExpectedSTDOUT := ARRAY['param']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/close_over_later_variable.lox',
+    _SourceCode     := $$
+fun f() {
+  var a = "a";
+  var b = "b";
+  fun g() {
+    print b; // expect: b
+    print a; // expect: a
+  }
+  g();
+}
+f();
+$$,
+    _ExpectedSTDOUT := ARRAY['b','a']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/close_over_function_parameter.lox',
+    _SourceCode     := $$
+var f;
+
+fun foo(param) {
+  fun f_() {
+    print param;
+  }
+  f = f_;
+}
+foo("param");
+
+f(); // expect: param
+$$,
+    _ExpectedSTDOUT := ARRAY['param']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/assign_to_shadowed_later.lox',
+    _SourceCode     := $$
+var a = "global";
+
+{
+  fun assign() {
+    a = "assigned";
+  }
+
+  var a = "inner";
+  assign();
+  print a; // expect: inner
+}
+
+print a; // expect: assigned
+$$,
+    _ExpectedSTDOUT := ARRAY['inner','assigned']
+);
 
 SELECT New_Test(
     _Language       := :'language',
@@ -36,7 +133,7 @@ g();
 // expect: after f
 // expect: after g
 $$,
-    _ExpectedSTDOUT := ARRAY['local','f','f','g']
+    _ExpectedSTDOUT := ARRAY['local','after f','after f','after g']
 );
 
 

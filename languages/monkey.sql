@@ -9,7 +9,7 @@ TRUNCATE TABLE Languages CASCADE;
 
 SELECT New_Language(
     _Language              := :'language',
-    _VariableBinding       := 'CAPTURE_BY_VALUE',
+    _VariableBinding       := 'CAPTURE_BY_REFERENCE',
     _ImplicitReturnValues  := TRUE,
     _StatementReturnValues := TRUE,
     _ZeroBasedNumbering    := TRUE,

@@ -69,7 +69,7 @@ LOOP
                     INNER JOIN Edges AS Edge%1$s ON Edge%1$s.ChildNodeID = Node%1$s.NodeID
                     INNER JOIN Nodes AS Node%2$s ON Node%2$s.NodeID      = Edge%1$s.ParentNodeID
                 ', _NodeIndex, _NodeIndex+1);
-            ELSIF _Direction ~ '^(\d*->|\d*->)$' THEN
+            ELSIF _Direction ~ '^(\d*->|->\d*)$' THEN
                 _JOINs := _JOINs || format('
                     INNER JOIN Edges AS Edge%1$s ON Edge%1$s.ParentNodeID = Node%1$s.NodeID
                     INNER JOIN Nodes AS Node%2$s ON Node%2$s.NodeID       = Edge%1$s.ChildNodeID
