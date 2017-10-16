@@ -2,25 +2,170 @@ SET search_path TO soft, public, pg_temp;
 
 \set language lox
 
+-- CLOSURE
+
 SELECT New_Test(
-    _Language      := :'language',
-    _Program       := 'fibonacci',
-    _SourceCode    := $$
-        fun fibonacci(x) {
-            if (x == 0) {
-                return 0;
-            } else if (x == 1) {
-                return 1;
-            } else {
-                return fibonacci(x - 1) + fibonacci(x - 2);
-            }
-        }
-        print fibonacci(5);
-    $$,
-    _ExpectedSTDOUT := ARRAY['5']
+    _Language       := :'language',
+    _Program        := 'closure/unused_closure.lox',
+    _SourceCode     := $$
+{
+  var a = "a";
+  if (false) {
+    fun foo() { a; }
+  }
+}
+print "ok"; // expect: ok
+$$,
+    _ExpectedSTDOUT := ARRAY['ok']
 );
 
--- CLOSURE
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/unused_closure.lox',
+    _SourceCode     := $$
+{
+  var a = "a";
+  if (false) {
+    fun foo() { a; }
+  }
+}
+print "ok"; // expect: ok
+$$,
+    _ExpectedSTDOUT := ARRAY['ok']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/shadow_closure_with_local.lox',
+    _SourceCode     := $$
+{
+  var foo = "closure";
+  fun f() {
+    {
+      print foo; // expect: closure
+      var foo = "shadow";
+      print foo; // expect: shadow
+    }
+    print foo; // expect: closure
+  }
+  f();
+}
+$$,
+    _ExpectedSTDOUT := ARRAY['closure','shadow','closure']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/reuse_closure_slot.lox',
+    _SourceCode     := $$
+{
+  var f;
+
+  {
+    var a = "a";
+    fun f_() { print a; }
+    f = f_;
+  }
+
+  {
+    // Since a is out of scope, the local slot will be reused by b. Make sure
+    // that f still closes over a.
+    var b = "b";
+    f(); // expect: a
+  }
+}
+$$,
+    _ExpectedSTDOUT := ARRAY['a']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/reference_closure_multiple_times.lox',
+    _SourceCode     := $$
+var f;
+
+{
+  var a = "a";
+  fun f_() {
+    print a;
+    print a;
+  }
+  f = f_;
+}
+
+f();
+// expect: a
+// expect: a
+$$,
+    _ExpectedSTDOUT := ARRAY['a','a']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/open_closure_in_function.lox',
+    _SourceCode     := $$
+{
+  var local = "local";
+  fun f() {
+    print local; // expect: local
+  }
+  f();
+}
+$$,
+    _ExpectedSTDOUT := ARRAY['local']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/nested_closure.lox',
+    _SourceCode     := $$
+var f;
+
+fun f1() {
+  var a = "a";
+  fun f2() {
+    var b = "b";
+    fun f3() {
+      var c = "c";
+      fun f4() {
+        print a;
+        print b;
+        print c;
+      }
+      f = f4;
+    }
+    f3();
+  }
+  f2();
+}
+f1();
+
+f();
+// expect: a
+// expect: b
+// expect: c
+$$,
+    _ExpectedSTDOUT := ARRAY['a','b','c']
+);
+
+SELECT New_Test(
+    _Language       := :'language',
+    _Program        := 'closure/closed_closure_in_function.lox',
+    _SourceCode     := $$
+var f;
+
+{
+  var local = "local";
+  fun f_() {
+    print local;
+  }
+  f = f_;
+}
+
+f(); // expect: local
+$$,
+    _ExpectedSTDOUT := ARRAY['local']
+);
 
 SELECT New_Test(
     _Language       := :'language',
@@ -382,6 +527,24 @@ SELECT New_Test(
 unknown = "what"; // expect runtime error: Undefined variable 'unknown'.
 $$,
     _ExpectedLog := 'MAP_VARIABLES ERROR IDENTIFIER'
+);
+
+SELECT New_Test(
+    _Language      := :'language',
+    _Program       := 'fibonacci',
+    _SourceCode    := $$
+        fun fibonacci(x) {
+            if (x == 0) {
+                return 0;
+            } else if (x == 1) {
+                return 1;
+            } else {
+                return fibonacci(x - 1) + fibonacci(x - 2);
+            }
+        }
+        print fibonacci(2);
+    $$,
+    _ExpectedSTDOUT := ARRAY['1']
 );
 
 /*
