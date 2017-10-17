@@ -1211,6 +1211,8 @@ the abstract `ADD` node with its edges have been created.
 Before a node can be killed, all its edges must be killed first.
 
 ```sql
+
+
 \ir soft/FUNCTIONS/kill_edge.sql
 SELECT Kill_Edge(_EdgeID := 3);
 SELECT * FROM View_Edges;
@@ -1221,6 +1223,8 @@ SELECT * FROM View_Nodes;
 
 \ir soft/FUNCTIONS/kill_clone.sql
 SELECT Kill_Clone(_ClonedRootNodeID := 7);
+
+\ir soft/FUNCTIONS/discard_node.sql
 ```
 
 This results in killing the cloned node and all its parent Nodes and Edges
@@ -1605,6 +1609,9 @@ against all literal NodeTypes Literal or LiteralPattern.
 ```sql
 \ir DISCARD/ENTER_WHITE_SPACE.sql
 \ir DISCARD/ENTER_COMMENT.sql
+\ir DISCARD/ENTER_TEST_OUTPUT_EXPECT.sql
+\ir DISCARD/ENTER_TEST_ERROR_EXPECT.sql
+\ir DISCARD/ENTER_TEST_ERROR_LINE_EXPECT.sql
 ```
 
 The `DISCARD` phase eliminates `WHITE_SPACE` nodes.
@@ -1754,6 +1761,7 @@ SELECT New_Test(
 ```
 
 ```sql
+\ir soft/FUNCTIONS/get_files.sql
 \ir soft/FUNCTIONS/run_test.sql
 ```
 

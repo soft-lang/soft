@@ -1,7 +1,8 @@
 CREATE OR REPLACE FUNCTION Run_Test(
-_Language    text,
-_Program     text,
-_LogSeverity severity DEFAULT NULL
+_Language      text,
+_Program       text,
+_LogSeverity   severity DEFAULT NULL,
+_RunUntilPhase name     DEFAULT NULL
 )
 RETURNS boolean
 LANGUAGE plpgsql
@@ -75,7 +76,11 @@ _ProgramNodeID := Get_Program_Node(_ProgramID);
 
 SELECT       OK,  Error
 INTO STRICT _OK, _Error
-FROM Run(_Language, _Program);
+FROM Run(
+    _Language      := _Language,
+    _Program       := _Program,
+    _RunUntilPhase := _RunUntilPhase
+);
 
 _ResultNodeID := Dereference((SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID));
 
@@ -187,6 +192,14 @@ FROM Tests
 INNER JOIN Programs  ON Programs.ProgramID   = Tests.ProgramID
 INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
 WHERE Tests.StartedAt IS NULL
+AND (ExpectedType   IS NOT NULL
+OR   ExpectedValue  IS NOT NULL
+OR   ExpectedTypes  IS NOT NULL
+OR   ExpectedValues IS NOT NULL
+OR   ExpectedError  IS NOT NULL
+OR   ExpectedLog    IS NOT NULL
+OR   ExpectedSTDOUT IS NOT NULL
+)
 ORDER BY Tests.TestID;
 IF NOT FOUND THEN
     RETURN 'DONE';
