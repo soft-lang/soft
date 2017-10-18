@@ -20,12 +20,12 @@ IF _NodePattern ~ '\(\?\#[A-Z_]+\)' THEN
     END LOOP;
 END IF;
 
-_NodePattern := replace(_NodePattern, '[A-Z_]+', '[A-Z_]+\d+');
+_NodePattern := replace(_NodePattern, '[A-Z_]+', '<[A-Z_]+\d+>');
 
 _NodePattern := regexp_replace(
     _NodePattern,
     '(\m(?:'||(SELECT string_agg(NodeType,'|' ORDER BY NodeType) FROM NodeTypes WHERE LanguageID = _LanguageID)||')\M)',
-    '\1\d+',
+    '<\1\d+>',
     'g'
 );
 

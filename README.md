@@ -1039,7 +1039,7 @@ separated list of `[NodeType][NodeID]`.
 The below will highlight `30` and `70` in `30+70`, but not the `+`:
 
 ```sql
-SELECT Notice(Get_Source_Code_Fragment(_Nodes := 'INTEGER2 INTEGER4', _Color := 'RED'));
+SELECT Notice(Get_Source_Code_Fragment(_Nodes := '<INTEGER2> <INTEGER4>', _Color := 'RED'));
 ```
 
 ```sql

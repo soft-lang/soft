@@ -27,8 +27,8 @@ _MatchedNode                text;
 _ParentNodeID               integer;
 _EpilogueNodeID             integer;
 _OK                         boolean;
-_AnyNodePattern    CONSTANT text := '(?:^| )[A-Z_]+(\d+)';
-_SingleNodePattern CONSTANT text := '^[A-Z_]+(\d+)$';
+_AnyNodePattern    CONSTANT text := '<[A-Z_]+(\d+)>';
+_SingleNodePattern CONSTANT text := '^<[A-Z_]+(\d+)>$';
 _ProgramNodeType            text;
 _IllegalNodePattern         text;
 _IllegalNodePatterns        text[];
@@ -59,7 +59,7 @@ AND NodeTypes.NodeType = 'SOURCE_CODE'
 AND Nodes.PrimitiveType = 'text'::regtype
 AND Nodes.DeathPhaseID IS NULL;
 
-SELECT string_agg(format('%s%s',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY Nodes.NodeID)
+SELECT string_agg(format('<%s%s>',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY Nodes.NodeID)
 INTO _Nodes
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
@@ -73,7 +73,7 @@ PERFORM Kill_Edge(EdgeID) FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID 
 
 SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
 
-_ProgramNodePattern := format('^%s(\d+)$',_ProgramNodeType);
+_ProgramNodePattern := format('^<%s(\d+)>$',_ProgramNodeType);
 
 PERFORM Log(
     _NodeID   := _NodeID,
@@ -135,7 +135,7 @@ LOOP
         strpos(_Nodes, substring(_Nodes from NodeTypes.ExpandedNodePattern))
     LIMIT 1;
     IF NOT FOUND THEN
-        IF _Nodes ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
+        IF _Nodes ~ ('^<'||_GrowIntoNodeType||'\d+>$') THEN
             PERFORM Log(
                 _NodeID   := _NodeID,
                 _Severity := 'DEBUG2',
@@ -178,13 +178,13 @@ LOOP
 
     _MatchedNodes := Get_Capturing_Group(_String := _Nodes, _Pattern := _ExpandedNodePattern, _Strict := FALSE);
 
-    _ChildNodeString := COALESCE(_GrowIntoNodeType,_ChildNodeType)||_ChildNodeID;
+    _ChildNodeString := format('<%s%s>', COALESCE(_GrowIntoNodeType,_ChildNodeType), _ChildNodeID);
 
     PERFORM Set_Program_Node(_NodeID := _ChildNodeID);
 
     _Nodes := regexp_replace(_Nodes, _MatchedNodes, _ChildNodeString);
 
-    IF _GrowFromNodeTypeID IS NOT NULL AND _MatchedNodes !~ ('^'||_GrowFromNodeType||'\d+$') THEN
+    IF _GrowFromNodeTypeID IS NOT NULL AND _MatchedNodes !~ ('^<'||_GrowFromNodeType||'\d+>$') THEN
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG2',
@@ -219,7 +219,7 @@ LOOP
             _ParentNodeID := _ParentNodeID,
             _ChildNodeID  := _ChildNodeID
         );
-        IF _GrowIntoNodeType IS NULL OR _MatchedNode ~ ('^'||_GrowIntoNodeType||'\d+$') THEN
+        IF _GrowIntoNodeType IS NULL OR _MatchedNode ~ ('^<'||_GrowIntoNodeType||'\d+>$') THEN
             _Parents := _Parents + 1;
         ELSIF _GrowIntoNodeType IS NOT NULL
         AND NOT EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _ParentNodeID AND DeathPhaseID IS NULL)

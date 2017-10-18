@@ -118,18 +118,18 @@ LOOP
             _LiteralPattern := '^('||_LiteralPattern||')';
             _Matches        := regexp_matches(_Literal, _LiteralPattern);
             _LiteralLength  := length(_Matches[1]);
-        END IF;
 
-        IF array_length(_Matches,1) = 2 THEN
-            -- One single inner capture group, no wrapping: ^((content))
-            _Wrapping := NULL;
-            _Literal  := _Matches[2];
-        ELSIF array_length(_Matches,1) = 4 THEN
-            -- Three inner capture groups: ^((wrapping)(content)(wrapping))
-            _Wrapping := ARRAY[_Matches[2], _Matches[4]];
-            _Literal  := _Matches[3];
-        ELSE
-            RAISE EXCEPTION 'Unexpected capture groups: NodeType % Literal % LiteralPattern % Matches %', _NodeType, _Literal, _LiteralPattern, _Matches;
+            IF array_length(_Matches,1) = 2 THEN
+                -- One single inner capture group, no wrapping: ^((content))
+                _Wrapping := NULL;
+                _Literal  := _Matches[2];
+            ELSIF array_length(_Matches,1) = 4 THEN
+                -- Three inner capture groups: ^((wrapping)(content)(wrapping))
+                _Wrapping := ARRAY[_Matches[2], _Matches[4]];
+                _Literal  := _Matches[3];
+            ELSE
+                RAISE EXCEPTION 'Unexpected capture groups: NodeType % Literal % LiteralPattern % Matches %', _NodeType, _Literal, _LiteralPattern, _Matches;
+            END IF;
         END IF;
 
     END IF;
