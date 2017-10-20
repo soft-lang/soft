@@ -45,17 +45,7 @@ INNER JOIN Nodes AS ConditionNode ON ConditionNode.NodeID = E.ParentNodes[1]
 INNER JOIN Nodes AS TrueBranch    ON TrueBranch.NodeID    = E.ParentNodes[2]
 LEFT  JOIN Nodes AS ElseBranch    ON ElseBranch.NodeID    = E.ParentNodes[3];
 
-IF _ConditionNodeType = 'boolean'::regtype THEN
-    _Condition := _ConditionNodeValue::boolean;
-ELSIF (Language(_NodeID)).TruthyNonBooleans THEN
-    IF _ConditionNodeType = 'nil'::regtype THEN
-        _Condition := FALSE;
-    ELSE
-        _Condition := TRUE;
-    END IF;
-ELSE
-    RAISE EXCEPTION 'NodeID % ConditionNodeID % If condition expression is not a boolean value but of type "%"', _NodeID, _ConditionNodeID, _ConditionNodeType;
-END IF;
+_Condition := Truthy(_ConditionNodeID);
 
 IF    _TrueBranchReturning IS TRUE
 AND   _ElseBranchReturning IS NOT TRUE

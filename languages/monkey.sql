@@ -70,10 +70,12 @@ SELECT COUNT(*) FROM (
     ) FROM (SELECT * FROM ImportNodeTypes ORDER BY RowID) AS X
 ) AS Y;
 
-SELECT Valid_Node_Pattern(Languages.Language, NodeTypes.NodePattern)
-FROM NodeTypes
-INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
-AND NodeTypes.NodePattern IS NOT NULL;
+SELECT COUNT(*) FROM (
+    SELECT Valid_Node_Pattern(Languages.Language, NodeTypes.NodePattern)
+    FROM NodeTypes
+    INNER JOIN Languages ON Languages.LanguageID = NodeTypes.LanguageID
+    AND NodeTypes.NodePattern IS NOT NULL
+) AS X;
 
 DROP TABLE ImportNodeTypes;
 

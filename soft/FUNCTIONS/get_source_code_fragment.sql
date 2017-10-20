@@ -14,7 +14,7 @@ BEGIN
 
 _NodeIDs := ARRAY(
     SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID
-    FROM regexp_matches($1,'(?:^| )<[A-Z_]+(\d+)>','g')
+    FROM regexp_matches($1,'<[A-Z_]+(\d+)>','g')
     ORDER BY NodeID
 );
 

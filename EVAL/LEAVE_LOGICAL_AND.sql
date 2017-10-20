@@ -44,10 +44,7 @@ INNER JOIN Nodes AS ANDNode            ON ANDNode.NodeID            = _NodeID
 INNER JOIN Nodes AS LeftConditionNode  ON LeftConditionNode.NodeID  = E.ParentNodes[1]
 INNER JOIN Nodes AS RightConditionNode ON RightConditionNode.NodeID = E.ParentNodes[2];
 
-IF  _LeftConditionNodeType  = 'boolean'::regtype
-AND _LeftConditionNodeValue = 'false'
-OR (Language(_NodeID)).TruthyNonBooleans
-AND _LeftConditionNodeType = 'nil'::regtype
+IF Truthy(_LeftConditionNodeID) IS FALSE
 THEN
     PERFORM Log(
         _NodeID   := _NodeID,

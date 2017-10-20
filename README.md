@@ -1157,6 +1157,12 @@ SELECT Primitive_Value(_NodeID := 2);
 ```
 
 ```sql
+\ir soft/FUNCTIONS/truthy.sql
+```
+
+Evaluate if a node is boolean true or false.
+
+```sql
 \ir soft/FUNCTIONS/print_node.sql
 ```
 
@@ -1704,6 +1710,9 @@ depending on if the left argument was
 \ir EVAL/LEAVE_HASH.sql
 \ir EVAL/LEAVE_IF_EXPRESSION.sql
 \ir EVAL/LEAVE_IF_STATEMENT.sql
+\ir EVAL/LEAVE_FOR_EXIT_CONDITION.sql
+\ir EVAL/LEAVE_FOR_INCREMENT_STEP.sql
+\ir EVAL/LEAVE_FOR_STATEMENT.sql
 \ir EVAL/LEAVE_INDEX.sql
 \ir EVAL/LEAVE_LET_STATEMENT.sql
 \ir EVAL/LEAVE_LOGICAL_AND.sql

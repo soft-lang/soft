@@ -88,8 +88,6 @@ DROP TABLE ImportNodeTypes;
 
 \ir nil-input.sql
 
-\ir :language/test.sql
-
 CREATE OR REPLACE FUNCTION lox(
 _SourceCode    text,
 _LogSeverity   severity DEFAULT 'NOTICE',
@@ -110,5 +108,6 @@ SELECT * FROM Soft(
 )
 $$;
 
-COMMIT;
+\ir :language/test.sql
 
+COMMIT;
