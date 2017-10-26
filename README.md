@@ -984,39 +984,6 @@ SELECT Notice(Colorize(_Text := 'Hello green world!', _Color := 'GREEN'));
 ```
 
 ```sql
-\ir soft/FUNCTIONS/log.sql
-```
-
-Logging of compiler messages,
-always passing the current NodeID
-to know at what node the log event happened.
-
-```sql
-SELECT Log(
-    _NodeID   := 1,
-    _Severity := 'NOTICE',
-    _Message  := 'Hello world! This is a log message.'
-);
-SELECT Log(
-    _NodeID   := 1,
-    _Severity := 'ERROR',
-    _Message  := 'This is an error message!'
-);
-
-\ir soft/FUNCTIONS/highlight_characters.sql
-```
-
-Let's us colorize specific characters in the input text.
-
-```sql
-SELECT Notice(Highlight_Characters(
-    _Text       := 'Hello red world!',
-    _Characters := ARRAY[7,8,9],
-    _Color      := 'RED'
-));
-```
-
-```sql
 \ir soft/FUNCTIONS/get_parent_nodes.sql
 ```
 
@@ -1054,6 +1021,39 @@ more compact.
 SELECT One_Line($$1
     +
 3$$);
+```
+
+```sql
+\ir soft/FUNCTIONS/log.sql
+```
+
+Logging of compiler messages,
+always passing the current NodeID
+to know at what node the log event happened.
+
+```sql
+SELECT Log(
+    _NodeID   := 1,
+    _Severity := 'NOTICE',
+    _Message  := 'Hello world! This is a log message.'
+);
+SELECT Log(
+    _NodeID   := 1,
+    _Severity := 'ERROR',
+    _Message  := 'This is an error message!'
+);
+
+\ir soft/FUNCTIONS/highlight_characters.sql
+```
+
+Let's us colorize specific characters in the input text.
+
+```sql
+SELECT Notice(Highlight_Characters(
+    _Text       := 'Hello red world!',
+    _Characters := ARRAY[7,8,9],
+    _Color      := 'RED'
+));
 ```
 
 ## REFERENCING AND DEREFERENCING
@@ -1713,6 +1713,8 @@ depending on if the left argument was
 \ir EVAL/LEAVE_FOR_EXIT_CONDITION.sql
 \ir EVAL/LEAVE_FOR_INCREMENT_STEP.sql
 \ir EVAL/LEAVE_FOR_STATEMENT.sql
+\ir EVAL/LEAVE_WHILE_EXIT_CONDITION.sql
+\ir EVAL/LEAVE_WHILE_BODY.sql
 \ir EVAL/LEAVE_INDEX.sql
 \ir EVAL/LEAVE_LET_STATEMENT.sql
 \ir EVAL/LEAVE_LOGICAL_AND.sql

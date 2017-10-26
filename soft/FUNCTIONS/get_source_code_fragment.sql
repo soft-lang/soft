@@ -1,9 +1,8 @@
-CREATE OR REPLACE FUNCTION Get_Source_Code_Fragment(_Nodes text, _Color text DEFAULT NULL)
+CREATE OR REPLACE FUNCTION Get_Source_Code_Fragment(_NodeIDs integer[], _Color text DEFAULT NULL)
 RETURNS text
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_NodeIDs          integer[];
 _ProgramID        integer;
 _SourceCodeNodeID integer;
 _TokenizePhaseID  integer;
@@ -11,13 +10,6 @@ _TokenNodeID      integer;
 _PrimitiveValue    text;
 _Fragment         text;
 BEGIN
-
-_NodeIDs := ARRAY(
-    SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID
-    FROM regexp_matches($1,'<[A-Z_]+(\d+)>','g')
-    ORDER BY NodeID
-);
-
 SELECT DISTINCT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = ANY(_NodeIDs);
 
 SELECT                 NodeID,     BirthPhaseID
@@ -47,5 +39,39 @@ LOOP
 END LOOP;
 
 RETURN _Fragment;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION Get_Source_Code_Fragment(_Nodes text, _Color text DEFAULT NULL)
+RETURNS text
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_NodeIDs integer[];
+BEGIN
+
+_NodeIDs := ARRAY(
+    SELECT DISTINCT Get_Parent_Nodes(_NodeID := regexp_matches[1]::integer) AS NodeID
+    FROM regexp_matches(_Nodes,'<[A-Z_]+(\d+)>','g')
+    ORDER BY NodeID
+);
+
+RETURN Get_Source_Code_Fragment(_NodeIDs, _Color);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION Get_Source_Code_Fragment(_NodeID integer, _Color text DEFAULT NULL)
+RETURNS text
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_NodeIDs integer[];
+BEGIN
+
+_NodeIDs := ARRAY(
+    SELECT DISTINCT Get_Parent_Nodes(_NodeID := _NodeID) AS NodeID
+);
+
+RETURN Get_Source_Code_Fragment(_NodeIDs, _Color);
 END;
 $$;

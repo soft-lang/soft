@@ -13,18 +13,21 @@ BEGIN
 
 SELECT
     Edges.ParentNodeID
-INTO STRICT
+INTO
     _ReturnValueNodeID
 FROM Edges
 INNER JOIN Nodes ON Nodes.NodeID = Edges.ChildNodeID
 WHERE Nodes.NodeID = _NodeID
 AND Edges.DeathPhaseID IS NULL
 AND Nodes.DeathPhaseID IS NULL;
+IF _ReturnValueNodeID IS NULL THEN
+    _ReturnValueNodeID := _NodeID;
+END IF;
 
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'DEBUG3',
-    _Message  := format('Return statement %s returning value from %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_ReturnValueNodeID),'MAGENTA'))
+    _Message  := format('Return statement %s', Colorize(Node(_NodeID),'CYAN'))
 );
 
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;

@@ -1,13 +1,14 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _ClonedEdgeIDs integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE)
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _ClonedEdgeIDs integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE, _ToNodeID integer DEFAULT NULL)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ClonedNodeID integer;
-_EdgeID       integer;
-_ParentNodeID integer;
+_ClonedNodeID       integer;
+_EdgeID             integer;
+_ParentNodeID       integer;
 _ClonedParentNodeID integer;
-_OutOfScope   boolean;
+_OutOfScope         boolean;
+_ToNodeOutOfScope   boolean;
 BEGIN
 
 SELECT      NodeID
@@ -23,12 +24,37 @@ IF _ClonedRootNodeID IS NULL THEN
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := 'First node, create new'
+        _Message  := 'First node, create new'||_ToNodeID::text
     );
 ELSE
     IF (Language(_NodeID)).VariableBinding = 'CAPTURE_BY_VALUE' THEN
         -- Always copy
     ELSIF (Language(_NodeID)).VariableBinding = 'CAPTURE_BY_REFERENCE' THEN
+        IF _ToNodeID IS NOT NULL THEN
+            WITH RECURSIVE Parents AS (
+                SELECT
+                    Nodes.ClonedFromNodeID        AS ParentNodeID,
+                    ARRAY[Nodes.ClonedFromNodeID] AS ParentNodeIDs
+                FROM Nodes
+                WHERE Nodes.NodeID = _NodeID
+                UNION ALL
+                SELECT
+                    Edges.ParentNodeID,
+                    Edges.ParentNodeID || Parents.ParentNodeIDs AS ParentNodeIDs
+                FROM Edges
+                INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
+                INNER JOIN Parents             ON Parents.ParentNodeID = Edges.ChildNodeID
+                WHERE    Edges.DeathPhaseID IS NULL
+                AND ParentNode.DeathPhaseID IS NULL
+                AND NOT Edges.ParentNodeID = ANY(Parents.ParentNodeIDs)
+            )
+            SELECT EXISTS (
+                SELECT ChildNodeID FROM Edges WHERE ParentNodeID = _ToNodeID AND DeathPhaseID IS NULL
+                EXCEPT
+                SELECT ParentNodeID FROM Parents
+            ) INTO _ToNodeOutOfScope;
+        END IF;
+
         WITH RECURSIVE Parents AS (
             SELECT
                 Nodes.ClonedFromNodeID        AS ParentNodeID,
@@ -51,7 +77,9 @@ ELSE
             EXCEPT
             SELECT ParentNodeID FROM Parents
         ) INTO _OutOfScope;
-        IF _OutOfScope THEN
+        IF _OutOfScope
+        AND _ToNodeOutOfScope IS NOT TRUE
+        THEN
             PERFORM Log(
                 _NodeID   := _NodeID,
                 _Severity := 'DEBUG3',
@@ -113,7 +141,8 @@ LOOP
             _OriginRootNodeID := _OriginRootNodeID,
             _ClonedRootNodeID := _ClonedRootNodeID,
             _ClonedEdgeIDs    := _ClonedEdgeIDs || _EdgeID,
-            _SelfRef          := _SelfRef
+            _SelfRef          := _SelfRef,
+            _ToNodeID         := _ToNodeID
         );
     END IF;
     PERFORM New_Edge(

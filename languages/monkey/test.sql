@@ -4,7 +4,24 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := :'language',
-    _Program       := 'fibonacci',
+    _Program       := 'fibonacci1',
+    _SourceCode    := $$
+        let fibonacci = fn(n,i,a,b) {
+            if (i < n) {
+                fibonacci(n, i+1, b, a+b)
+            } else {
+                b
+            }
+        };
+        fibonacci(2,1,0,1);
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '1'
+);
+
+SELECT New_Test(
+    _Language      := :'language',
+    _Program       := 'fibonacci2',
     _SourceCode    := $$
         let fibonacci = fn(x) {
             if (x == 0) {
