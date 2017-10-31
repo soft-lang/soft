@@ -83,6 +83,12 @@ WHERE Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType = 'RET';
 IF NOT FOUND THEN
     _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := FALSE);
+
+    UPDATE Nodes SET
+        Environment = Get_Node_Lexical_Environment(NodeID)
+    WHERE NodeID = _FunctionInstanceNodeID
+    RETURNING TRUE INTO STRICT _OK;
+
     _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
     PERFORM Set_Walkable(_FunctionInstanceNodeID, TRUE);
     PERFORM New_Edge(

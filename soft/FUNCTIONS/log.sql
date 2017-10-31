@@ -18,6 +18,7 @@ _Color       text;
 _LogSeverity severity;
 _DOTIRID       integer;
 BEGIN
+
 SELECT
     Nodes.ProgramID,
     Programs.Program,
@@ -58,7 +59,7 @@ IF _Message IS NULL THEN
     RETURN NULL;
 END IF;
 
-PERFORM Notice(format('%s %s %s: "%s"', _Phase, _NodeType, Colorize(_Severity::text, _Color), _Message));
+PERFORM Notice(format('%s %s %s %s %s: "%s"', (SELECT MAX(DOTIRID) FROM DOTIR), _Phase, _NodeType, Colorize(_Severity::text, _Color), _NodeID, _Message));
 
 INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTIRID)
 SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTIRID

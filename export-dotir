@@ -21,10 +21,11 @@ my $Rows = $View_DOTIR->fetchall_arrayref();
 `rm -f dotir/*.dot`;
 
 foreach my $Row (@$Rows) {
-    my $DOTIRID   = $Row->[0];
+    my $DOTIRID = $Row->[0];
     my $Program = $Row->[1];
     my $Phase   = $Row->[2];
     my $DOTIR   = $Row->[3];
+    $Program =~ s/[^A-Za-z0-9_]+//g;
     write_file("dotir/${DOTIRID}_${Program}_${Phase}.dot", $DOTIR);
     `dot -Tpdf -o dotir/${DOTIRID}_${Program}_${Phase}.pdf dotir/${DOTIRID}_${Program}_${Phase}.dot`;
 }

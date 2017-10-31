@@ -1192,6 +1192,8 @@ We keep track of what `EdgeID`s we have visited to break out from
 possible cycles in the graph.
 
 ```sql
+\ir soft/FUNCTIONS/out_of_scope.sql
+\ir soft/FUNCTIONS/copy_clone.sql
 \ir soft/FUNCTIONS/clone_node.sql
 ```
 

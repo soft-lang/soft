@@ -11,7 +11,7 @@ SELECT COUNT(*) FROM (
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
     )
-    WHERE FilePath LIKE '%/for/%'
+    WHERE FilePath LIKE '%/joel/%'
 ) AS Tests;
 
 SELECT COUNT(*) FROM (

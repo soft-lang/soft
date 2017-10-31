@@ -3,7 +3,8 @@ OUT OK         boolean,
 OUT Error      text,
 _Language      text,
 _Program       text,
-_RunUntilPhase name DEFAULT NULL
+_RunUntilPhase name    DEFAULT NULL,
+_MaxIterations integer DEFAULT NULL
 )
 RETURNS record
 LANGUAGE plpgsql
@@ -12,6 +13,7 @@ DECLARE
 _ProgramID     integer;
 _ProgramNodeID integer;
 _OK            boolean;
+_Iterations    integer;
 BEGIN
 OK := TRUE;
 
@@ -31,6 +33,7 @@ RETURNING TRUE INTO STRICT _OK;
 
 PERFORM Enter_Node(_ProgramNodeID);
 
+_Iterations := 0;
 LOOP
     IF _RunUntilPhase IS NOT NULL
     AND EXISTS (
@@ -51,6 +54,10 @@ LOOP
         Error := SQLERRM;
         RETURN;
     END;
+    _Iterations := _Iterations + 1;
+    IF _Iterations > _MaxIterations THEN
+        EXIT;
+    END IF;
 END LOOP;
 RETURN;
 END;

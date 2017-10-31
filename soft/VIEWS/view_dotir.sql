@@ -11,8 +11,8 @@ format('digraph {
 dotir="%1$s";
 rankdir=LR;
 labelloc="t";
-label="%2$s %3$s";
-%4$s
+label="%2$s %3$s %4$s";
+%5$s
 }',
     replace(json_object(ARRAY[
         ['Program',          Programs.Program],
@@ -23,6 +23,7 @@ label="%2$s %3$s";
     ])::text,'"','\"'),
     Programs.Program,
     Phases.Phase,
+    DOTIR.DOTIRID,
     DOTIR.DOTIR
 ) AS DOTIR
 FROM DOTIR

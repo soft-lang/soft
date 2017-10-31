@@ -1,6 +1,8 @@
 CREATE OR REPLACE FUNCTION New_Edge(
-_ParentNodeID integer,
-_ChildNodeID  integer
+_ParentNodeID     integer,
+_ChildNodeID      integer,
+_ClonedFromEdgeID integer DEFAULT NULL,
+_ClonedRootNodeID integer DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -21,8 +23,8 @@ INTO STRICT _BirthPhaseID
 FROM Programs
 WHERE ProgramID = _ProgramID;
 
-INSERT INTO Edges ( ProgramID,  ParentNodeID,  ChildNodeID,  BirthPhaseID)
-VALUES            (_ProgramID, _ParentNodeID, _ChildNodeID, _BirthPhaseID)
+INSERT INTO Edges ( ProgramID,  ParentNodeID,  ChildNodeID,  BirthPhaseID,  ClonedFromEdgeID,  ClonedRootNodeID)
+VALUES            (_ProgramID, _ParentNodeID, _ChildNodeID, _BirthPhaseID, _ClonedFromEdgeID, _ClonedRootNodeID)
 RETURNING    EdgeID
 INTO STRICT _EdgeID;
 

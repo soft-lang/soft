@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _ClonedEdgeIDs integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE, _ToNodeID integer DEFAULT NULL)
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _ClonedEdgeIDs integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE, _VariableBinding variablebinding DEFAULT NULL)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -7,9 +7,11 @@ _ClonedNodeID       integer;
 _EdgeID             integer;
 _ParentNodeID       integer;
 _ClonedParentNodeID integer;
-_OutOfScope         boolean;
-_ToNodeOutOfScope   boolean;
 BEGIN
+
+IF _VariableBinding IS NULL THEN
+    _VariableBinding := (Language(_NodeID)).VariableBinding;
+END IF;
 
 SELECT      NodeID
 INTO _ClonedNodeID
@@ -24,62 +26,17 @@ IF _ClonedRootNodeID IS NULL THEN
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := 'First node, create new'||_ToNodeID::text
+        _Message  := 'First node, create new'
     );
+    _ClonedNodeID := Copy_Clone(_NodeID, _SelfRef := _SelfRef);
+    IF _ClonedNodeID IS NOT NULL THEN
+        RETURN _ClonedNodeID;
+    END IF;
 ELSE
-    IF (Language(_NodeID)).VariableBinding = 'CAPTURE_BY_VALUE' THEN
+    IF _VariableBinding = 'CAPTURE_BY_VALUE' THEN
         -- Always copy
-    ELSIF (Language(_NodeID)).VariableBinding = 'CAPTURE_BY_REFERENCE' THEN
-        IF _ToNodeID IS NOT NULL THEN
-            WITH RECURSIVE Parents AS (
-                SELECT
-                    Nodes.ClonedFromNodeID        AS ParentNodeID,
-                    ARRAY[Nodes.ClonedFromNodeID] AS ParentNodeIDs
-                FROM Nodes
-                WHERE Nodes.NodeID = _NodeID
-                UNION ALL
-                SELECT
-                    Edges.ParentNodeID,
-                    Edges.ParentNodeID || Parents.ParentNodeIDs AS ParentNodeIDs
-                FROM Edges
-                INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
-                INNER JOIN Parents             ON Parents.ParentNodeID = Edges.ChildNodeID
-                WHERE    Edges.DeathPhaseID IS NULL
-                AND ParentNode.DeathPhaseID IS NULL
-                AND NOT Edges.ParentNodeID = ANY(Parents.ParentNodeIDs)
-            )
-            SELECT EXISTS (
-                SELECT ChildNodeID FROM Edges WHERE ParentNodeID = _ToNodeID AND DeathPhaseID IS NULL
-                EXCEPT
-                SELECT ParentNodeID FROM Parents
-            ) INTO _ToNodeOutOfScope;
-        END IF;
-
-        WITH RECURSIVE Parents AS (
-            SELECT
-                Nodes.ClonedFromNodeID        AS ParentNodeID,
-                ARRAY[Nodes.ClonedFromNodeID] AS ParentNodeIDs
-            FROM Nodes
-            WHERE Nodes.NodeID = _ClonedRootNodeID
-            UNION ALL
-            SELECT
-                Edges.ParentNodeID,
-                Edges.ParentNodeID || Parents.ParentNodeIDs AS ParentNodeIDs
-            FROM Edges
-            INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
-            INNER JOIN Parents             ON Parents.ParentNodeID = Edges.ChildNodeID
-            WHERE    Edges.DeathPhaseID IS NULL
-            AND ParentNode.DeathPhaseID IS NULL
-            AND NOT Edges.ParentNodeID = ANY(Parents.ParentNodeIDs)
-        )
-        SELECT EXISTS (
-            SELECT ChildNodeID FROM Edges WHERE ParentNodeID = _NodeID AND DeathPhaseID IS NULL
-            EXCEPT
-            SELECT ParentNodeID FROM Parents
-        ) INTO _OutOfScope;
-        IF _OutOfScope
-        AND _ToNodeOutOfScope IS NOT TRUE
-        THEN
+    ELSIF _VariableBinding = 'CAPTURE_BY_REFERENCE' THEN
+        IF Out_Of_Scope(_FromNodeID := _ClonedRootNodeID, _ToNodeID := _NodeID) THEN
             PERFORM Log(
                 _NodeID   := _NodeID,
                 _Severity := 'DEBUG3',
@@ -142,12 +99,14 @@ LOOP
             _ClonedRootNodeID := _ClonedRootNodeID,
             _ClonedEdgeIDs    := _ClonedEdgeIDs || _EdgeID,
             _SelfRef          := _SelfRef,
-            _ToNodeID         := _ToNodeID
+            _VariableBinding  := _VariableBinding
         );
     END IF;
     PERFORM New_Edge(
-        _ParentNodeID := _ClonedParentNodeID,
-        _ChildNodeID  := _ClonedNodeID
+        _ParentNodeID     := _ClonedParentNodeID,
+        _ChildNodeID      := _ClonedNodeID,
+        _ClonedFromEdgeID := _EdgeID,
+        _ClonedRootNodeID := _ClonedRootNodeID
     );
 END LOOP;
 
