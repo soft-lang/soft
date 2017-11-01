@@ -35,6 +35,7 @@ PERFORM Enter_Node(_ProgramNodeID);
 
 _Iterations := 0;
 LOOP
+--    RAISE NOTICE '%', _Iterations;
     IF _RunUntilPhase IS NOT NULL
     AND EXISTS (
         SELECT 1

@@ -8,3 +8,5 @@ DOTIR     text        NOT NULL,
 Logtime   timestamptz NOT NULL DEFAULT now(),
 PRIMARY KEY (DOTIRID)
 );
+
+CREATE INDEX ON DOTIR (ProgramID, DOTIR);

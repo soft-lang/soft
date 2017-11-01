@@ -9,6 +9,7 @@ AS $$
 DECLARE
 _ProgramID   integer;
 _ReturnValue text;
+_OK          boolean;
 BEGIN
 
 INSERT INTO Programs (Program, LanguageID, PhaseID, LogSeverity)
@@ -23,6 +24,10 @@ WHERE Languages.Language = _Language
 ORDER BY Phases.PhaseID
 LIMIT 1
 RETURNING ProgramID INTO STRICT _ProgramID;
+
+INSERT INTO Environments ( ProgramID, EnvironmentID)
+VALUES                   (_ProgramID, 0)
+RETURNING TRUE INTO STRICT _OK;
 
 RETURN _ProgramID;
 END;

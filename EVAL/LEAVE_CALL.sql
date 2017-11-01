@@ -15,6 +15,7 @@ _VariableNodeID            integer;
 _ReturningCall             boolean;
 _NodeType                  text;
 _ImplementationFunction    text;
+_EnvironmentID             integer;
 _OK                        boolean;
 BEGIN
 
@@ -82,12 +83,19 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType = 'RET';
 IF NOT FOUND THEN
-    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := FALSE);
+    INSERT INTO Environments (ProgramID, EnvironmentID)
+    SELECT _ProgramID, MAX(EnvironmentID)+1
+    FROM Environments
+    WHERE ProgramID = _ProgramID
+    RETURNING    EnvironmentID
+    INTO STRICT _EnvironmentID;
 
-    UPDATE Nodes SET
-        Environment = Get_Node_Lexical_Environment(NodeID)
-    WHERE NodeID = _FunctionInstanceNodeID
-    RETURNING TRUE INTO STRICT _OK;
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Created new EnvironmentID %s to call function', _EnvironmentID)
+    );
+    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
 
     _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
     PERFORM Set_Walkable(_FunctionInstanceNodeID, TRUE);

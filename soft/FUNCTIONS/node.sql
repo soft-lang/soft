@@ -4,7 +4,6 @@ LANGUAGE plpgsql
 STRICT
 AS $$
 DECLARE
-_NodeLabelNumber  integer;
 _NodeType         text;
 _NodeTypeID       integer;
 _ReferenceNodeID  integer;
@@ -16,13 +15,11 @@ BEGIN
 SELECT
     NodeTypeID,
     ReferenceNodeID,
-    PrimitiveValue,
-    NodeLabelNumber
+    PrimitiveValue
 INTO STRICT
     _NodeTypeID,
     _ReferenceNodeID,
-    _PrimitiveValue,
-    _NodeLabelNumber
+    _PrimitiveValue
 FROM Nodes
 WHERE NodeID = _NodeID;
 
@@ -31,7 +28,7 @@ INTO STRICT _NodeType
 FROM NodeTypes
 WHERE NodeTypeID = _NodeTypeID;
 
-_Label := format('%s%s',_NodeType,_NodeLabelNumber);
+_Label := format('%s%s',_NodeType,_NodeID);
 
 IF _ReferenceNodeID IS NOT NULL THEN
     _Label := _Label || '->' || Node(_ReferenceNodeID);

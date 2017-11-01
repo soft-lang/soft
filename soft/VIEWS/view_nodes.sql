@@ -2,7 +2,7 @@ CREATE VIEW View_Nodes AS
 SELECT
 Nodes.NodeID,
 Node(Nodes.NodeID),
-Nodes.Environment,
+Nodes.EnvironmentID,
 Programs.Program,
 Programs.ProgramID,
 Languages.Language,

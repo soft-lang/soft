@@ -6,7 +6,8 @@ _PrimitiveValue       text      DEFAULT NULL,
 _Walkable             boolean   DEFAULT NULL,
 _ClonedFromNodeID     integer   DEFAULT NULL,
 _ClonedRootNodeID     integer   DEFAULT NULL,
-_ReferenceNodeID      integer   DEFAULT NULL
+_ReferenceNodeID      integer   DEFAULT NULL,
+_EnvironmentID        integer   DEFAULT 0
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -14,7 +15,6 @@ AS $$
 DECLARE
 _BirthPhaseID    integer;
 _NodeID          integer;
-_NodeLabelNumber integer;
 _OK              boolean;
 _CastTest        text;
 BEGIN
@@ -53,24 +53,10 @@ IF _Walkable IS NULL THEN
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID,  ReferenceNodeID)
-VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID,  ReferenceNodeID,  EnvironmentID)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID, _EnvironmentID)
 RETURNING    NodeID
 INTO STRICT _NodeID;
-
-SELECT ROW_NUMBER INTO STRICT _NodeLabelNumber
-FROM (
-    SELECT NodeID, ROW_NUMBER() OVER () FROM (
-        SELECT NodeID FROM Nodes WHERE NodeTypeID = _NodeTypeID ORDER BY NodeID
-    ) AS X
-) AS Y
-WHERE NodeID = COALESCE(_ClonedFromNodeID, _NodeID);
-
-UPDATE Nodes SET
-    Environment     = Get_Node_Lexical_Environment(NodeID),
-    NodeLabelNumber = _NodeLabelNumber
-WHERE NodeID = _NodeID
-RETURNING TRUE INTO STRICT _OK;
 
 RETURN _NodeID;
 END;

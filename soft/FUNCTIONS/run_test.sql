@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION Run_Test(
 _Language      text,
 _Program       text,
-_LogSeverity   severity DEFAULT 'DEBUG5',
+_LogSeverity   severity DEFAULT NULL,
 _RunUntilPhase name     DEFAULT NULL
 )
 RETURNS boolean

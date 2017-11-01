@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Get_Node_Attributes(_NodeID integer, _HighlightNodeID integer)
+CREATE OR REPLACE FUNCTION Get_Node_Attributes(_NodeID integer, _CurrentNodeID integer, _PrevNodeID integer)
 RETURNS text
 LANGUAGE plpgsql
 AS $$
@@ -42,8 +42,10 @@ IF _Fillcolor !~ ':' THEN
     _Style := 'filled';
 END IF;
 
-IF _NodeID = _HighlightNodeID THEN
-    _Penwidth := '5';
+IF _NodeID = _CurrentNodeID THEN
+    _Penwidth := '8';
+ELSIF _NodeID = _PrevNodeID THEN
+    _Penwidth := '4';
 ELSE
     _Penwidth := '';
 END IF;

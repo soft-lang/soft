@@ -1,6 +1,7 @@
 CREATE TABLE Edges (
 EdgeID           serial      NOT NULL,
 ProgramID        integer     NOT NULL REFERENCES Programs(ProgramID),
+EnvironmentID    integer     NOT NULL DEFAULT 0,
 ParentNodeID     integer     NOT NULL REFERENCES Nodes(NodeID),
 ChildNodeID      integer     NOT NULL REFERENCES Nodes(NodeID),
 BirthPhaseID     integer     NOT NULL REFERENCES Phases(PhaseID),
@@ -17,9 +18,9 @@ CHECK ((DeathPhaseID IS NULL) = (DeathTime IS NULL))
 
 CREATE INDEX ON Edges(ChildNodeID, EdgeID)  WHERE DeathPhaseID IS NULL;
 CREATE INDEX ON Edges(ParentNodeID, EdgeID) WHERE DeathPhaseID IS NULL;
-CREATE INDEX ON Edges(ProgramID)    WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Edges(ProgramID)            WHERE DeathPhaseID IS NULL;
 
-
-
-CREATE INDEX ON Edges(ChildNodeID, ParentNodeID, EdgeID)  WHERE DeathPhaseID IS NULL;
+CREATE INDEX ON Edges(ChildNodeID, ParentNodeID, EdgeID) WHERE DeathPhaseID IS NULL;
 CREATE INDEX ON Edges(ParentNodeID, ChildNodeID, EdgeID) WHERE DeathPhaseID IS NULL;
+
+ALTER TABLE Edges ADD CONSTRAINT Edges_Environment_FKey FOREIGN KEY (ProgramID, EnvironmentID) REFERENCES Environments (ProgramID, EnvironmentID);

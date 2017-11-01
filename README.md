@@ -653,6 +653,7 @@ the nodes that matched the NodePattern.
 
 ```sql
 \ir soft/TABLES/programs.sql
+\ir soft/TABLES/environments.sql
 \ir soft/FUNCTIONS/new_program.sql
 
 SELECT New_Program(
@@ -679,7 +680,6 @@ and uses `New_Test()`/`Run_Test()` to also run the program.
 ```sql
 \ir soft/TABLES/nodes.sql
 \ir soft/FUNCTIONS/new_node.sql
-\ir soft/FUNCTIONS/get_node_lexical_environment.sql
 ```
 
 Nodes are of different NodeTypes and can be either
@@ -902,7 +902,7 @@ Returns the node attributes to be used in the DOTIR file.
   where we are in the program.
 
 ```sql
-SELECT Get_Node_Attributes(_NodeID := 1, _HighlightNodeID := 2);
+SELECT Get_Node_Attributes(_NodeID := 1, _CurrentNodeID := 2, _PrevNodeID := 1);
 ```
 
 ```sql
@@ -912,7 +912,7 @@ SELECT Get_Node_Attributes(_NodeID := 1, _HighlightNodeID := 2);
 Generates a DOTIR file of the AST and current state of the program.
 
 ```sql
-SELECT Get_DOTIR(_NodeID := 1);
+SELECT Get_DOTIR(_CurrentNodeID := 2, _PrevNodeID := 1);
 ```
 
 ```sql
@@ -1163,16 +1163,6 @@ SELECT Primitive_Value(_NodeID := 2);
 Evaluate if a node is boolean true or false.
 
 ```sql
-\ir soft/FUNCTIONS/print_node.sql
-```
-
-Print node to STDOUT.
-
-```sql
-SELECT Print_Node(_NodeID := 2);
-```
-
-```sql
 \ir soft/FUNCTIONS/explain_node.sql
 ```
 
@@ -1180,6 +1170,16 @@ Show AST for node.
 
 ```sql
 SELECT Explain_Node(_NodeID := 2);
+```
+
+```sql
+\ir soft/FUNCTIONS/print_node.sql
+```
+
+Print node to STDOUT.
+
+```sql
+SELECT Print_Node(_NodeID := 2);
 ```
 
 ## CLONING OF NODES

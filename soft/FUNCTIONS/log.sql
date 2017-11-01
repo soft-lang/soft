@@ -52,7 +52,7 @@ _Color := CASE
 END;
 
 IF _SaveDOTIR THEN
-    _DOTIRID := Save_DOTIR(_NodeID := _NodeID);
+--    _DOTIRID := Save_DOTIR(_NodeID := _NodeID);
 END IF;
 
 IF _Message IS NULL THEN

@@ -7,6 +7,7 @@ _PrimitiveValue  text;
 _ClonedNodeID    integer;
 _OK              boolean;
 _VariableBinding variablebinding;
+_EnvironmentID   integer;
 BEGIN
 
 IF (SELECT PrimitiveType FROM Nodes WHERE NodeID = Dereference(_FromNodeID)) IS NOT NULL THEN
@@ -25,7 +26,8 @@ ELSE
         -- from an outer scope.
         _VariableBinding := 'CAPTURE_BY_VALUE';
     END IF;
-    _ClonedNodeID := Clone_Node(_NodeID := Dereference(_FromNodeID), _VariableBinding := _VariableBinding);
+    SELECT EnvironmentID INTO STRICT _EnvironmentID FROM Nodes WHERE NodeID = _ToNodeID;
+    _ClonedNodeID := Clone_Node(_NodeID := Dereference(_FromNodeID), _VariableBinding := _VariableBinding, _EnvironmentID := _EnvironmentID);
     UPDATE Edges SET ChildNodeID  = _ClonedNodeID WHERE ChildNodeID  = _ToNodeID AND DeathPhaseID IS NULL;
     UPDATE Edges SET ParentNodeID = _ClonedNodeID WHERE ParentNodeID = _ToNodeID AND DeathPhaseID IS NULL;
     PERFORM Kill_Clone(_ToNodeID);

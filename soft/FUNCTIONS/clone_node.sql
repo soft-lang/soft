@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _ClonedEdgeIDs integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE, _VariableBinding variablebinding DEFAULT NULL)
+CREATE OR REPLACE FUNCTION Clone_Node(_NodeID integer, _OriginRootNodeID integer DEFAULT NULL, _ClonedRootNodeID integer DEFAULT NULL, _ClonedEdgeIDs integer[] DEFAULT ARRAY[]::integer[], _SelfRef boolean DEFAULT TRUE, _VariableBinding variablebinding DEFAULT NULL, _EnvironmentID integer DEFAULT 0)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -28,10 +28,10 @@ IF _ClonedRootNodeID IS NULL THEN
         _Severity := 'DEBUG3',
         _Message  := 'First node, create new'
     );
-    _ClonedNodeID := Copy_Clone(_NodeID, _SelfRef := _SelfRef);
-    IF _ClonedNodeID IS NOT NULL THEN
-        RETURN _ClonedNodeID;
-    END IF;
+    -- _ClonedNodeID := Copy_Clone(_NodeID, _SelfRef := _SelfRef, _EnvironmentID := _EnvironmentID);
+    -- IF _ClonedNodeID IS NOT NULL THEN
+    --     RETURN _ClonedNodeID;
+    -- END IF;
 ELSE
     IF _VariableBinding = 'CAPTURE_BY_VALUE' THEN
         -- Always copy
@@ -57,7 +57,8 @@ IF _ClonedNodeID IS NULL THEN
         _Walkable         := Walkable,
         _ClonedFromNodeID := NodeID,
         _ClonedRootNodeID := _ClonedRootNodeID,
-        _ReferenceNodeID  := ReferenceNodeID
+        _ReferenceNodeID  := ReferenceNodeID,
+        _EnvironmentID    := _EnvironmentID
     ) INTO STRICT _ClonedNodeID
     FROM Nodes WHERE NodeID = _NodeID;
 END IF;
@@ -99,14 +100,16 @@ LOOP
             _ClonedRootNodeID := _ClonedRootNodeID,
             _ClonedEdgeIDs    := _ClonedEdgeIDs || _EdgeID,
             _SelfRef          := _SelfRef,
-            _VariableBinding  := _VariableBinding
+            _VariableBinding  := _VariableBinding,
+            _EnvironmentID    := _EnvironmentID
         );
     END IF;
     PERFORM New_Edge(
         _ParentNodeID     := _ClonedParentNodeID,
         _ChildNodeID      := _ClonedNodeID,
         _ClonedFromEdgeID := _EdgeID,
-        _ClonedRootNodeID := _ClonedRootNodeID
+        _ClonedRootNodeID := _ClonedRootNodeID,
+        _EnvironmentID    := _EnvironmentID
     );
 END LOOP;
 
