@@ -54,6 +54,12 @@ PERFORM Log(
     _SaveDOTIR := _SaveDOTIR
 );
 
+UPDATE Programs SET 
+    RunAt      = clock_timestamp(),
+    Iterations = Iterations + 1
+WHERE ProgramID = _ProgramID
+RETURNING TRUE INTO STRICT _OK;
+
 IF NOT EXISTS (
     SELECT 1
     FROM Edges

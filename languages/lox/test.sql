@@ -15,7 +15,7 @@ SELECT COUNT(*) FROM (
 ) AS Tests;
 
 SELECT COUNT(*) FROM (
-    SELECT Run(Language, Program, _RunUntilPhase := 'DISCARD')
+    SELECT Run(Language, Program, _RunUntilPhase := 'TOKENIZE')
     FROM View_Programs
     WHERE Language = :'language'
     ORDER BY ProgramID

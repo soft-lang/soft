@@ -4,12 +4,7 @@ _Language      text     DEFAULT 'monkey',
 _LogSeverity   severity DEFAULT 'NOTICE',
 _RunUntilPhase text     DEFAULT NULL
 )
-RETURNS TABLE (
-OK             boolean,
-Error          text,
-PrimitiveType  regtype,
-PrimitiveValue text
-)
+RETURNS BOOLEAN
 LANGUAGE plpgsql
 AS $$
 -- This function allows quickly invoking a program
@@ -57,51 +52,11 @@ IF NOT FOUND THEN
     AND   NodeTypes.NodeType = 'SOURCE_CODE';
 END IF;
 
-SELECT
-    Run.OK,
-    Run.Error
-INTO STRICT
-    OK,
-    Error
-FROM Run(
+RETURN Run(
     _Language      := _Language,
     _Program       := _Program,
     _RunUntilPhase := _RunUntilPhase
 );
 
-IF NOT OK THEN
-    RETURN NEXT;
-    RETURN;
-END IF;
-
-_ResultNodeID := Dereference((SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID));
-
-PERFORM Notice('AST: ' || Colorize(Explain_Node(Get_Program_Node(_ProgramID)), 'YELLOW'));
-
-RETURN QUERY
-SELECT
-    OK,
-    Error,
-    Nodes.PrimitiveType,
-    Nodes.PrimitiveValue
-FROM Nodes
-WHERE NodeID = _ResultNodeID
-AND Nodes.PrimitiveType IS NOT NULL;
-IF NOT FOUND THEN
-    RETURN QUERY
-    SELECT
-        OK,
-        Error,
-        Primitive_Type(Nodes.NodeID),
-        Primitive_Value(Nodes.NodeID)
-    FROM Edges
-    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
-    WHERE Edges.ChildNodeID = _ResultNodeID
-    AND Edges.DeathPhaseID IS NULL
-    AND Nodes.DeathPhaseID IS NULL
-    ORDER BY Edges.EdgeID;
-END IF;
-
-RETURN;
 END;
 $$;

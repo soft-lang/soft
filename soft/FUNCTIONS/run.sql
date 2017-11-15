@@ -1,24 +1,23 @@
 CREATE OR REPLACE FUNCTION Run(
-OUT OK         boolean,
-OUT Error      text,
 _Language      text,
 _Program       text,
 _RunUntilPhase name    DEFAULT NULL,
 _MaxIterations integer DEFAULT NULL
 )
-RETURNS record
+RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID     integer;
-_ProgramNodeID integer;
-_OK            boolean;
-_Iterations    integer;
+_ProgramID       integer;
+_LanguageID      integer;
+_ProgramNodeID   integer;
+_RunUntilPhaseID integer;
+_Iterations      integer;
+_OK              boolean;
 BEGIN
-OK := TRUE;
 
-SELECT Programs.ProgramID
-INTO STRICT    _ProgramID
+SELECT Programs.ProgramID, Languages.LanguageID
+INTO STRICT    _ProgramID,          _LanguageID
 FROM Programs
 INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
 WHERE Languages.Language = _Language
@@ -33,33 +32,62 @@ RETURNING TRUE INTO STRICT _OK;
 
 PERFORM Enter_Node(_ProgramNodeID);
 
-_Iterations := 0;
-LOOP
---    RAISE NOTICE '%', _Iterations;
-    IF _RunUntilPhase IS NOT NULL
-    AND EXISTS (
-        SELECT 1
-        FROM Programs
-        INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
-        WHERE Programs.ProgramID = _ProgramID
-        AND   Phases.Phase       = _RunUntilPhase
-    ) THEN
-        EXIT;
+IF _RunUntilPhase IS NOT NULL THEN
+    SELECT        PhaseID
+    INTO _RunUntilPhaseID
+    FROM Phases
+    WHERE LanguageID = _LanguageID
+    AND   Phase      = _RunUntilPhase;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No such phase "%" for language "%"', _RunUntilPhase, _Language;
     END IF;
-    BEGIN
-        IF NOT Walk_Tree(_ProgramID) THEN
-            EXIT;
-        END IF;
-    EXCEPTION WHEN OTHERS THEN
-        OK    := FALSE;
-        Error := SQLERRM;
-        RETURN;
-    END;
-    _Iterations := _Iterations + 1;
-    IF _Iterations > _MaxIterations THEN
-        EXIT;
-    END IF;
-END LOOP;
-RETURN;
+END IF;
+
+RAISE NOTICE '%', _RunUntilPhaseID;
+
+UPDATE Programs SET
+    RunAt           = now(),
+    RunUntilPhaseID = _RunUntilPhaseID,
+    MaxIterations   = _MaxIterations
+WHERE ProgramID = _ProgramID
+RETURNING TRUE INTO STRICT _OK;
+
+RETURN TRUE;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION Run(_ProcessID integer)
+RETURNS batchjobstate
+SECURITY DEFINER
+SET search_path TO soft, pg_temp
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_ProgramID integer;
+BEGIN
+
+SELECT ProgramID
+INTO  _ProgramID
+FROM Programs
+WHERE DeathTime IS NULL
+AND   RunAt           <  clock_timestamp()
+AND  (RunUntilPhaseID >= PhaseID)       IS NOT TRUE
+AND  (Iterations      >  MaxIterations) IS NOT TRUE
+ORDER BY RunAt
+LIMIT 1;
+IF NOT FOUND THEN
+    RETURN 'DONE';
+END IF;
+
+PERFORM Walk_Tree(_ProgramID);
+
+RETURN 'AGAIN';
+END;
+$$;
+
+GRANT ALL ON FUNCTION Run(_ProcessID integer) TO pgcronjob;
+
+SELECT cron.Register('soft.Run(integer)',
+    _IntervalAGAIN  := '0'::interval,
+    _IntervalDONE   := '1 second'::interval
+);

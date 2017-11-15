@@ -1775,13 +1775,13 @@ SELECT New_Test(
 
 ```sql
 \ir soft/FUNCTIONS/get_files.sql
-\ir soft/FUNCTIONS/run_test.sql
+-- \ir soft/FUNCTIONS/run_test.sql
 ```
 
 Runs the test created by `New_Test()`:
 
 ```sql
-SELECT Run_Test('TestLanguage','ShouldComputeToTen');
+-- SELECT Run_Test('TestLanguage','ShouldComputeToTen');
 ```
 
 ```sql

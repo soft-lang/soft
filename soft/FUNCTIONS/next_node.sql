@@ -3,20 +3,21 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_NodeID       integer;
-_PhaseID      integer;
-_LanguageID   integer;
-_Direction    direction;
-_NextPhaseID  integer;
-_NextNodeID   integer;
-_ChildNodeID  integer;
-_EdgeID       integer;
-_Count        bigint;
-_OK           boolean;
+_NodeID          integer;
+_PhaseID         integer;
+_LanguageID      integer;
+_Direction       direction;
+_NextPhaseID     integer;
+_NextNodeID      integer;
+_ChildNodeID     integer;
+_EdgeID          integer;
+_Count           bigint;
+_RunUntilPhaseID integer;
+_OK              boolean;
 BEGIN
 
-SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction
-INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction
+SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction, Programs.RunUntilPhaseID
+INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction,         _RunUntilPhaseID
 FROM Programs
 INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
 INNER JOIN Nodes  ON Nodes.NodeID   = Programs.NodeID
@@ -83,6 +84,9 @@ ELSIF _Count IS NULL THEN
     ORDER BY PhaseID
     LIMIT 1;
     IF FOUND THEN
+        IF _NextPhaseID > _RunUntilPhaseID THEN
+            RETURN FALSE;
+        END IF;
         UPDATE Programs SET PhaseID = _NextPhaseID, Direction = 'ENTER' WHERE ProgramID = _ProgramID AND PhaseID = _PhaseID RETURNING TRUE INTO STRICT _OK;
         PERFORM Log(
             _NodeID   := _NodeID,
@@ -103,6 +107,8 @@ PERFORM Log(
     _Severity := 'DEBUG3',
     _Message  := format('Final phase %s completed', Colorize(Phase(_PhaseID)))
 );
+
+UPDATE Programs SET DeathTime = clock_timestamp() WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
 
 RETURN FALSE;
 END;
