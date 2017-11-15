@@ -4,7 +4,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ProgramID                 integer;
-_Walkable                   boolean;
+_Walkable                  boolean;
 _RetNodeID                 integer;
 _RetEdgeID                 integer;
 _NextNodeID                integer;
@@ -24,7 +24,7 @@ SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 SELECT                  X.ParentNodeID, NodeTypes.NodeType
 INTO STRICT _FunctionDeclarationNodeID,          _NodeType
 FROM (
-    SELECT ParentNodeID
+    SELECT Dereference(ParentNodeID) AS ParentNodeID
     FROM Edges
     WHERE ChildNodeID  = _NodeID
     AND   DeathPhaseID IS NULL

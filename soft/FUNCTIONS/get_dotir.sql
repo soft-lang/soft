@@ -7,6 +7,7 @@ _ProgramID     integer;
 _FamilyNodeIDs integer[];
 BEGIN
 
+/*
 WITH
 Parents              AS (SELECT ParentNodeID AS NodeID FROM Edges WHERE ChildNodeID  = _CurrentNodeID AND DeathPhaseID IS NULL),
 Siblings             AS (SELECT ChildNodeID  AS NodeID FROM Edges WHERE ParentNodeID IN (SELECT NodeID FROM Parents)         AND DeathPhaseID IS NULL),
@@ -29,11 +30,14 @@ SELECT array_agg(NodeID) INTO _FamilyNodeIDs FROM (
     UNION ALL SELECT NodeID FROM GrandChildren
     UNION ALL SELECT NodeID FROM GrandChildrenParents
 ) AS Family;
+*/
 
 SELECT       ProgramID
 INTO STRICT _ProgramID
 FROM Nodes
 WHERE NodeID = _CurrentNodeID;
+
+SELECT array_agg(NodeID) INTO _FamilyNodeIDs FROM Nodes WHERE ProgramID = _ProgramID;
 
 RETURN QUERY
 SELECT format(E'"%s.%s" [label="%s" %s];',

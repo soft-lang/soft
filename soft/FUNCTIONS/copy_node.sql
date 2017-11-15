@@ -19,18 +19,12 @@ IF (SELECT PrimitiveType FROM Nodes WHERE NodeID = Dereference(_FromNodeID)) IS 
     AND     CopyTo.NodeID = _ToNodeID
     RETURNING TRUE INTO STRICT _OK;
 ELSE
-    IF Out_Of_Scope(_FromNodeID := Dereference(_FromNodeID), _ToNodeID := _ToNodeID) THEN
-        -- If the node to which we will copy to is out of scope,
-        -- all the nodes in the from node must be captured by value,
-        -- since you cannot refer to nodes in an inner scope
-        -- from an outer scope.
-        _VariableBinding := 'CAPTURE_BY_VALUE';
-    END IF;
-    SELECT EnvironmentID INTO STRICT _EnvironmentID FROM Nodes WHERE NodeID = _ToNodeID;
-    _ClonedNodeID := Clone_Node(_NodeID := Dereference(_FromNodeID), _VariableBinding := _VariableBinding, _EnvironmentID := _EnvironmentID);
-    UPDATE Edges SET ChildNodeID  = _ClonedNodeID WHERE ChildNodeID  = _ToNodeID AND DeathPhaseID IS NULL;
-    UPDATE Edges SET ParentNodeID = _ClonedNodeID WHERE ParentNodeID = _ToNodeID AND DeathPhaseID IS NULL;
-    PERFORM Kill_Clone(_ToNodeID);
+    UPDATE Nodes SET
+        PrimitiveType  = NULL,
+        PrimitiveValue = NULL
+    WHERE NodeID = _ToNodeID
+    RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Reference_Node(_ReferenceNodeID := _FromNodeID, _NodeID := _ToNodeID);
 END IF;
 
 PERFORM Log(
