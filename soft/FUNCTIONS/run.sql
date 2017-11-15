@@ -10,6 +10,7 @@ AS $$
 DECLARE
 _ProgramID       integer;
 _LanguageID      integer;
+_ProcessID       integer;
 _ProgramNodeID   integer;
 _RunUntilPhaseID integer;
 _Iterations      integer;
@@ -43,10 +44,14 @@ IF _RunUntilPhase IS NOT NULL THEN
     END IF;
 END IF;
 
-RAISE NOTICE '%', _RunUntilPhaseID;
+_ProcessID := cron.Register('soft.Run(integer)',
+    _IntervalAGAIN  := '0'::interval,
+    _ConnectionPool := 'soft.Run',
+    _LogTableAccess := FALSE
+);
 
 UPDATE Programs SET
-    RunAt           = now(),
+    ProcessID       = _ProcessID,
     RunUntilPhaseID = _RunUntilPhaseID,
     MaxIterations   = _MaxIterations
 WHERE ProgramID = _ProgramID
@@ -63,23 +68,70 @@ SET search_path TO soft, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID integer;
+_ProgramID    integer;
+_Program      text;
+_ResultNodeID integer;
+_ResultType   regtype;
+_ResultValue  text;
+_ResultTypes  regtype[];
+_ResultValues text[];
+_Error        text;
+_RunAgain     boolean;
+_OK           boolean;
 BEGIN
 
-SELECT ProgramID
-INTO  _ProgramID
+SELECT ProgramID,  Program
+INTO  _ProgramID, _Program
 FROM Programs
-WHERE DeathTime IS NULL
-AND   RunAt           <  clock_timestamp()
+WHERE ProcessID = _ProcessID
+AND   DeathTime IS NULL
 AND  (RunUntilPhaseID >= PhaseID)       IS NOT TRUE
-AND  (Iterations      >  MaxIterations) IS NOT TRUE
-ORDER BY RunAt
-LIMIT 1;
+AND  (Iterations      >  MaxIterations) IS NOT TRUE;
 IF NOT FOUND THEN
     RETURN 'DONE';
 END IF;
 
-PERFORM Walk_Tree(_ProgramID);
+PERFORM set_config('application_name', _Program, TRUE);
+
+_RunAgain := FALSE;
+BEGIN
+    _RunAgain := Walk_Tree(_ProgramID);
+EXCEPTION WHEN OTHERS THEN
+    _Error := SQLERRM;
+END;
+
+IF NOT _RunAgain THEN
+    IF _Error IS NULL THEN
+        _ResultNodeID := Dereference((SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID));
+        SELECT     PrimitiveType, PrimitiveValue
+        INTO STRICT  _ResultType,   _ResultValue
+        FROM Nodes
+        WHERE NodeID = _ResultNodeID;
+        IF _ResultType IS NULL THEN
+            SELECT
+                array_agg(Primitive_Type(Nodes.NodeID)  ORDER BY Edges.EdgeID),
+                array_agg(Primitive_Value(Nodes.NodeID) ORDER BY Edges.EdgeID)
+            INTO STRICT
+                _ResultTypes,
+                _ResultValues
+            FROM Edges
+            INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+            WHERE Edges.ChildNodeID = _ResultNodeID
+            AND Edges.DeathPhaseID IS NULL
+            AND Nodes.DeathPhaseID IS NULL;
+        END IF;
+    END IF;
+
+    UPDATE Programs SET
+        DeathTime    = clock_timestamp(),
+        ResultType   = _ResultType,
+        ResultValue  = _ResultValue,
+        ResultTypes  = _ResultTypes,
+        ResultValues = _ResultValues,
+        Error        = _Error
+    WHERE ProgramID = _ProgramID
+    RETURNING TRUE INTO STRICT _OK;
+END IF;
 
 RETURN 'AGAIN';
 END;
@@ -87,7 +139,4 @@ $$;
 
 GRANT ALL ON FUNCTION Run(_ProcessID integer) TO pgcronjob;
 
-SELECT cron.Register('soft.Run(integer)',
-    _IntervalAGAIN  := '0'::interval,
-    _IntervalDONE   := '1 second'::interval
-);
+SELECT cron.New_Connection_Pool(_Name := 'soft.Run', _MaxProcesses := 4);

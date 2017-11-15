@@ -108,8 +108,6 @@ PERFORM Log(
     _Message  := format('Final phase %s completed', Colorize(Phase(_PhaseID)))
 );
 
-UPDATE Programs SET DeathTime = clock_timestamp() WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-
 RETURN FALSE;
 END;
 $$;

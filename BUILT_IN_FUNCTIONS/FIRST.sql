@@ -2,10 +2,11 @@ CREATE OR REPLACE FUNCTION "BUILT_IN_FUNCTIONS"."FIRST"(_NodeID integer) RETURNS
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ParentNodes       integer[];
-_ArrayElements     integer[];
-_ClonedNodeID      integer;
-_OK                boolean;
+_ParentNodes   integer[];
+_ParentNodeID  integer;
+_ArrayElements integer[];
+_ClonedNodeID  integer;
+_OK            boolean;
 BEGIN
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
@@ -18,8 +19,10 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
     RAISE EXCEPTION 'first() takes exactly one array as argument';
 END IF;
 
-IF Node_Type(_ParentNodes[2]) <> 'ARRAY' THEN
-    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodes[2]);
+_ParentNodeID := Dereference(_ParentNodes[2]);
+
+IF Node_Type(_ParentNodeID) <> 'ARRAY' THEN
+    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodeID);
 END IF;
 
 SELECT
@@ -27,7 +30,7 @@ SELECT
 INTO STRICT
     _ArrayElements
 FROM Edges
-WHERE ChildNodeID = _ParentNodes[2]
+WHERE ChildNodeID = _ParentNodeID
 AND DeathPhaseID IS NULL;
 
 IF _ArrayElements IS NULL THEN

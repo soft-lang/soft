@@ -1774,6 +1774,16 @@ SELECT New_Test(
 ```
 
 ```sql
+\ir soft/VIEWS/view_tests.sql
+```
+
+Human friendly view showing all Tests
+
+```sql
+SELECT * FROM View_Tests;
+```
+
+```sql
 \ir soft/FUNCTIONS/get_files.sql
 -- \ir soft/FUNCTIONS/run_test.sql
 ```

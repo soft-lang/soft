@@ -3,6 +3,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _ParentNodes       integer[];
+_ParentNodeID      integer;
 _ArrayElements     integer[];
 _ArrayElementEdges integer[];
 _ClonedNodeID      integer;
@@ -19,11 +20,13 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
     RAISE EXCEPTION 'rest() takes exactly one array as argument';
 END IF;
 
-IF Node_Type(_ParentNodes[2]) <> 'ARRAY' THEN
-    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodes[2]);
+_ParentNodeID := Dereference(_ParentNodes[2]);
+
+IF Node_Type(_ParentNodeID) <> 'ARRAY' THEN
+    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodeID);
 END IF;
 
-_ClonedNodeID := Clone_Node(_ParentNodes[2]);
+_ClonedNodeID := Clone_Node(_ParentNodeID);
 
 SELECT
     array_agg(ParentNodeID ORDER BY EdgeID),
