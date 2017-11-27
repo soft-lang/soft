@@ -3,6 +3,7 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_Program             text;
 _ProgramID           integer;
 _LanguageID          integer;
 _SourceCode          text;
@@ -37,12 +38,14 @@ SELECT
     Nodes.ProgramID,
     NodeTypes.LanguageID,
     Nodes.PrimitiveValue,
-    Programs.PhaseID
+    Programs.PhaseID,
+    Programs.Program
 INTO STRICT
     _ProgramID,
     _LanguageID,
     _SourceCode,
-    _PhaseID
+    _PhaseID,
+    _Program
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
@@ -201,7 +204,7 @@ IF _IllegalCharacters IS NOT NULL THEN
     USING HINT = 'Define a catch-all node type e.g. LiteralPattern (.) with e.g. node severity ERROR as the last LiteralPattern node type';
 END IF;
 
-SELECT array_to_string(array_agg(PrimitiveValue ORDER BY NodeID),'')
+SELECT COALESCE(array_to_string(array_agg(PrimitiveValue ORDER BY NodeID),''),'')
 INTO STRICT _RecreatedSourceCode
 FROM Nodes
 WHERE ProgramID  = _ProgramID
@@ -209,7 +212,8 @@ AND BirthPhaseID = _PhaseID
 AND NodeID       > _NodeID;
 
 IF _RecreatedSourceCode IS DISTINCT FROM _SourceCode THEN
-    RAISE EXCEPTION E'Unable to recreate source code from created token nodes.\nSourceCode "%"\nIS DISTINCT FROM\nRecreatedSourceCode "%"',
+    RAISE EXCEPTION E'Unable to recreate source code for program "%" from created token nodes.\nSourceCode "%"\nIS DISTINCT FROM\nRecreatedSourceCode "%"',
+        _Program,
         Colorize(_SourceCode, 'CYAN'),
         Colorize(_RecreatedSourceCode, 'MAGENTA')
     ;

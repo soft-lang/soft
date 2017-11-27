@@ -68,16 +68,17 @@ SET search_path TO soft, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID    integer;
-_Program      text;
-_ResultNodeID integer;
-_ResultType   regtype;
-_ResultValue  text;
-_ResultTypes  regtype[];
-_ResultValues text[];
-_Error        text;
-_RunAgain     boolean;
-_OK           boolean;
+_ProgramID       integer;
+_Program         text;
+_ResultNodeID    integer;
+_ResultType      regtype;
+_ResultValue     text;
+_ResultTypes     regtype[];
+_ResultValues    text[];
+_Error           text;
+_RunAgain        boolean;
+_ApplicationName text;
+_OK              boolean;
 BEGIN
 
 SELECT ProgramID,  Program
@@ -91,7 +92,10 @@ IF NOT FOUND THEN
     RETURN 'DONE';
 END IF;
 
-PERFORM set_config('application_name', _Program, TRUE);
+_ApplicationName := current_setting('application_name');
+IF _ApplicationName NOT LIKE ('%'||_Program||'%') THEN
+    PERFORM set_config('application_name', substr(format('%s %s', _ApplicationName, _Program),1,63), TRUE);
+END IF;
 
 _RunAgain := FALSE;
 BEGIN

@@ -13,18 +13,19 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_Program         text;
 _BirthPhaseID    integer;
 _NodeID          integer;
 _OK              boolean;
 _CastTest        text;
 BEGIN
 
-SELECT PhaseID INTO STRICT _BirthPhaseID FROM Programs WHERE ProgramID = _ProgramID;
+SELECT PhaseID, Program INTO STRICT _BirthPhaseID, _Program FROM Programs WHERE ProgramID = _ProgramID;
 
 IF _PrimitiveValue IS NOT NULL AND _PrimitiveType IS NOT NULL THEN
     EXECUTE format('SELECT %L::%s::text', _PrimitiveValue, _PrimitiveType) INTO STRICT _CastTest;
     IF _PrimitiveValue IS DISTINCT FROM _CastTest THEN
-        RAISE EXCEPTION 'PrimitiveValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _PrimitiveValue, _CastTest, _PrimitiveType;
+        RAISE EXCEPTION 'Program "%": PrimitiveValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _Program, _PrimitiveValue, _CastTest, _PrimitiveType;
     END IF;
 END IF;
 
