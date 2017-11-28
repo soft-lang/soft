@@ -45,7 +45,8 @@ END AS OK,
     WHERE Log.ProgramID = Programs.ProgramID
     ORDER BY Log.LogID DESC
     LIMIT 1
-) AS Log
+) AS Log,
+Programs.Error
 FROM Tests
 INNER JOIN Programs        ON Programs.ProgramID   = Tests.ProgramID
 INNER JOIN Languages       ON Languages.LanguageID = Programs.LanguageID

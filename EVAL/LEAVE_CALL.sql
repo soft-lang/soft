@@ -3,26 +3,30 @@ RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID                 integer;
-_Walkable                  boolean;
-_RetNodeID                 integer;
-_RetEdgeID                 integer;
-_NextNodeID                integer;
-_FunctionDeclarationNodeID integer;
-_FunctionInstanceNodeID    integer;
-_AllocaNodeID              integer;
-_VariableNodeID            integer;
-_ReturningCall             boolean;
-_NodeType                  text;
-_ImplementationFunction    text;
-_EnvironmentID             integer;
-_OK                        boolean;
+_ProgramID              integer;
+_Walkable               boolean;
+_RetNodeID              integer;
+_RetEdgeID              integer;
+_NextNodeID             integer;
+_DeclarationNodeID      integer;
+_InstanceNodeID         integer;
+_FieldNodeID            integer;
+_AllocaNodeID           integer;
+_VariableNodeID         integer;
+_ReturningCall          boolean;
+_NodeType               text;
+_ImplementationFunction text;
+_EnvironmentID          integer;
+_Identifier             text;
+_LanguageID             integer;
+_ParentNodeIDs          integer[];
+_OK                     boolean;
 BEGIN
 
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
-SELECT                  X.ParentNodeID, NodeTypes.NodeType
-INTO STRICT _FunctionDeclarationNodeID,          _NodeType
+SELECT          X.ParentNodeID, NodeTypes.NodeType, Nodes.PrimitiveValue, NodeTypes.LanguageID
+INTO STRICT _DeclarationNodeID,          _NodeType,      _Identifier,              _LanguageID
 FROM (
     SELECT Dereference(ParentNodeID) AS ParentNodeID
     FROM Edges
@@ -37,15 +41,47 @@ WHERE Nodes.DeathPhaseID IS NULL;
 
 IF _NodeType = 'FUNCTION_DECLARATION' THEN
     -- Normal function
+ELSIF _NodeType = 'CLASS_DECLARATION' THEN
+    -- Init class
+    INSERT INTO Environments (ProgramID, EnvironmentID)
+    SELECT _ProgramID, MAX(EnvironmentID)+1
+    FROM Environments
+    WHERE ProgramID = _ProgramID
+    RETURNING    EnvironmentID
+    INTO STRICT _EnvironmentID;
+
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG3',
+        _Message  := format('Created new EnvironmentID %s for class', _EnvironmentID)
+    );
+    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+    PERFORM Set_Reference_Node(_ReferenceNodeID := _InstanceNodeID, _NodeID := _NodeID);
+    RETURN;
 ELSIF _NodeType = 'IDENTIFIER' THEN
-    -- Built-in function
-    SELECT BuiltInFunctions.ImplementationFunction
-    INTO                   _ImplementationFunction
+
+    IF Find_Node(
+        _NodeID  := _NodeID,
+        _Descend := FALSE,
+        _Strict  := FALSE,
+        _Path    := '-> GET <- VARIABLE'
+    ) IS NOT NULL THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG5',
+            _Message  := format('Skipping field %s, will be resolved during run-time', Colorize(_Identifier, 'GREEN'))
+        );
+        RETURN;
+    END IF;
+
+    SELECT ImplementationFunction
+    INTO  _ImplementationFunction
     FROM BuiltInFunctions
-    INNER JOIN Nodes     ON Nodes.PrimitiveValue = BuiltInFunctions.Identifier
-    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-    WHERE Nodes.NodeID         = _FunctionDeclarationNodeID
-    AND   NodeTypes.LanguageID = BuiltInFunctions.LanguageID;
+    WHERE Identifier = _Identifier
+    AND   LanguageID = _LanguageID;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No such built-in function %', _Identifier;
+    END IF;
 
     PERFORM Log(
         _NodeID   := _NodeID,
@@ -95,10 +131,10 @@ IF NOT FOUND THEN
         _Severity := 'DEBUG3',
         _Message  := format('Created new EnvironmentID %s to call function', _EnvironmentID)
     );
-    _FunctionInstanceNodeID := Clone_Node(_NodeID := _FunctionDeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
 
-    _RetNodeID := Find_Node(_NodeID := _FunctionInstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
-    PERFORM Set_Walkable(_FunctionInstanceNodeID, TRUE);
+    _RetNodeID := Find_Node(_NodeID := _InstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
+    PERFORM Set_Walkable(_InstanceNodeID, TRUE);
     PERFORM New_Edge(
         _ParentNodeID := _NodeID,
         _ChildNodeID  := _RetNodeID
@@ -113,14 +149,14 @@ IF _ReturningCall THEN
     );
     PERFORM Set_Walkable(_RetNodeID, FALSE);
 ELSE
-    _FunctionInstanceNodeID := Find_Node(_NodeID := _RetNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION');
+    _InstanceNodeID := Find_Node(_NodeID := _RetNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION');
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_FunctionInstanceNodeID),'MAGENTA'))
+        _Message  := format('Outgoing function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_InstanceNodeID),'MAGENTA'))
     );
     PERFORM Set_Walkable(_RetNodeID, TRUE);
-    PERFORM Set_Program_Node(_FunctionInstanceNodeID, 'ENTER');
+    PERFORM Set_Program_Node(_InstanceNodeID, 'ENTER');
 END IF;
 
 RETURN;

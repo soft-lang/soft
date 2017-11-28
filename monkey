@@ -1,5 +1,9 @@
 #!/bin/bash
+killall perl # to kill pgcronjob
+sleep 1
 ./install
 cp languages/monkey/node_types.csv node_types.csv
 psql -q -X -f languages/monkey.sql
 mv node_types.csv languages/monkey/node_types.csv
+psql -X -c "SET search_path TO soft; SELECT COUNT(soft.Run(Language, Program)) FROM View_Programs"
+while true ; do psql -c "SELECT OK, COUNT(*) FROM View_Tests GROUP BY OK;"; psql -c "SELECT * FROM View_Tests WHERE NOT OK;"; sleep 1; done

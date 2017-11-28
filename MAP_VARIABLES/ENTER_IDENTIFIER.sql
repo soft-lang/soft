@@ -75,6 +75,22 @@ IF _VariableNodeID IS NULL THEN
             );
             RETURN TRUE;
         END IF;
+        IF Find_Node(
+            _NodeID  := _NodeID,
+            _Descend := FALSE,
+            _Strict  := FALSE,
+            _Paths   := ARRAY[
+                '-> GET',
+                '-> CALL -> GET'
+            ]
+        ) IS NOT NULL THEN
+            PERFORM Log(
+                _NodeID   := _NodeID,
+                _Severity := 'DEBUG5',
+                _Message  := format('Skipping field %s, will be resolved during run-time', Colorize(_Name, 'GREEN'))
+            );
+            RETURN TRUE;
+        END IF;
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'ERROR',
