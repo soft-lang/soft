@@ -6,8 +6,6 @@ DECLARE
 _CallNodeID                integer;
 _FunctionDeclarationNodeID integer;
 _ProgramNodeID             integer;
-_AllocaNodeID              integer;
-_VariableNodeID            integer;
 _OK                        boolean;
 BEGIN
 

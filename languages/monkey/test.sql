@@ -16,7 +16,8 @@ SELECT New_Test(
         fibonacci(2,1,0,1);
     $$,
     _ExpectedType  := 'integer'::regtype,
-    _ExpectedValue := '1'
+    _ExpectedValue := '1',
+    _LogSeverity   := 'DEBUG5'
 );
 
 SELECT New_Test(

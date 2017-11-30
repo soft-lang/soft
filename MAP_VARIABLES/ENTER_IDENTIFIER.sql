@@ -14,11 +14,6 @@ _ImplementationFunction    text;
 _OK                        boolean;
 BEGIN
 
-IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> VARIABLE') IS NOT NULL
-THEN
-    RETURN FALSE;
-END IF;
-
 SELECT
     Nodes.ProgramID,
     Nodes.PrimitiveValue,
@@ -39,27 +34,29 @@ AND Nodes.PrimitiveType = 'name'::regtype
 AND Nodes.DeathPhaseID  IS NULL;
 
 _VariableNodeID := Find_Node(
-    _NodeID  := _NodeID,
-    _Descend := TRUE,
-    _Strict  := FALSE,
-    _Paths   := ARRAY[
-        '<- LET_STATEMENT 1<- VARIABLE[1]',
-        '<- ARGUMENTS      <- VARIABLE[1]'
-    ],
-    _Names   := ARRAY[_Name]
+    _NodeID            := _NodeID,
+    _Descend           := TRUE,
+    _Strict            := FALSE,
+    _Names             := ARRAY[_Name],
+    _SelectLastInScope := TRUE,
+    _Paths             := ARRAY[
+        '<- DECLARATION <- VARIABLE[1]',
+        '<- ARGUMENTS   <- VARIABLE[1]'
+    ]
 );
 IF _VariableNodeID IS NULL THEN
+    -- Self-referring function:
     _VariableNodeID := Find_Node(
         _NodeID  := Find_Node(
-            _NodeID  := _NodeID,
-            _Descend := TRUE,
-            _Strict  := FALSE,
-            _Paths   := ARRAY['-> FUNCTION_DECLARATION -> LET_STATEMENT <- VARIABLE <- IDENTIFIER[1]'],
-            _Names   := ARRAY[_Name]
+            _NodeID            := _NodeID,
+            _Descend           := TRUE,
+            _Strict            := FALSE,
+            _Names             := ARRAY[_Name],
+            _Path              := '-> FUNCTION_DECLARATION -> DECLARATION <- VARIABLE[1]'
         ),
         _Descend := FALSE,
         _Strict  := FALSE,
-        _Paths   := ARRAY['-> VARIABLE -> LET_STATEMENT <- FUNCTION_DECLARATION']
+        _Path    := '-> DECLARATION <- FUNCTION_DECLARATION'
     );
     IF _VariableNodeID IS NULL THEN
         SELECT ImplementationFunction
@@ -89,6 +86,7 @@ IF _VariableNodeID IS NULL THEN
                 _Severity := 'DEBUG5',
                 _Message  := format('Skipping field %s, will be resolved during run-time', Colorize(_Name, 'GREEN'))
             );
+            PERFORM Set_Walkable(_NodeID, FALSE);
             RETURN TRUE;
         END IF;
         PERFORM Log(

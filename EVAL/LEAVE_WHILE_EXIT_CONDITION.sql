@@ -13,7 +13,7 @@ _StatementNodeID := Find_Node(_NodeID := _NodeID,          _Descend := FALSE, _S
 _BodyNodeID      := Find_Node(_NodeID := _StatementNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- WHILE_BODY');
 
 SELECT ParentNodeID
-INTO    _ConditionExpressionNodeID
+INTO _ConditionExpressionNodeID
 FROM Edges
 WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
@@ -24,8 +24,10 @@ IF FOUND THEN
     );
     _Walkable := Truthy(_ConditionExpressionNodeID);
 ELSE
-    -- Empty exit condition
-    _Walkable := TRUE;
+    -- No parent node, which means AST was
+    -- simplified due to hard-coded primitive value,
+    -- e.g. while(true)
+    _Walkable := Truthy(_NodeID);
 END IF;
 
 PERFORM Set_Walkable(_BodyNodeID, _Walkable);

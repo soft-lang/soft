@@ -1,27 +1,31 @@
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Paths text[], _Names text[] DEFAULT NULL)
+CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text DEFAULT NULL, _Paths text[] DEFAULT NULL, _Names text[] DEFAULT NULL, _SelectLastInScope boolean DEFAULT FALSE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_InputNodeID     integer;
-_LanguageID      integer;
-_Path            text;
-_Name            text;
-_SQL             text;
-_JOINs           text;
-_WHEREs          text;
-_Tokens          text[];
-_Direction       text;
-_NodeType        text;
-_PathIndex       integer;
-_NodeIndex       integer;
-_FoundNodeID     integer;
-_Count           bigint;
-_WalkableNodeIDs integer[];
-_EdgeNumber      integer;
-_EdgeNode        text;
-_NameIndex       integer;
+_InputNodeID        integer;
+_LanguageID         integer;
+_Name               text;
+_SQL                text;
+_JOINs              text;
+_WHEREs             text;
+_Tokens             text[];
+_Direction          text;
+_NodeType           text;
+_PathIndex          integer;
+_NodeIndex          integer;
+_FoundNodeID        integer;
+_Count              bigint;
+_WalkableNodeIDs    integer[];
+_EdgeNumber         integer;
+_EdgeNode           text;
+_NameIndex          integer;
+_DescendedViaEdgeID integer;
+_SQLLastNodeInScope text;
 BEGIN
+IF _Path IS NOT NULL AND _Paths IS NULL THEN
+    _Paths := ARRAY[_Path];
+END IF;
 _InputNodeID := _NodeID;
 IF _InputNodeID IS NULL THEN
     RETURN NULL;
@@ -108,23 +112,41 @@ LOOP
                 AND Node%1$s.PrimitiveValue = %2$L
             $SQL$, _NodeIndex, _Name);
         END IF;
+
+        IF  _SelectLastInScope  IS TRUE
+        AND _DescendedViaEdgeID IS NOT NULL
+        THEN
+            _SQLLastNodeInScope := format($SQL$
+                AND Edge0.EdgeID < %1$s
+                ORDER BY Edge0.EdgeID DESC
+                LIMIT 1
+            $SQL$, _DescendedViaEdgeID);
+        END IF;
+
         _SQL := format($SQL$
-            SELECT Node%1$s.NodeID, COUNT(*) OVER ()
-            FROM Nodes AS Node0
-            %2$s
-            WHERE Node0.NodeID       = %3$s
-            AND   Node0.DeathPhaseID IS NULL
-            %4$s
+            SELECT NodeID, COUNT(*) OVER () FROM (
+                SELECT Node%1$s.NodeID
+                FROM Nodes AS Node0
+                %2$s
+                WHERE Node0.NodeID       = %3$s
+                AND   Node0.DeathPhaseID IS NULL
+                %4$s
+                %5$s
+            ) AS X
         $SQL$,
             _NodeIndex,
             _JOINs,
             _NodeID,
-            _WHEREs
+            _WHEREs,
+            _SQLLastNodeInScope
         );
+
         EXECUTE _SQL INTO _FoundNodeID, _Count;
+
         IF _Count > 1 THEN
             RAISE too_many_rows USING MESSAGE = format('query returned more than one row: NodeID %s Paths "%s" Count %s SQL "%s"', _NodeID, array_to_string(_Paths,','), _Count, _SQL);
         END IF;
+
         IF _FoundNodeID IS NOT NULL THEN
             PERFORM Log(
                 _NodeID   := _InputNodeID,
@@ -135,7 +157,18 @@ LOOP
         END IF;
     END LOOP;
     IF _Descend THEN
-        SELECT ChildNodeID INTO _NodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID AND (ChildNodeID = ANY(_WalkableNodeIDs)) IS NOT TRUE ORDER BY EdgeID LIMIT 1;
+        SELECT
+            ChildNodeID,
+            EdgeID
+        INTO
+            _NodeID,
+            _DescendedViaEdgeID
+        FROM Edges
+        WHERE DeathPhaseID IS NULL
+        AND ParentNodeID = _NodeID
+        AND (ChildNodeID = ANY(_WalkableNodeIDs)) IS NOT TRUE
+        ORDER BY EdgeID
+        LIMIT 1;
         IF NOT FOUND THEN
             EXIT;
         END IF;
@@ -148,7 +181,7 @@ LOOP
     END IF;
 END LOOP;
 IF _Strict THEN
-    RAISE EXCEPTION 'Query did not return exactly one row: NodeID % Paths "%" Count % SQL "%"', _NodeID, array_to_string(_Paths,','), _Count, _SQL;
+    RAISE EXCEPTION 'Query did not return exactly one row: NodeID % Paths "%" SQL "%"', _NodeID, array_to_string(_Paths,','), _SQL;
 END IF;
 PERFORM Log(
     _NodeID   := _InputNodeID,
@@ -157,11 +190,4 @@ PERFORM Log(
 );
 RETURN NULL;
 END;
-$$;
-
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text)
-RETURNS integer
-LANGUAGE sql
-AS $$
-SELECT Find_Node($1,$2,$3,ARRAY[$4])
 $$;

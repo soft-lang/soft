@@ -12,8 +12,9 @@ BEGIN
 
 IF (SELECT PrimitiveType FROM Nodes WHERE NodeID = Dereference(_FromNodeID)) IS NOT NULL THEN
     UPDATE Nodes AS CopyTo SET
-        PrimitiveType  = CopyFrom.PrimitiveType,
-        PrimitiveValue = CopyFrom.PrimitiveValue
+        PrimitiveType   = CopyFrom.PrimitiveType,
+        PrimitiveValue  = CopyFrom.PrimitiveValue,
+        ReferenceNodeID = NULL
     FROM Nodes AS CopyFrom
     WHERE CopyFrom.NodeID = Dereference(_FromNodeID)
     AND     CopyTo.NodeID = _ToNodeID

@@ -25,8 +25,11 @@ IF FOUND THEN
         _NodeID          := _NodeID
     );
     _Walkable := Truthy(_ConditionExpressionNodeID);
+ELSIF Primitive_Value(_NodeID) IS NOT NULL THEN
+    -- Hard-coded primitive exit condition, e.g. for (; false;)
+    _Walkable := Truthy(_NodeID);
 ELSE
-    -- Empty exit condition
+    -- Empty exit condition, e.g. for(;;)
     _Walkable := TRUE;
 END IF;
 

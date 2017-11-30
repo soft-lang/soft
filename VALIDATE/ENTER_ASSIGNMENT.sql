@@ -4,7 +4,15 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '1<- VALUE <- IDENTIFIER') IS NULL THEN
+IF Find_Node(
+    _NodeID  := _NodeID,
+    _Descend := FALSE,
+    _Strict  := FALSE,
+    _Paths   := ARRAY[
+        '1<- VALUE <- IDENTIFIER',
+        '1<- GET'
+    ]
+) IS NULL THEN
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'ERROR',

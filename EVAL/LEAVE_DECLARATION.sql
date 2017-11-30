@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_LET_STATEMENT"(_NodeID integer)
+CREATE OR REPLACE FUNCTION "EVAL"."LEAVE_DECLARATION"(_NodeID integer)
 RETURNS void
 LANGUAGE plpgsql
 AS $$
@@ -20,10 +20,10 @@ AND DeathPhaseID IS NULL;
 _NumArgs := array_length(_ParentNodes, 1);
 
 IF _NumArgs = 1 THEN
-    -- Variable declaration only
+    -- Variable declaration only, no assignment of value to it
     RETURN;
 ELSIF _NumArgs IS DISTINCT FROM 2 THEN
-    RAISE EXCEPTION 'Let statement does not have exactly two parent nodes NodeID % ParentNodes %', _NodeID, _ParentNodes;
+    RAISE EXCEPTION 'Declaration does not have exactly two parent nodes NodeID % ParentNodes %', _NodeID, _ParentNodes;
 END IF;
 
 _ToNodeID   := _ParentNodes[1];

@@ -11,7 +11,6 @@ _NextPhaseID     integer;
 _NextNodeID      integer;
 _ChildNodeID     integer;
 _EdgeID          integer;
-_Count           bigint;
 _RunUntilPhaseID integer;
 _OK              boolean;
 BEGIN
@@ -30,20 +29,24 @@ END IF;
 
 SELECT
     Edges.EdgeID,
-    Edges.ChildNodeID,
-    COUNT(*) OVER ()
+    Edges.ChildNodeID
 INTO
     _EdgeID,
-    _ChildNodeID,
-    _Count
+    _ChildNodeID
 FROM Edges
 INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
 INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
 WHERE Edges.ParentNodeID     = _NodeID
 AND   ChildNode.DeathPhaseID IS NULL
-AND   ChildNode.Walkable     IS TRUE;
-
-IF _Count = 1 THEN
+AND   ChildNode.Walkable     IS TRUE
+ORDER BY Edges.EdgeID DESC
+LIMIT 1;
+IF FOUND THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG5',
+        _Message  := format('ParentNodeID %s last ChildNodeID is %s, EdgeID %s', _NodeID, _ChildNodeID, _EdgeID)
+    );
     SELECT
         Edges.ParentNodeID
     INTO
@@ -75,7 +78,7 @@ IF _Count = 1 THEN
         PERFORM Set_Program_Node(_ChildNodeID);
         RETURN TRUE;
     END IF;
-ELSIF _Count IS NULL THEN
+ELSE
     SELECT    PhaseID
     INTO _NextPhaseID
     FROM Phases
@@ -97,10 +100,7 @@ ELSIF _Count IS NULL THEN
         PERFORM Enter_Node(_NodeID);
         RETURN TRUE;
     END IF;
-ELSE
-    RAISE EXCEPTION 'Multiple % walkable walkable children found under NodeID %, one of them is NodeID % via EdgeID %', _Count, _NodeID, _ChildNodeID, _EdgeID;
 END IF;
-
 
 PERFORM Log(
     _NodeID   := _NodeID,

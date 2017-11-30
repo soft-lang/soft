@@ -23,6 +23,10 @@ END IF;
 _ToNodeID   := _ParentNodes[1];
 _FromNodeID := Dereference(_ParentNodes[2]);
 
+IF Node_Type(_ToNodeID) = 'GET' THEN
+    _ToNodeID := Dereference(_ToNodeID);
+END IF;
+
 PERFORM Copy_Node(
     _FromNodeID := _FromNodeID,
     _ToNodeID   := _ToNodeID

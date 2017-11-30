@@ -86,8 +86,8 @@ INTO  _ProgramID, _Program
 FROM Programs
 WHERE ProcessID = _ProcessID
 AND   DeathTime IS NULL
-AND  (RunUntilPhaseID >= PhaseID)       IS NOT TRUE
-AND  (Iterations      >  MaxIterations) IS NOT TRUE;
+AND  (PhaseID         >  RunUntilPhaseID) IS NOT TRUE
+AND  (Iterations      >  MaxIterations)   IS NOT TRUE;
 IF NOT FOUND THEN
     RETURN 'DONE';
 END IF;

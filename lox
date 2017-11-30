@@ -5,4 +5,4 @@ sleep 1
 cp languages/lox/node_types.csv node_types.csv
 psql -q -X -f languages/lox.sql
 mv node_types.csv languages/lox/node_types.csv
-while true ; do psql -c "SELECT OK, COUNT(*) FROM View_Tests GROUP BY OK;"; psql -c "SELECT * FROM View_Tests WHERE NOT OK;"; sleep 1; done
+while true ; do psql -c "SELECT OK, COUNT(*), ARRAY_AGG(Program ORDER BY Program) FROM View_Tests GROUP BY OK;"; psql -c "SELECT * FROM View_Tests WHERE NOT OK;"; sleep 1; done

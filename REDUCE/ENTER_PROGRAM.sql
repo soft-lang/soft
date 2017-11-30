@@ -3,19 +3,23 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID     integer;
-_LanguageID    integer;
-_DidWork       boolean;
-_NOPNodeID     integer;
-_NodeTypeID    integer;
-_NodeType      text;
-_PrimitiveType regtype;
-_ParentNodeID  integer;
-_ChildNodeID   integer;
-_ProgramNodeID integer;
-_OK            boolean;
-_Killed        integer;
-_NodePattern   text;
+_ProgramID       integer;
+_LanguageID      integer;
+_DidWork         boolean;
+_NOPNodeID       integer;
+_NodeTypeID      integer;
+_NodeType        text;
+_PrimitiveType   regtype;
+_ParentNodeID    integer;
+_ChildNodeID     integer;
+_ProgramNodeID   integer;
+_Killed          integer;
+_NodePattern     text;
+_PrimitiveNodeID integer;
+_AbstractNodeID  integer;
+_EdgeID          integer;
+_PrimitiveValue  text;
+_OK              boolean;
 BEGIN
 
 PERFORM Log(
@@ -88,6 +92,69 @@ LOOP
             AND DeathPhaseID IS NULL
             RETURNING TRUE INTO STRICT _OK;
         END IF;
+        _DidWork := TRUE;
+    END LOOP;
+    IF _DidWork THEN
+        CONTINUE;
+    END IF;
+    EXIT;
+END LOOP;
+
+-- Eliminate orphan primitive nodes that have a single
+-- abstract (i.e. non-primitive) child of the same type,
+-- by copying the primitive value from it to the child,
+-- and then kill the orphan node.
+--
+-- Currently, this is used to get rid of the parent IDENTIFIER-node
+-- for all VARIABLE-nodes, as the before a node becomes a VARIABLE,
+-- it is a IDENTIFIER-node.
+LOOP
+    _DidWork := FALSE;
+    FOR
+        _PrimitiveNodeID,
+        _PrimitiveValue,
+        _PrimitiveType,
+        _AbstractNodeID,
+        _EdgeID
+    IN
+    SELECT
+        PrimitiveNode.NodeID AS PrimitiveNodeID,
+        PrimitiveNode.PrimitiveValue,
+        PrimitiveNode.PrimitiveType,
+        AbstractNode.NodeID AS AbstractNodeID,
+        Edges.EdgeID
+    FROM Nodes           AS AbstractNode
+    INNER JOIN NodeTypes AS AbstractType  ON AbstractType.NodeTypeID     = AbstractNode.NodeTypeID
+    INNER JOIN Nodes     AS PrimitiveNode ON PrimitiveNode.PrimitiveType = AbstractType.PrimitiveType
+    INNER JOIN Edges                      ON Edges.ParentNodeID          = PrimitiveNode.NodeID
+                                         AND Edges.ChildNodeID           = AbstractNode.NodeID
+    WHERE AbstractNode.ProgramID       = _ProgramID
+    AND   AbstractNode.DeathPhaseID    IS NULL
+    AND   PrimitiveNode.DeathPhaseID   IS NULL
+    AND   Edges.DeathPhaseID           IS NULL
+    AND   AbstractNode.PrimitiveValue  IS NULL
+    AND   PrimitiveNode.PrimitiveValue IS NOT NULL
+    AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ParentNodeID = PrimitiveNode.NodeID) = 1
+    AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ChildNodeID  = PrimitiveNode.NodeID) = 0
+    AND (SELECT COUNT(*) FROM Edges WHERE Edges.DeathPhaseID IS NULL AND Edges.ChildNodeID  = AbstractNode.NodeID)  = 1
+    LOOP
+        PERFORM Log(
+            _NodeID   := _PrimitiveNodeID,
+            _Severity := 'DEBUG2',
+            _Message  := format('%s -> %s',
+                Colorize(Node(_PrimitiveNodeID),'RED'),
+                Colorize(Node(_AbstractNodeID),'GREEN')
+            ),
+            _SaveDOTIR := FALSE
+        );
+        UPDATE Nodes SET
+            PrimitiveValue = _PrimitiveValue,
+            PrimitiveType  = _PrimitiveType
+        WHERE NodeID = _AbstractNodeID
+        RETURNING TRUE INTO STRICT _OK;
+        PERFORM Kill_Edge(_EdgeID);
+        PERFORM Kill_Node(_PrimitiveNodeID);
+        _Killed := _Killed + 1;
         _DidWork := TRUE;
     END LOOP;
     IF _DidWork THEN
