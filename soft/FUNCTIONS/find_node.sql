@@ -1,11 +1,11 @@
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text DEFAULT NULL, _Paths text[] DEFAULT NULL, _Names text[] DEFAULT NULL, _SelectLastInScope boolean DEFAULT FALSE)
+CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text DEFAULT NULL, _Paths text[] DEFAULT NULL, _Names name[] DEFAULT NULL, _SelectLastInScope boolean DEFAULT FALSE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
 _InputNodeID        integer;
 _LanguageID         integer;
-_Name               text;
+_Name               name;
 _SQL                text;
 _JOINs              text;
 _WHEREs             text;
@@ -108,8 +108,7 @@ LOOP
         END LOOP;
         IF _Name IS NOT NULL THEN
             _WHEREs := _WHEREs || format($SQL$
-                AND Node%1$s.PrimitiveType  = 'name'::regtype
-                AND Node%1$s.PrimitiveValue = %2$L
+                AND Node%1$s.NodeName = %2$L
             $SQL$, _NodeIndex, _Name);
         END IF;
 
@@ -140,6 +139,8 @@ LOOP
             _WHEREs,
             _SQLLastNodeInScope
         );
+
+        RAISE NOTICE 'SQL: %', _SQL;
 
         EXECUTE _SQL INTO _FoundNodeID, _Count;
 

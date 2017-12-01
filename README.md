@@ -1157,6 +1157,13 @@ SELECT Primitive_Value(_NodeID := 2);
 ```
 
 ```sql
+\ir soft/FUNCTIONS/node_name.sql
+```
+
+Returns the NodeName for a node,
+e.g. the name of a variable, function, class, etc.
+
+```sql
 \ir soft/FUNCTIONS/truthy.sql
 ```
 
@@ -1667,6 +1674,7 @@ one parent and one child.
 
 ```sql
 \ir MAP_VARIABLES/ENTER_IDENTIFIER.sql
+\ir MAP_VARIABLES/ENTER_THIS.sql
 \ir MAP_VARIABLES/LEAVE_FUNCTION_DECLARATION.sql
 \ir MAP_VARIABLES/LEAVE_CLASS_DECLARATION.sql
 \ir MAP_VARIABLES/LEAVE_IF_EXPRESSION.sql

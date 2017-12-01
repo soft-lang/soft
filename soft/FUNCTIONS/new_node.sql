@@ -3,6 +3,7 @@ _ProgramID            integer,
 _NodeTypeID           integer,
 _PrimitiveType        regtype   DEFAULT NULL,
 _PrimitiveValue       text      DEFAULT NULL,
+_NodeName             name      DEFAULT NULL,
 _Walkable             boolean   DEFAULT NULL,
 _ClonedFromNodeID     integer   DEFAULT NULL,
 _ClonedRootNodeID     integer   DEFAULT NULL,
@@ -13,11 +14,11 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Program         text;
-_BirthPhaseID    integer;
-_NodeID          integer;
-_OK              boolean;
-_CastTest        text;
+_Program      text;
+_BirthPhaseID integer;
+_NodeID       integer;
+_CastTest     text;
+_OK           boolean;
 BEGIN
 
 SELECT PhaseID, Program INTO STRICT _BirthPhaseID, _Program FROM Programs WHERE ProgramID = _ProgramID;
@@ -54,8 +55,8 @@ IF _Walkable IS NULL THEN
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID,  ReferenceNodeID,  EnvironmentID)
-VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID, _EnvironmentID)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  NodeName,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID,  ReferenceNodeID,  EnvironmentID)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _NodeName, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID, _EnvironmentID)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 
@@ -69,6 +70,7 @@ _Program          text,
 _NodeType         text,
 _PrimitiveType    regtype   DEFAULT NULL,
 _PrimitiveValue   text      DEFAULT NULL,
+_NodeName         name      DEFAULT NULL,
 _Walkable         boolean   DEFAULT NULL,
 _ClonedFromNodeID integer   DEFAULT NULL,
 _ClonedRootNodeID integer   DEFAULT NULL,
@@ -85,6 +87,7 @@ SELECT New_Node(
     _NodeTypeID       := NodeTypes.NodeTypeID,
     _PrimitiveType    := _PrimitiveType,
     _PrimitiveValue   := _PrimitiveValue,
+    _NodeName         := _NodeName,
     _Walkable         := _Walkable,
     _ClonedFromNodeID := _ClonedFromNodeID,
     _ClonedRootNodeID := _ClonedRootNodeID,

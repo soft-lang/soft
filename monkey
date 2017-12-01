@@ -1,4 +1,6 @@
 #!/bin/bash
+# In another terminal, run:
+# while true ; do PGUSER=pgcronjob PGDATABASE=$USER ./pgcronjob ; psql -X -f install.sql ; done
 killall perl # to kill pgcronjob
 sleep 1
 ./install

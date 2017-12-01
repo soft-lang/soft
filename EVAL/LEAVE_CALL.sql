@@ -20,15 +20,19 @@ _EnvironmentID          integer;
 _Identifier             text;
 _LanguageID             integer;
 _ParentNodeIDs          integer[];
+_InitNodeID             integer;
+_Name                   name;
 _OK                     boolean;
 BEGIN
 
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
-SELECT          X.ParentNodeID, NodeTypes.NodeType, Nodes.PrimitiveValue, NodeTypes.LanguageID
-INTO STRICT _DeclarationNodeID,          _NodeType,      _Identifier,              _LanguageID
+SELECT          X.ParentNodeID, X.Name, NodeTypes.NodeType, Nodes.PrimitiveValue, NodeTypes.LanguageID
+INTO STRICT _DeclarationNodeID,  _Name,          _NodeType,          _Identifier,          _LanguageID
 FROM (
-    SELECT Dereference(ParentNodeID) AS ParentNodeID
+    SELECT
+        Dereference(ParentNodeID) AS ParentNodeID,
+        Node_Name(ParentNodeID)   AS Name
     FROM Edges
     WHERE ChildNodeID  = _NodeID
     AND   DeathPhaseID IS NULL
@@ -42,6 +46,37 @@ WHERE Nodes.DeathPhaseID IS NULL;
 IF _NodeType = 'FUNCTION_DECLARATION' THEN
     -- Normal function
 ELSIF _NodeType = 'CLASS_DECLARATION' THEN
+    SELECT
+        RET.NodeID,
+        RET.EdgeID,
+        Nodes.Walkable IS TRUE
+    INTO
+        _RetNodeID,
+        _RetEdgeID,
+        _ReturningCall
+    FROM (
+        SELECT
+            EdgeID,
+            ChildNodeID AS NodeID
+        FROM Edges
+        WHERE ParentNodeID  = _NodeID
+        AND   DeathPhaseID IS NULL
+        ORDER BY EdgeID DESC
+        LIMIT 1
+    ) AS RET
+    INNER JOIN Nodes     ON Nodes.NodeID         = RET.NodeID
+    INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+    WHERE Nodes.DeathPhaseID IS NULL
+    AND   NodeTypes.NodeType = 'RET';
+    IF FOUND THEN
+        PERFORM Kill_Edge(_RetEdgeID);
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG3',
+            _Message  := format('Class %s initiated, killed edge to init RET, EdgeID %s', _Name, _RetEdgeID)
+        );
+        RETURN;
+    END IF; 
     -- Init class
     INSERT INTO Environments (ProgramID, EnvironmentID)
     SELECT _ProgramID, MAX(EnvironmentID)+1
@@ -53,9 +88,27 @@ ELSIF _NodeType = 'CLASS_DECLARATION' THEN
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
-        _Message  := format('Created new EnvironmentID %s for class', _EnvironmentID)
+        _Message  := format('Created new EnvironmentID %s for class %s', _EnvironmentID, _Name)
     );
-    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := TRUE, _EnvironmentID := _EnvironmentID);
+    UPDATE Nodes SET NodeName = _Name WHERE NodeID = _InstanceNodeID RETURNING TRUE INTO STRICT _OK;
+
+    _InitNodeID := Get_Field(_InstanceNodeID, 'init');
+    IF _InitNodeID IS NOT NULL THEN
+        _RetNodeID := Find_Node(_NodeID := _InitNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
+        PERFORM New_Edge(
+            _ParentNodeID := _NodeID,
+            _ChildNodeID  := _RetNodeID
+        );
+        PERFORM Set_Walkable(_RetNodeID, TRUE);
+        PERFORM Set_Walkable(_InitNodeID, TRUE);
+        PERFORM Set_Program_Node(_InitNodeID, 'ENTER');
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG3',
+            _Message  := format('Init call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_InitNodeID),'MAGENTA'))
+        );
+    END IF;
     PERFORM Set_Reference_Node(_ReferenceNodeID := _InstanceNodeID, _NodeID := _NodeID);
     RETURN;
 ELSIF _NodeType = 'IDENTIFIER' THEN
@@ -131,7 +184,13 @@ IF NOT FOUND THEN
         _Severity := 'DEBUG3',
         _Message  := format('Created new EnvironmentID %s to call function', _EnvironmentID)
     );
-    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+    IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL THEN
+        -- Class method
+        _InstanceNodeID := _DeclarationNodeID;
+    ELSE
+        -- Normal function
+        _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+    END IF;
 
     _RetNodeID := Find_Node(_NodeID := _InstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
     PERFORM Set_Walkable(_InstanceNodeID, TRUE);
@@ -147,7 +206,20 @@ IF _ReturningCall THEN
         _Severity := 'DEBUG3',
         _Message  := format('Returning function call at %s from %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_RetNodeID),'MAGENTA'))
     );
-    PERFORM Set_Walkable(_RetNodeID, FALSE);
+
+    IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL THEN
+        -- Class method
+        PERFORM Kill_Edge(_RetEdgeID);
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG3',
+            _Message  := format('Method %s returned, killed edge to init RET, EdgeID %s', _Name, _RetEdgeID)
+        );
+    ELSE
+        -- Normal function
+        PERFORM Set_Walkable(_RetNodeID, FALSE);
+    END IF;
+
 ELSE
     _InstanceNodeID := Find_Node(_NodeID := _RetNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '-> FUNCTION_DECLARATION');
     PERFORM Log(

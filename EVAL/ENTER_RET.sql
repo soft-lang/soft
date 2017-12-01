@@ -55,7 +55,14 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
     PERFORM Set_Program_Node(_CallNodeID, 'LEAVE');
-    IF _ReturnValueNodeID IS NOT NULL THEN
+    IF _ReturnValueNodeID IS NOT NULL
+    AND Node_Type(Dereference(_CallNodeID)) <> 'CLASS_DECLARATION'
+    THEN
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'DEBUG3',
+            _Message  := format('Setting reference node since node type for %s is %s', Colorize(Node(_CallNodeID),'CYAN'), Colorize(Node_Type(Dereference(_CallNodeID)),'MAGENTA'))
+        );
         PERFORM Set_Reference_Node(_ReferenceNodeID := _ReturnValueNodeID, _NodeID := _CallNodeID);
     END IF;
 ELSE

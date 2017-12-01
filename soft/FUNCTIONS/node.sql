@@ -8,6 +8,7 @@ _NodeType         text;
 _NodeTypeID       integer;
 _ReferenceNodeID  integer;
 _PrimitiveValue   text;
+_NodeName         name;
 _Label            text;
 _ClonedFromNodeID integer;
 BEGIN
@@ -15,11 +16,13 @@ BEGIN
 SELECT
     NodeTypeID,
     ReferenceNodeID,
-    PrimitiveValue
+    PrimitiveValue,
+    NodeName
 INTO STRICT
     _NodeTypeID,
     _ReferenceNodeID,
-    _PrimitiveValue
+    _PrimitiveValue,
+    _NodeName
 FROM Nodes
 WHERE NodeID = _NodeID;
 
@@ -29,6 +32,10 @@ FROM NodeTypes
 WHERE NodeTypeID = _NodeTypeID;
 
 _Label := format('%s%s',_NodeType,_NodeID);
+
+IF _NodeName IS NOT NULL THEN
+    _Label := _Label || ' ' || _NodeName;
+END IF;
 
 IF _ReferenceNodeID IS NOT NULL THEN
     _Label := _Label || '->' || Node(_ReferenceNodeID);

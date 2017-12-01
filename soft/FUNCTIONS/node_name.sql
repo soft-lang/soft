@@ -1,0 +1,7 @@
+CREATE OR REPLACE FUNCTION Node_Name(_NodeID integer)
+RETURNS name
+STRICT
+LANGUAGE sql
+AS $$
+SELECT NodeName FROM Nodes WHERE NodeID = $1
+$$;

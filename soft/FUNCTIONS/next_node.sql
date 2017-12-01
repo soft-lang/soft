@@ -37,6 +37,7 @@ FROM Edges
 INNER JOIN Nodes AS ParentNode ON ParentNode.NodeID    = Edges.ParentNodeID
 INNER JOIN Nodes AS ChildNode  ON ChildNode.NodeID     = Edges.ChildNodeID
 WHERE Edges.ParentNodeID     = _NodeID
+AND   Edges.DeathPhaseID     IS NULL
 AND   ChildNode.DeathPhaseID IS NULL
 AND   ChildNode.Walkable     IS TRUE
 ORDER BY Edges.EdgeID DESC

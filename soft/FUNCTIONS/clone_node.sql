@@ -54,6 +54,7 @@ IF _ClonedNodeID IS NULL THEN
         _NodeTypeID       := NodeTypeID,
         _PrimitiveType    := PrimitiveType,
         _PrimitiveValue   := PrimitiveValue,
+        _NodeName         := NodeName,
         _Walkable         := Walkable,
         _ClonedFromNodeID := NodeID,
         _ClonedRootNodeID := _ClonedRootNodeID,

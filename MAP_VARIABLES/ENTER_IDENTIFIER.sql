@@ -5,7 +5,7 @@ AS $$
 DECLARE
 _ProgramID                 integer;
 _LanguageID                integer;
-_Name                      text;
+_Name                      name;
 _FunctionNameNodeID        integer;
 _FunctionDeclarationNodeID integer;
 _VariableNodeID            integer;
@@ -16,7 +16,7 @@ BEGIN
 
 SELECT
     Nodes.ProgramID,
-    Nodes.PrimitiveValue,
+    Nodes.PrimitiveValue::name,
     Languages.LanguageID
 INTO STRICT
     _ProgramID,

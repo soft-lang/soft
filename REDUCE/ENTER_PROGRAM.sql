@@ -147,11 +147,27 @@ LOOP
             ),
             _SaveDOTIR := FALSE
         );
-        UPDATE Nodes SET
-            PrimitiveValue = _PrimitiveValue,
-            PrimitiveType  = _PrimitiveType
-        WHERE NodeID = _AbstractNodeID
-        RETURNING TRUE INTO STRICT _OK;
+        IF _PrimitiveType = 'name'::regtype THEN
+            -- The name for a VARIABLE is given by the PrimitiveValue
+            -- for the IDENTIFIER it comes from, but we don't want to
+            -- store the name as the VARIABLE's value, as it has no value yet,
+            -- instead we store the name in the special NodeName column.
+            -- This is similar to "debugging symbols", since we don't need the name,
+            -- unless when debugging, and to support printing the name of a class.
+            UPDATE Nodes SET
+                PrimitiveValue = NULL,
+                PrimitiveType  = NULL,
+                NodeName       = _PrimitiveValue::name
+            WHERE NodeID = _AbstractNodeID
+            RETURNING TRUE INTO STRICT _OK;
+        ELSE
+            UPDATE Nodes SET
+                PrimitiveValue = _PrimitiveValue,
+                PrimitiveType  = _PrimitiveType
+            WHERE NodeID = _AbstractNodeID
+            RETURNING TRUE INTO STRICT _OK;
+        END IF;
+
         PERFORM Kill_Edge(_EdgeID);
         PERFORM Kill_Node(_PrimitiveNodeID);
         _Killed := _Killed + 1;

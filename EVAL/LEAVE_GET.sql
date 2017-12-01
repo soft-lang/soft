@@ -29,8 +29,8 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
 END IF;
 
 _FieldNodeID := Get_Field(
-    _InstanceNodeID    := Dereference(_ParentNodes[1]),
-    _Identifier        := Primitive_Value(_ParentNodes[2]),
+    _NodeID            := Dereference(_ParentNodes[1]),
+    _Name              := Primitive_Value(_ParentNodes[2])::name,
     _CreateIfNotExists := _CreateFieldIfNotExists
 );
 

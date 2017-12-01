@@ -13,7 +13,6 @@ SELECT COUNT(*) FROM (
         _FileSuffix := '\.lox$'
     )
     WHERE FilePath IN (
---        'github.com/munificent/craftinginterpreters/test/class/simple.lox'
         'github.com/munificent/craftinginterpreters/test/assignment/associativity.lox',
         'github.com/munificent/craftinginterpreters/test/assignment/global.lox',
         'github.com/munificent/craftinginterpreters/test/assignment/local.lox',
@@ -45,8 +44,6 @@ SELECT COUNT(*) FROM (
         'github.com/munificent/craftinginterpreters/test/if/else.lox',
         'github.com/munificent/craftinginterpreters/test/if/if.lox',
         'github.com/munificent/craftinginterpreters/test/if/truth.lox',
-        'github.com/munificent/craftinginterpreters/test/joel/fib.lox',
-        'github.com/munificent/craftinginterpreters/test/joel/test2.lox',
         'github.com/munificent/craftinginterpreters/test/limit/reuse_constants.lox',
         'github.com/munificent/craftinginterpreters/test/logical_operator/and.lox',
         'github.com/munificent/craftinginterpreters/test/logical_operator/and_truth.lox',
