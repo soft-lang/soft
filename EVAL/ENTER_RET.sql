@@ -31,6 +31,12 @@ _FunctionDeclarationNodeID := Find_Node(
     _Path    := '-> FUNCTION_DECLARATION'
 );
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
+    IF Node_Name(_FunctionDeclarationNodeID) = 'init'
+    AND Node_Type(Child(_FunctionDeclarationNodeID)) = 'CLASS_DECLARATION'
+    THEN
+        _ReturnValueNodeID := Child(_FunctionDeclarationNodeID);
+    END IF;
+
     SELECT
         CALL.NodeID
     INTO STRICT
@@ -55,9 +61,7 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _Message  := format('Returning function call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_CallNodeID),'MAGENTA'))
     );
     PERFORM Set_Program_Node(_CallNodeID, 'LEAVE');
-    IF _ReturnValueNodeID IS NOT NULL
-    AND Node_Type(Dereference(_CallNodeID)) <> 'CLASS_DECLARATION'
-    THEN
+    IF _ReturnValueNodeID IS NOT NULL THEN
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG3',

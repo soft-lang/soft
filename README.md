@@ -1131,6 +1131,40 @@ SELECT Phase(_PhaseID := 1);
 Returns the NodeType name for a NodeTypeID
 
 ```sql
+\ir soft/FUNCTIONS/parent.sql
+```
+
+Returns the parent for a node, assumes there is exactly one parent.
+
+```sql
+\ir soft/FUNCTIONS/child.sql
+```
+
+Returns the child for a node, assumes there is exactly one child.
+
+```sql
+\ir soft/FUNCTIONS/edge.sql
+```
+
+Returns the edge between a parent and a child, assumes there is exactly one edge.
+
+```sql
+\ir soft/FUNCTIONS/left.sql
+```
+
+Returns the left node for a node, that is, the node
+with a mutual single child and with the maximum EdgeID
+but with a lower EdgeID than our edge to the mutual child.
+
+```sql
+\ir soft/FUNCTIONS/right.sql
+```
+
+Returns the right node for a node, that is, the node
+with a mutual single child and with the minimum EdgeID
+but with a higher EdgeID than our edge to the mutual child.
+
+```sql
 SELECT Node_Type(_NodeID := 1);
 ```
 
@@ -1653,6 +1687,7 @@ left most match is selected.
 
 ```sql
 \ir VALIDATE/ENTER_ASSIGNMENT.sql
+\ir VALIDATE/ENTER_RETURN_STATEMENT.sql
 ```
 
 The `VALIDATE` phase inspects the AST to check for

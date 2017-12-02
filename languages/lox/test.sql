@@ -71,7 +71,6 @@ SELECT COUNT(*) FROM (
         'github.com/munificent/craftinginterpreters/test/while/return_closure.lox',
         'github.com/munificent/craftinginterpreters/test/while/return_inside.lox',
         'github.com/munificent/craftinginterpreters/test/while/syntax.lox'
-*/
     )
 ) AS Tests;
 
