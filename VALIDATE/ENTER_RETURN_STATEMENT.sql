@@ -18,7 +18,7 @@ IF _FunctionNodeID IS NULL THEN
 END IF;
 
 IF Node_Type(Child(_FunctionNodeID)) = 'CLASS_DECLARATION'
-AND Primitive_Value(Parent(Left(_FunctionNodeID))) = 'init'
+AND Primitive_Value(Parent(Left(_FunctionNodeID))) = (Language(_NodeID)).ClassInitializerName
 THEN
     PERFORM Log(
         _NodeID   := _NodeID,

@@ -125,7 +125,8 @@ SELECT New_Language(
     _ZeroBasedNumbering    := TRUE,
     _TruthyNonBooleans     := TRUE,
     _NilIfArrayOutOfBounds := TRUE,
-    _NilIfMissingHashKey   := TRUE
+    _NilIfMissingHashKey   := TRUE,
+    _ClassInitializerName  := NULL
 );
 SELECT * FROM Languages;
 ```

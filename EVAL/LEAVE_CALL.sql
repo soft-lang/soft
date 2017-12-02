@@ -93,7 +93,7 @@ ELSIF _NodeType = 'CLASS_DECLARATION' THEN
     _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := TRUE, _EnvironmentID := _EnvironmentID);
     UPDATE Nodes SET NodeName = _Name WHERE NodeID = _InstanceNodeID RETURNING TRUE INTO STRICT _OK;
 
-    _InitNodeID := Get_Field(_InstanceNodeID, 'init');
+    _InitNodeID := Get_Field(_InstanceNodeID, (Language(_NodeID)).ClassInitializerName);
     IF _InitNodeID IS NOT NULL THEN
         _RetNodeID := Find_Node(_NodeID := _InitNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
         PERFORM New_Edge(

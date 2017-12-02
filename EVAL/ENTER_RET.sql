@@ -31,7 +31,7 @@ _FunctionDeclarationNodeID := Find_Node(
     _Path    := '-> FUNCTION_DECLARATION'
 );
 IF _FunctionDeclarationNodeID IS NOT NULL THEN
-    IF Node_Name(_FunctionDeclarationNodeID) = 'init'
+    IF Node_Name(_FunctionDeclarationNodeID) = (Language(_NodeID)).ClassInitializerName
     AND Node_Type(Child(_FunctionDeclarationNodeID)) = 'CLASS_DECLARATION'
     THEN
         _ReturnValueNodeID := Child(_FunctionDeclarationNodeID);

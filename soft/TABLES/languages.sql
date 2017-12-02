@@ -8,6 +8,7 @@ ZeroBasedNumbering    boolean         NOT NULL,
 TruthyNonBooleans     boolean         NOT NULL,
 NilIfArrayOutOfBounds boolean         NOT NULL,
 NilIfMissingHashKey   boolean         NOT NULL,
+ClassInitializerName  text,
 PRIMARY KEY (LanguageID),
 UNIQUE (Language)
 );
