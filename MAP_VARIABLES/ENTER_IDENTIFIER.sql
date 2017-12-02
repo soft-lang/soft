@@ -11,6 +11,7 @@ _FunctionDeclarationNodeID integer;
 _VariableNodeID            integer;
 _ChildNodeID               integer;
 _ImplementationFunction    text;
+_MustBeDeclaredAfter       boolean;
 _OK                        boolean;
 BEGIN
 
@@ -34,12 +35,13 @@ AND Nodes.PrimitiveType = 'name'::regtype
 AND Nodes.DeathPhaseID  IS NULL;
 
 _VariableNodeID := Find_Node(
-    _NodeID            := _NodeID,
-    _Descend           := TRUE,
-    _Strict            := FALSE,
-    _Names             := ARRAY[_Name],
-    _SelectLastInScope := TRUE,
-    _Paths             := ARRAY[
+    _NodeID                    := _NodeID,
+    _Descend                   := TRUE,
+    _Strict                    := FALSE,
+    _Names                     := ARRAY[_Name],
+    _MustBeDeclaredAfter       := (Node_Type(Child(_NodeID)) <> 'CALL'),
+    _SelectLastIfMultipleMatch := TRUE,
+    _Paths                     := ARRAY[
         '<- DECLARATION <- VARIABLE[1]',
         '<- ARGUMENTS   <- VARIABLE[1]'
     ]

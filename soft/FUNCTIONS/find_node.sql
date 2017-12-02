@@ -1,27 +1,28 @@
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text DEFAULT NULL, _Paths text[] DEFAULT NULL, _Names name[] DEFAULT NULL, _SelectLastInScope boolean DEFAULT FALSE)
+CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text DEFAULT NULL, _Paths text[] DEFAULT NULL, _Names name[] DEFAULT NULL, _MustBeDeclaredAfter boolean DEFAULT FALSE, _SelectLastIfMultipleMatch boolean DEFAULT FALSE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_InputNodeID        integer;
-_LanguageID         integer;
-_Name               name;
-_SQL                text;
-_JOINs              text;
-_WHEREs             text;
-_Tokens             text[];
-_Direction          text;
-_NodeType           text;
-_PathIndex          integer;
-_NodeIndex          integer;
-_FoundNodeID        integer;
-_Count              bigint;
-_WalkableNodeIDs    integer[];
-_EdgeNumber         integer;
-_EdgeNode           text;
-_NameIndex          integer;
-_DescendedViaEdgeID integer;
-_SQLLastNodeInScope text;
+_InputNodeID                  integer;
+_LanguageID                   integer;
+_Name                         name;
+_SQL                          text;
+_JOINs                        text;
+_WHEREs                       text;
+_Tokens                       text[];
+_Direction                    text;
+_NodeType                     text;
+_PathIndex                    integer;
+_NodeIndex                    integer;
+_FoundNodeID                  integer;
+_Count                        bigint;
+_WalkableNodeIDs              integer[];
+_EdgeNumber                   integer;
+_EdgeNode                     text;
+_NameIndex                    integer;
+_DescendedViaEdgeID           integer;
+_SQLMustBeDeclaredAfter       text;
+_SQLSelectLastIfMultipleMatch text;
 BEGIN
 IF _Path IS NOT NULL AND _Paths IS NULL THEN
     _Paths := ARRAY[_Path];
@@ -112,11 +113,17 @@ LOOP
             $SQL$, _NodeIndex, _Name);
         END IF;
 
-        IF  _SelectLastInScope  IS TRUE
-        AND _DescendedViaEdgeID IS NOT NULL
+        IF  _MustBeDeclaredAfter IS TRUE
+        AND _DescendedViaEdgeID  IS NOT NULL
         THEN
-            _SQLLastNodeInScope := format($SQL$
+            _SQLMustBeDeclaredAfter := format($SQL$
                 AND Edge0.EdgeID < %1$s
+            $SQL$, _DescendedViaEdgeID);
+        END IF;
+
+        IF _SelectLastIfMultipleMatch IS TRUE
+        THEN
+            _SQLSelectLastIfMultipleMatch := format($SQL$
                 ORDER BY Edge0.EdgeID DESC
                 LIMIT 1
             $SQL$, _DescendedViaEdgeID);
@@ -131,13 +138,15 @@ LOOP
                 AND   Node0.DeathPhaseID IS NULL
                 %4$s
                 %5$s
+                %6$s
             ) AS X
         $SQL$,
             _NodeIndex,
             _JOINs,
             _NodeID,
             _WHEREs,
-            _SQLLastNodeInScope
+            _SQLMustBeDeclaredAfter,
+            _SQLSelectLastIfMultipleMatch
         );
 
         RAISE NOTICE 'SQL: %', _SQL;
