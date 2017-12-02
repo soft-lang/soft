@@ -49,6 +49,9 @@ in these schemas:
 DROP SCHEMA IF EXISTS "TOKENIZE" CASCADE;
 CREATE SCHEMA "TOKENIZE";
 
+DROP SCHEMA IF EXISTS "EXTRACT_TESTS" CASCADE;
+CREATE SCHEMA "EXTRACT_TESTS";
+
 DROP SCHEMA IF EXISTS "DISCARD" CASCADE;
 CREATE SCHEMA "DISCARD";
 
@@ -1653,6 +1656,21 @@ i.e. when descending.
 The `TOKENIZE` phase creates new token Nodes by matching the
 `SOURCE_CODE` node's PrimitiveValue text, i.e. the source code,
 against all literal NodeTypes Literal or LiteralPattern.
+
+### EXTRACT_TESTS
+
+```sql
+\ir EXTRACT_TESTS/ENTER_TEST_OUTPUT_EXPECT.sql
+```
+
+For languages where tests are inlined in the code
+using a special syntax, such as using comments
+with some keyword to indicate something is expected
+on STDOUT, e.g.: `// expect: Hello world!`, this phase
+can be used to set columns in `Tests` such as `ExpectedSTDOUT`
+to the parsed values from the code, before such nodes
+are removed just like white space and comments in the
+next phase `DISCARD`.
 
 ### DISCARD
 

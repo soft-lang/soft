@@ -7,14 +7,18 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'DEBUG5'
+        _LogSeverity := 'NOTICE'
     ) FROM Get_Files(
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
     )
+    WHERE FileContent LIKE '%// expect:%'
+    AND   FileContent NOT LIKE '%// expect runtime error:%'
+    AND   FileContent NOT LIKE '%// Error%'
+    AND   FileContent NOT LIKE '%// [line '
+/*
     WHERE FilePath IN (
         'github.com/munificent/craftinginterpreters/test/class/simple.lox'
-/*
         'github.com/munificent/craftinginterpreters/test/assignment/associativity.lox',
         'github.com/munificent/craftinginterpreters/test/assignment/global.lox',
         'github.com/munificent/craftinginterpreters/test/assignment/local.lox',
@@ -72,28 +76,12 @@ SELECT COUNT(*) FROM (
         'github.com/munificent/craftinginterpreters/test/while/return_closure.lox',
         'github.com/munificent/craftinginterpreters/test/while/return_inside.lox',
         'github.com/munificent/craftinginterpreters/test/while/syntax.lox'
-*/
     )
+*/
 ) AS Tests;
 
 SELECT COUNT(*) FROM (
-    SELECT Run(Language, Program) -- , _RunUntilPhase := 'MAP_VARIABLES')
+    SELECT ProgramID, Run(Language, Program)
     FROM View_Programs
-    WHERE Language = :'language'
-    ORDER BY ProgramID
+    WHERE Language = 'lox'
 ) AS Tests;
-
-UPDATE Tests SET
-    ExpectedSTDOUT = T.ExpectedSTDOUT
-FROM (
-    SELECT
-        ProgramID,
-        array_agg(PrimitiveValue ORDER BY NodeID) AS ExpectedSTDOUT
-    FROM View_Nodes
-    WHERE Language   = :'language'
-    AND   NodeType   = 'TEST_OUTPUT_EXPECT'
-    AND   BirthPhase = 'TOKENIZE'
-    AND   DeathPhase IS NULL
-    GROUP BY ProgramID
-) AS T
-WHERE T.ProgramID = Tests.ProgramID;

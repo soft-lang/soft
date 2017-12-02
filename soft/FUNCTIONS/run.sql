@@ -24,14 +24,7 @@ INNER JOIN Languages ON Languages.LanguageID = Programs.LanguageID
 WHERE Languages.Language = _Language
 AND   Programs.Program   = _Program;
 
-_ProgramNodeID := Get_Program_Node(_ProgramID);
-
-UPDATE Programs
-SET Direction = 'ENTER'
-WHERE ProgramID = _ProgramID
-RETURNING TRUE INTO STRICT _OK;
-
-PERFORM Enter_Node(_ProgramNodeID);
+PERFORM Set_Program_Node(Get_Program_Node(_ProgramID));
 
 IF _RunUntilPhase IS NOT NULL THEN
     SELECT        PhaseID
@@ -70,6 +63,7 @@ AS $$
 DECLARE
 _ProgramID       integer;
 _Program         text;
+_NodeID          integer;
 _ResultNodeID    integer;
 _ResultType      regtype;
 _ResultValue     text;
@@ -78,11 +72,12 @@ _ResultValues    text[];
 _Error           text;
 _RunAgain        boolean;
 _ApplicationName text;
+_Started         boolean;
 _OK              boolean;
 BEGIN
 
-SELECT ProgramID,  Program
-INTO  _ProgramID, _Program
+SELECT ProgramID,  Program,  NodeID,  Started
+INTO  _ProgramID, _Program, _NodeID, _Started
 FROM Programs
 WHERE ProcessID = _ProcessID
 AND   DeathTime IS NULL
@@ -95,6 +90,14 @@ END IF;
 _ApplicationName := current_setting('application_name');
 IF _ApplicationName NOT LIKE ('%'||_Program||'%') THEN
     PERFORM set_config('application_name', substr(format('%s %s', _ApplicationName, _Program),1,63), TRUE);
+END IF;
+
+IF NOT _Started THEN
+    PERFORM Enter_Node(_NodeID);
+    UPDATE Programs
+    SET Started = TRUE
+    WHERE ProgramID = _ProgramID
+    RETURNING TRUE INTO STRICT _OK;
 END IF;
 
 _RunAgain := FALSE;

@@ -149,8 +149,6 @@ LOOP
             _SQLSelectLastIfMultipleMatch
         );
 
-        RAISE NOTICE 'SQL: %', _SQL;
-
         EXECUTE _SQL INTO _FoundNodeID, _Count;
 
         IF _Count > 1 THEN
