@@ -129,7 +129,9 @@ SELECT New_Language(
     _TruthyNonBooleans     := TRUE,
     _NilIfArrayOutOfBounds := TRUE,
     _NilIfMissingHashKey   := TRUE,
-    _ClassInitializerName  := NULL
+    _ClassInitializerName  := NULL,
+    _StripZeroes           := FALSE,
+    _NegativeZeroes        := FALSE
 );
 SELECT * FROM Languages;
 ```
@@ -1141,10 +1143,38 @@ Returns the NodeType name for a NodeTypeID
 Returns the parent for a node, assumes there is exactly one parent.
 
 ```sql
+\ir soft/FUNCTIONS/orphan.sql
+```
+
+Returns `TRUE` if the node doesn't have any parents.
+
+```sql
 \ir soft/FUNCTIONS/child.sql
 ```
 
 Returns the child for a node, assumes there is exactly one child.
+
+```sql
+\ir soft/FUNCTIONS/count_parents.sql
+```
+
+Returns the number of parents for a node.
+
+```sql
+\ir soft/FUNCTIONS/count_children.sql
+```
+
+Returns the number of children for a node.
+
+```sql
+\ir soft/FUNCTIONS/has_child.sql
+```
+
+Returns `TRUE` if there is exactly one child for the node.
+The optional param `IsNthParent` can be used to check which
+edge we are connected to the child via, useful to e.g. check
+which argument number a node is to `ARGUMENTS`.
+
 
 ```sql
 \ir soft/FUNCTIONS/edge.sql
@@ -1227,6 +1257,14 @@ Print node to STDOUT.
 SELECT Print_Node(_NodeID := 2);
 ```
 
+
+```sql
+\ir soft/FUNCTIONS/strip_zeroes.sql
+```
+
+Strips meaningless zeroes at the end from numeric values,
+so that e.g. `1.0000` becomes `1`, or `12.34000` becomes `12.34`.
+
 ## CLONING OF NODES
 
 To clone a node means creating new Nodes with the same `PrimitiveValue`s
@@ -1240,6 +1278,7 @@ possible cycles in the graph.
 \ir soft/FUNCTIONS/out_of_scope.sql
 \ir soft/FUNCTIONS/copy_clone.sql
 \ir soft/FUNCTIONS/clone_node.sql
+\ir soft/FUNCTIONS/declared.sql
 ```
 
 Let's clone the ADD node:
@@ -1764,6 +1803,7 @@ depending on if the left argument was
 \ir EVAL/DIVIDE.sql
 \ir EVAL/ENTER_RET.sql
 \ir EVAL/ENTER_ARGUMENTS.sql
+\ir EVAL/ENTER_THIS.sql
 \ir EVAL/EQUAL.sql
 \ir EVAL/GREATER_THAN.sql
 \ir EVAL/GREATER_THAN_OR_EQUAL_TO.sql

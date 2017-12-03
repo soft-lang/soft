@@ -7,7 +7,9 @@ _ZeroBasedNumbering    boolean,
 _TruthyNonBooleans     boolean,
 _NilIfArrayOutOfBounds boolean,
 _NilIfMissingHashKey   boolean,
-_ClassInitializerName  text
+_ClassInitializerName  text,
+_StripZeroes           boolean,
+_NegativeZeroes        boolean
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -16,8 +18,8 @@ DECLARE
 _LanguageID integer;
 BEGIN
 
-INSERT INTO Languages ( Language,  ImplicitReturnValues,  StatementReturnValues,  VariableBinding,  ZeroBasedNumbering,  TruthyNonBooleans,  NilIfArrayOutOfBounds,  NilIfMissingHashKey,  ClassInitializerName)
-VALUES                (_Language, _ImplicitReturnValues, _StatementReturnValues, _VariableBinding, _ZeroBasedNumbering, _TruthyNonBooleans, _NilIfArrayOutOfBounds, _NilIfMissingHashKey, _ClassInitializerName)
+INSERT INTO Languages ( Language,  ImplicitReturnValues,  StatementReturnValues,  VariableBinding,  ZeroBasedNumbering,  TruthyNonBooleans,  NilIfArrayOutOfBounds,  NilIfMissingHashKey,  ClassInitializerName,  StripZeroes,  NegativeZeroes)
+VALUES                (_Language, _ImplicitReturnValues, _StatementReturnValues, _VariableBinding, _ZeroBasedNumbering, _TruthyNonBooleans, _NilIfArrayOutOfBounds, _NilIfMissingHashKey, _ClassInitializerName, _StripZeroes, _NegativeZeroes)
 RETURNING    LanguageID
 INTO STRICT _LanguageID;
 

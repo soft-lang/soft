@@ -59,17 +59,7 @@ SET Iterations = Iterations + 1
 WHERE ProgramID = _ProgramID
 RETURNING TRUE INTO STRICT _OK;
 
-IF NOT EXISTS (
-    SELECT 1
-    FROM Edges
-    INNER JOIN Nodes ON Nodes.NodeID = Dereference(Edges.ParentNodeID)
-    WHERE Edges.ChildNodeID = _NodeID
-    AND Edges.DeathPhaseID  IS NULL
-    AND Nodes.DeathPhaseID  IS NULL
-    AND Nodes.PrimitiveType IS NULL
-) THEN
-    PERFORM Eval_Node(_NodeID);
-END IF;
+PERFORM Eval_Node(_NodeID);
 
 IF _Direction = 'ENTER' THEN
     SELECT

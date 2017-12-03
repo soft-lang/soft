@@ -3,25 +3,29 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Phase            text;
-_FunctionName     name;
-_ArgTypes         oidvector;
-_ReturnType       regtype;
-_InputArgTypes    regtype[];
-_SQL              text;
-_ParentValueTypes regtype[];
-_ParentArgValues  text;
-_ReturnValue      text;
-_CastTest         text;
-_Count            integer;
+_Phase                  text;
+_FunctionName           name;
+_ArgTypes               oidvector;
+_ReturnType             regtype;
+_InputArgTypes          regtype[];
+_SQL                    text;
+_ParentValueTypes       regtype[];
+_ParentArgValues        text;
+_ReturnValue            text;
+_CastTest               text;
+_Count                  integer;
+_ZeroArgsFunctionExists boolean;
+_OK                     boolean;
 BEGIN
 
 SELECT
     Phases.Phase,
-    pg_proc.proname AS FunctionName
+    pg_proc.proname AS FunctionName,
+    (pg_proc.pronargs = 0) AS ZeroArgsFunctionExists
 INTO
     _Phase,
-    _FunctionName
+    _FunctionName,
+    _ZeroArgsFunctionExists
 FROM Nodes
 INNER JOIN NodeTypes    ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN pg_proc      ON pg_proc.proname      = NodeTypes.NodeType
@@ -29,7 +33,9 @@ INNER JOIN pg_namespace ON pg_namespace.oid     = pg_proc.pronamespace
 INNER JOIN Programs     ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases       ON Phases.PhaseID       = Programs.PhaseID
 WHERE pg_namespace.nspname = Phases.Phase
-AND   Nodes.NodeID         = _NodeID;
+AND   Nodes.NodeID         = _NodeID
+ORDER BY pg_proc.pronargs
+LIMIT 1;
 IF NOT FOUND THEN
     RETURN NULL;
 END IF;
@@ -51,6 +57,25 @@ INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
 WHERE Edges.ChildNodeID = _NodeID
 AND Edges.DeathPhaseID IS NULL
 AND Nodes.DeathPhaseID IS NULL;
+
+IF EXISTS (
+    SELECT 1
+    FROM Edges
+    INNER JOIN Nodes ON Nodes.NodeID = Dereference(Edges.ParentNodeID)
+    WHERE Edges.ChildNodeID = _NodeID
+    AND Edges.DeathPhaseID  IS NULL
+    AND Nodes.DeathPhaseID  IS NULL
+    AND Nodes.PrimitiveType IS NULL
+)
+AND _ZeroArgsFunctionExists IS NOT TRUE
+THEN
+    -- There are at least one parent node with no value/type yet,
+    -- or the parent is some valueless node such as a function,
+    -- in which case we can only compute a value for it if
+    -- this node we want to eval has a EVAL-function with empty arguments,
+    -- and since we don't have that we can't eval.
+    RETURN NULL;
+END IF;
 
 WITH X AS (
     SELECT
@@ -86,21 +111,40 @@ IF FOUND THEN
 
     _SQL := format('SELECT %I.%I(%s)::text', _Phase, _FunctionName, _ParentArgValues);
 
+    RAISE NOTICE 'SQL: %', _SQL;
+
     IF _ReturnType = 'anyelement'::regtype THEN
         _ReturnType := Determine_Return_Type(_InputArgTypes, _ParentValueTypes);
     END IF;
 
     EXECUTE _SQL INTO STRICT _ReturnValue;
 
+    IF _ReturnType = 'numeric'::regtype
+    AND (Language(_NodeID)).StripZeroes THEN
+        _ReturnValue := Strip_Zeroes(_ReturnValue::numeric)::text;
+    END IF;
+
     EXECUTE format('SELECT %L::%s::text', _ReturnValue, _ReturnType) INTO STRICT _CastTest;
     IF _ReturnValue IS DISTINCT FROM _CastTest THEN
         RAISE EXCEPTION 'ReturnValue "%" resulted in the different value "%" when casted to type "%" and then back to text', _ReturnValue, _CastTest, _ReturnType;
     END IF;
+
 ELSE
     RAISE EXCEPTION 'Type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes;
 END IF;
 
 PERFORM Set_Node_Value(_NodeID := _NodeID, _PrimitiveType := _ReturnType, _PrimitiveValue := _ReturnValue);
+
+IF (Language(_NodeID)).NegativeZeroes
+AND Node_Type(_NodeID) = 'UNARY_MINUS'
+AND _ReturnValue      = '0'
+AND _ParentArgValues NOT LIKE '''-%'
+THEN
+    UPDATE Nodes
+    SET PrimitiveValue = '-' || PrimitiveValue
+    WHERE NodeID = _NodeID
+    RETURNING TRUE INTO STRICT _OK;
+END IF;
 
 PERFORM Log(
     _NodeID   := _NodeID,

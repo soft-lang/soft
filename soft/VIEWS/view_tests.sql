@@ -1,6 +1,7 @@
 CREATE VIEW View_Tests AS
 SELECT
 Tests.TestID,
+Programs.ProgramID,
 Languages.Language,
 Programs.Program,
 Phases.Phase,

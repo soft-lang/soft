@@ -3,11 +3,13 @@ RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ParentNodes  integer[];
-_ClonedNodeID integer;
-_FromNodeID   integer;
-_ToNodeID     integer;
-_OK           boolean;
+_ProgramID     integer;
+_ParentNodes   integer[];
+_ClonedNodeID  integer;
+_FromNodeID    integer;
+_ToNodeID      integer;
+_EnvironmentID integer;
+_OK            boolean;
 BEGIN
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
@@ -21,16 +23,33 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
 END IF;
 
 _ToNodeID   := _ParentNodes[1];
-_FromNodeID := Dereference(_ParentNodes[2]);
+_FromNodeID := _ParentNodes[2];
 
 IF Node_Type(_ToNodeID) = 'GET' THEN
     _ToNodeID := Dereference(_ToNodeID);
 END IF;
 
-PERFORM Copy_Node(
-    _FromNodeID := _FromNodeID,
-    _ToNodeID   := _ToNodeID
-);
+IF FALSE AND Declared(_FromNodeID) <> Declared(_ToNodeID) THEN
+    SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
+    INSERT INTO Environments (ProgramID, EnvironmentID)
+    SELECT _ProgramID, MAX(EnvironmentID)+1
+    FROM Environments
+    WHERE ProgramID = _ProgramID
+    RETURNING    EnvironmentID
+    INTO STRICT _EnvironmentID;
+    _ClonedNodeID := Clone_Node(_NodeID := Dereference(_FromNodeID), _SelfRef := FALSE, _EnvironmentID := _EnvironmentID, _VariableBinding := 'CAPTURE_BY_VALUE');
+    UPDATE Nodes SET
+        PrimitiveType  = NULL,
+        PrimitiveValue = NULL
+    WHERE NodeID = _ToNodeID
+    RETURNING TRUE INTO STRICT _OK;
+    PERFORM Set_Reference_Node(_ReferenceNodeID := _ClonedNodeID, _NodeID := _ToNodeID);
+ELSE
+    PERFORM Copy_Node(
+        _FromNodeID := Dereference(_FromNodeID),
+        _ToNodeID   := _ToNodeID
+    );
+END IF;
 
 PERFORM Set_Reference_Node(
     _ReferenceNodeID := _ToNodeID,

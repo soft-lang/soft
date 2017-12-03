@@ -7,7 +7,7 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'NOTICE'
+        _LogSeverity := 'DEBUG5'
     ) FROM Get_Files(
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
@@ -16,6 +16,58 @@ SELECT COUNT(*) FROM (
     AND   FileContent NOT LIKE '%// expect runtime error:%'
     AND   FileContent NOT LIKE '%// Error%'
     AND   FileContent NOT LIKE '%// [line '
+    AND   FilePath    NOT LIKE '%/test/scanning/%'
+    AND   FilePath    NOT LIKE '%/test/expressions/%'
+    AND   FilePath    !~ '/limit/(loop_too_large|too_many_constants|too_many_locals|too_many_upvalues|stack_overflow)\.lox$'
+    AND   FilePath IN (
+--        'github.com/munificent/craftinginterpreters/test/closure/assign_to_closure.lox',
+        'github.com/munificent/craftinginterpreters/test/for/closure_in_body.lox',
+--        'github.com/munificent/craftinginterpreters/test/joel/scope.lox',
+--        'github.com/munificent/craftinginterpreters/test/for/closure_in_body.lox',
+--        'github.com/munificent/craftinginterpreters/test/closure/assign_to_closure.lox',
+--        'github.com/munificent/craftinginterpreters/test/operator/equals_class.lox',
+--        'github.com/munificent/craftinginterpreters/test/regression/40.lox',
+--        'github.com/munificent/craftinginterpreters/test/string/multiline.lox',
+--        'github.com/munificent/craftinginterpreters/test/this/closure.lox',
+--        'github.com/munificent/craftinginterpreters/test/this/nested_class.lox',
+--        'github.com/munificent/craftinginterpreters/test/this/nested_closure.lox',
+--        'github.com/munificent/craftinginterpreters/test/variable/unreached_undefined.lox',
+        ''
+    )
+    AND   FilePath NOT IN (
+        'github.com/munificent/craftinginterpreters/test/class/inherited_method.lox',
+        'github.com/munificent/craftinginterpreters/test/inheritance/inherit_methods.lox',
+        'github.com/munificent/craftinginterpreters/test/inheritance/set_fields_from_base_class.lox',
+        'github.com/munificent/craftinginterpreters/test/super/bound_method.lox',
+        'github.com/munificent/craftinginterpreters/test/super/call_other_method.lox',
+        'github.com/munificent/craftinginterpreters/test/super/call_same_method.lox',
+        'github.com/munificent/craftinginterpreters/test/super/closure.lox',
+        'github.com/munificent/craftinginterpreters/test/super/constructor.lox',
+        'github.com/munificent/craftinginterpreters/test/super/indirectly_inherited.lox',
+        'github.com/munificent/craftinginterpreters/test/super/reassign_superclass.lox',
+        'github.com/munificent/craftinginterpreters/test/super/super_in_closure_in_inherited_method.lox',
+        'github.com/munificent/craftinginterpreters/test/super/super_in_inherited_method.lox',
+        'github.com/munificent/craftinginterpreters/test/super/this_in_superclass_method.lox'
+    )
+
+--    AND   FilePath IN (
+--'github.com/munificent/craftinginterpreters/test/joel/return_class_vs_this.lox',
+-- Currently failing tests:,
+-- 'github.com/munificent/craftinginterpreters/test/closure/assign_to_closure.lox',
+-- 'github.com/munificent/craftinginterpreters/test/number/literals.lox',
+--'github.com/munificent/craftinginterpreters/test/operator/divide.lox',
+-- 'github.com/munificent/craftinginterpreters/test/operator/equals_class.lox',
+-- 'github.com/munificent/craftinginterpreters/test/operator/not.lox',
+-- 'github.com/munificent/craftinginterpreters/test/operator/not_class.lox',
+-- 'github.com/munificent/craftinginterpreters/test/operator/subtract.lox',
+-- 'github.com/munificent/craftinginterpreters/test/precedence.lox',
+-- 'github.com/munificent/craftinginterpreters/test/regression/40.lox',
+-- 'github.com/munificent/craftinginterpreters/test/string/multiline.lox',
+-- 'github.com/munificent/craftinginterpreters/test/this/closure.lox',
+-- 'github.com/munificent/craftinginterpreters/test/this/nested_class.lox',
+-- 'github.com/munificent/craftinginterpreters/test/this/nested_closure.lox',
+-- 'github.com/munificent/craftinginterpreters/test/variable/unreached_undefined.lox',
+--'')
 /*
     WHERE FilePath IN (
         'github.com/munificent/craftinginterpreters/test/class/simple.lox'
@@ -83,5 +135,5 @@ SELECT COUNT(*) FROM (
 SELECT COUNT(*) FROM (
     SELECT ProgramID, Run(Language, Program)
     FROM View_Programs
-    WHERE Language = 'lox'
+    WHERE Language = :'language'
 ) AS Tests;

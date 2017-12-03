@@ -34,6 +34,26 @@ AND NodeTypes.NodeType  = 'IDENTIFIER'
 AND Nodes.PrimitiveType = 'name'::regtype
 AND Nodes.DeathPhaseID  IS NULL;
 
+IF Find_Node(
+    _NodeID  := _NodeID,
+    _Descend := FALSE,
+    _Strict  := FALSE,
+    _Paths   := ARRAY[
+        '-> GET',
+        '-> CALL -> GET'
+    ]
+) IS NOT NULL
+AND Has_Child(_NodeID, _IsNthParent := 2)
+THEN
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'DEBUG5',
+        _Message  := format('Skipping class field %s, will be resolved during run-time', Colorize(_Name, 'GREEN'))
+    );
+    PERFORM Set_Walkable(_NodeID, FALSE);
+    RETURN TRUE;
+END IF;
+
 _VariableNodeID := Find_Node(
     _NodeID                    := _NodeID,
     _Descend                   := TRUE,
@@ -54,11 +74,17 @@ IF _VariableNodeID IS NULL THEN
             _Descend           := TRUE,
             _Strict            := FALSE,
             _Names             := ARRAY[_Name],
-            _Path              := '-> FUNCTION_DECLARATION -> DECLARATION <- VARIABLE[1]'
+            _Paths             := ARRAY[
+                '-> FUNCTION_DECLARATION -> DECLARATION <- VARIABLE[1]',
+                '-> FUNCTION_DECLARATION -> CLASS_DECLARATION -> DECLARATION <- VARIABLE[1]'
+            ]
         ),
         _Descend := FALSE,
         _Strict  := FALSE,
-        _Path    := '-> DECLARATION <- FUNCTION_DECLARATION'
+        _Paths   := ARRAY[
+            '-> DECLARATION <- FUNCTION_DECLARATION',
+            '-> DECLARATION <- CLASS_DECLARATION'
+        ]
     );
     IF _VariableNodeID IS NULL THEN
         SELECT ImplementationFunction
@@ -72,23 +98,6 @@ IF _VariableNodeID IS NULL THEN
                 _Severity := 'DEBUG5',
                 _Message  := format('Built-in function %L mapped to %L', Colorize(_Name, 'MAGENTA'), Colorize(_ImplementationFunction, 'CYAN'))
             );
-            RETURN TRUE;
-        END IF;
-        IF Find_Node(
-            _NodeID  := _NodeID,
-            _Descend := FALSE,
-            _Strict  := FALSE,
-            _Paths   := ARRAY[
-                '-> GET',
-                '-> CALL -> GET'
-            ]
-        ) IS NOT NULL THEN
-            PERFORM Log(
-                _NodeID   := _NodeID,
-                _Severity := 'DEBUG5',
-                _Message  := format('Skipping field %s, will be resolved during run-time', Colorize(_Name, 'GREEN'))
-            );
-            PERFORM Set_Walkable(_NodeID, FALSE);
             RETURN TRUE;
         END IF;
         PERFORM Log(

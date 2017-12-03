@@ -16,7 +16,9 @@ SELECT New_Language(
     _TruthyNonBooleans     := TRUE,
     _NilIfArrayOutOfBounds := TRUE,
     _NilIfMissingHashKey   := TRUE,
-    _ClassInitializerName  := NULL
+    _ClassInitializerName  := NULL,
+    _StripZeroes           := FALSE,
+    _NegativeZeroes        := FALSE
 );
 
 SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE');

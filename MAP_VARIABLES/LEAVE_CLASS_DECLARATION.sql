@@ -16,6 +16,11 @@ FROM Edges
 WHERE ChildNodeID = _NodeID
 AND   DeathPhaseID IS NULL;
 
+IF _ParentNodeIDs IS NULL THEN
+    -- Empty class
+    RETURN TRUE;
+END IF;
+
 IF array_length(_ParentNodeIDs,1) % 2 <> 0 THEN
     RAISE EXCEPTION 'Uneven parent nodes % to class NodeID %', _ParentNodeIDs, _NodeID;
 END IF;

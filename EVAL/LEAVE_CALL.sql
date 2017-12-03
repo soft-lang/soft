@@ -27,12 +27,11 @@ BEGIN
 
 SELECT ProgramID INTO STRICT _ProgramID FROM Nodes WHERE NodeID = _NodeID;
 
-SELECT          X.ParentNodeID, X.Name, NodeTypes.NodeType, Nodes.PrimitiveValue, NodeTypes.LanguageID
-INTO STRICT _DeclarationNodeID,  _Name,          _NodeType,          _Identifier,          _LanguageID
+SELECT          X.ParentNodeID, NodeTypes.NodeType, Nodes.PrimitiveValue, NodeTypes.LanguageID
+INTO STRICT _DeclarationNodeID,          _NodeType,          _Identifier,          _LanguageID
 FROM (
     SELECT
-        Dereference(ParentNodeID) AS ParentNodeID,
-        Node_Name(ParentNodeID)   AS Name
+        Dereference(ParentNodeID) AS ParentNodeID
     FROM Edges
     WHERE ChildNodeID  = _NodeID
     AND   DeathPhaseID IS NULL
@@ -73,7 +72,7 @@ ELSIF _NodeType = 'CLASS_DECLARATION' THEN
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG3',
-            _Message  := format('Class %s initiated, killed edge to init RET, EdgeID %s', _Name, _RetEdgeID)
+            _Message  := format('Class initiated, killed edge to init RET, EdgeID %s', _RetEdgeID)
         );
         RETURN;
     END IF; 
@@ -85,13 +84,19 @@ ELSIF _NodeType = 'CLASS_DECLARATION' THEN
     RETURNING    EnvironmentID
     INTO STRICT _EnvironmentID;
 
+    _Name := Node_Name(Parent(Child(Dereference(_DeclarationNodeID),'DECLARATION'),'VARIABLE'));
+
     PERFORM Log(
         _NodeID   := _NodeID,
         _Severity := 'DEBUG3',
         _Message  := format('Created new EnvironmentID %s for class %s', _EnvironmentID, _Name)
     );
-    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := TRUE, _EnvironmentID := _EnvironmentID);
-    UPDATE Nodes SET NodeName = _Name WHERE NodeID = _InstanceNodeID RETURNING TRUE INTO STRICT _OK;
+    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+
+    UPDATE Nodes
+    SET NodeName = _Name
+    WHERE NodeID = _InstanceNodeID
+    RETURNING TRUE INTO STRICT _OK;
 
     _InitNodeID := Get_Field(_InstanceNodeID, (Language(_NodeID)).ClassInitializerName);
     IF _InitNodeID IS NOT NULL THEN
@@ -213,7 +218,7 @@ IF _ReturningCall THEN
         PERFORM Log(
             _NodeID   := _NodeID,
             _Severity := 'DEBUG3',
-            _Message  := format('Method %s returned, killed edge to init RET, EdgeID %s', _Name, _RetEdgeID)
+            _Message  := format('Method returned, killed edge to init RET, EdgeID %s', _RetEdgeID)
         );
     ELSE
         -- Normal function

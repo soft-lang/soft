@@ -3,6 +3,7 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_ClassNodeID   integer;
 _NodeType      text;
 _ParentNodeIDs integer[];
 _FieldNodeID   integer;
@@ -10,7 +11,9 @@ BEGIN
 
 _NodeType := Node_Type(_NodeID);
 
-IF _NodeType IS DISTINCT FROM 'CLASS_DECLARATION' THEN
+IF _NodeType = 'CLASS_DECLARATION' THEN
+    _ClassNodeID := _NodeID;
+ELSE
     RAISE EXCEPTION 'Cannot get field from NodeID % since it is of unsupported NodeType %', _NodeID, _NodeType;
 END IF;
 

@@ -19,6 +19,8 @@ END IF;
 
 IF Node_Type(Child(_FunctionNodeID)) = 'CLASS_DECLARATION'
 AND Primitive_Value(Parent(Left(_FunctionNodeID))) = (Language(_NodeID)).ClassInitializerName
+-- Allow "return;" i.e. without any argument, which is two nodes:
+AND Count_Parents(_NodeID) = 3
 THEN
     PERFORM Log(
         _NodeID   := _NodeID,
