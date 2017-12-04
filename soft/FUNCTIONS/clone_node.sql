@@ -28,10 +28,6 @@ IF _ClonedRootNodeID IS NULL THEN
         _Severity := 'DEBUG3',
         _Message  := 'First node, create new'
     );
-    -- _ClonedNodeID := Copy_Clone(_NodeID, _SelfRef := _SelfRef, _EnvironmentID := _EnvironmentID);
-    -- IF _ClonedNodeID IS NOT NULL THEN
-    --     RETURN _ClonedNodeID;
-    -- END IF;
 ELSE
     IF _VariableBinding = 'CAPTURE_BY_VALUE' THEN
         -- Always copy
@@ -42,7 +38,7 @@ ELSE
                 _Severity := 'DEBUG3',
                 _Message  := format('Node %s (NodeID %s) is out of scope (OriginRootNode %s, ClonedRootNode %s)', Colorize(Node(_NodeID),'CYAN'), _NodeID, Node(_OriginRootNodeID), Node(_ClonedRootNodeID))
             );
-            _ClonedNodeID := _NodeID;
+            _ClonedNodeID := Dereference(_NodeID);
             RETURN _ClonedNodeID;
         END IF;
     END IF;
@@ -55,6 +51,7 @@ IF _ClonedNodeID IS NULL THEN
         _PrimitiveType    := PrimitiveType,
         _PrimitiveValue   := PrimitiveValue,
         _NodeName         := NodeName,
+        _Closure          := Closure,
         _Walkable         := Walkable,
         _ClonedFromNodeID := NodeID,
         _ClonedRootNodeID := _ClonedRootNodeID,

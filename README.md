@@ -1275,10 +1275,15 @@ We keep track of what `EdgeID`s we have visited to break out from
 possible cycles in the graph.
 
 ```sql
+\ir soft/FUNCTIONS/new_environment.sql
 \ir soft/FUNCTIONS/out_of_scope.sql
-\ir soft/FUNCTIONS/copy_clone.sql
 \ir soft/FUNCTIONS/clone_node.sql
+\ir soft/FUNCTIONS/clone.sql
+\ir soft/FUNCTIONS/closure.sql
 \ir soft/FUNCTIONS/declared.sql
+\ir soft/FUNCTIONS/is_ancestor_to.sql
+\ir soft/FUNCTIONS/nthparent.sql
+\ir soft/FUNCTIONS/get_closure_nodes.sql
 ```
 
 Let's clone the ADD node:

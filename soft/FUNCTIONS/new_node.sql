@@ -4,6 +4,7 @@ _NodeTypeID           integer,
 _PrimitiveType        regtype   DEFAULT NULL,
 _PrimitiveValue       text      DEFAULT NULL,
 _NodeName             name      DEFAULT NULL,
+_Closure              boolean   DEFAULT NULL,
 _Walkable             boolean   DEFAULT NULL,
 _ClonedFromNodeID     integer   DEFAULT NULL,
 _ClonedRootNodeID     integer   DEFAULT NULL,
@@ -55,8 +56,8 @@ IF _Walkable IS NULL THEN
     END IF;
 END IF;
 
-INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  NodeName,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID,  ReferenceNodeID,  EnvironmentID)
-VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _NodeName, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID, _EnvironmentID)
+INSERT INTO Nodes  ( ProgramID,  NodeTypeID,  BirthPhaseID,  PrimitiveType,  PrimitiveValue,  NodeName,  Closure,  Walkable,  ClonedFromNodeID,  ClonedRootNodeID,  ReferenceNodeID,  EnvironmentID)
+VALUES             (_ProgramID, _NodeTypeID, _BirthPhaseID, _PrimitiveType, _PrimitiveValue, _NodeName, _Closure, _Walkable, _ClonedFromNodeID, _ClonedRootNodeID, _ReferenceNodeID, _EnvironmentID)
 RETURNING    NodeID
 INTO STRICT _NodeID;
 
@@ -71,6 +72,7 @@ _NodeType         text,
 _PrimitiveType    regtype   DEFAULT NULL,
 _PrimitiveValue   text      DEFAULT NULL,
 _NodeName         name      DEFAULT NULL,
+_Closure          boolean   DEFAULT NULL,
 _Walkable         boolean   DEFAULT NULL,
 _ClonedFromNodeID integer   DEFAULT NULL,
 _ClonedRootNodeID integer   DEFAULT NULL,
@@ -88,6 +90,7 @@ SELECT New_Node(
     _PrimitiveType    := _PrimitiveType,
     _PrimitiveValue   := _PrimitiveValue,
     _NodeName         := _NodeName,
+    _Closure          := _Closure,
     _Walkable         := _Walkable,
     _ClonedFromNodeID := _ClonedFromNodeID,
     _ClonedRootNodeID := _ClonedRootNodeID,

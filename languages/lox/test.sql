@@ -7,7 +7,7 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'DEBUG5'
+        _LogSeverity := 'NOTICE'
     ) FROM Get_Files(
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
@@ -19,9 +19,9 @@ SELECT COUNT(*) FROM (
     AND   FilePath    NOT LIKE '%/test/scanning/%'
     AND   FilePath    NOT LIKE '%/test/expressions/%'
     AND   FilePath    !~ '/limit/(loop_too_large|too_many_constants|too_many_locals|too_many_upvalues|stack_overflow)\.lox$'
-    AND   FilePath IN (
+--    AND   FilePath IN (
 --        'github.com/munificent/craftinginterpreters/test/closure/assign_to_closure.lox',
-        'github.com/munificent/craftinginterpreters/test/for/closure_in_body.lox',
+--        'github.com/munificent/craftinginterpreters/test/for/closure_in_body.lox',
 --        'github.com/munificent/craftinginterpreters/test/joel/scope.lox',
 --        'github.com/munificent/craftinginterpreters/test/for/closure_in_body.lox',
 --        'github.com/munificent/craftinginterpreters/test/closure/assign_to_closure.lox',
@@ -32,8 +32,8 @@ SELECT COUNT(*) FROM (
 --        'github.com/munificent/craftinginterpreters/test/this/nested_class.lox',
 --        'github.com/munificent/craftinginterpreters/test/this/nested_closure.lox',
 --        'github.com/munificent/craftinginterpreters/test/variable/unreached_undefined.lox',
-        ''
-    )
+--        ''
+--    )
     AND   FilePath NOT IN (
         'github.com/munificent/craftinginterpreters/test/class/inherited_method.lox',
         'github.com/munificent/craftinginterpreters/test/inheritance/inherit_methods.lox',

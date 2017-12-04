@@ -111,8 +111,6 @@ IF FOUND THEN
 
     _SQL := format('SELECT %I.%I(%s)::text', _Phase, _FunctionName, _ParentArgValues);
 
-    RAISE NOTICE 'SQL: %', _SQL;
-
     IF _ReturnType = 'anyelement'::regtype THEN
         _ReturnType := Determine_Return_Type(_InputArgTypes, _ParentValueTypes);
     END IF;

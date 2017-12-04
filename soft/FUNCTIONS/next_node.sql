@@ -76,6 +76,7 @@ IF FOUND THEN
             _Severity := 'DEBUG5',
             _Message  := format('Descending from %s to its child %s', Colorize(Node(_NodeID, _Short := TRUE), 'CYAN'), Colorize(Node(_ChildNodeID, _Short := TRUE), 'MAGENTA'))
         );
+        UPDATE Environments SET ScopeNodeID = NULL WHERE ScopeNodeID = _NodeID;
         PERFORM Set_Program_Node(_ChildNodeID);
         RETURN TRUE;
     END IF;
