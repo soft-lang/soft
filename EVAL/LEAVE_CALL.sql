@@ -189,7 +189,9 @@ IF NOT FOUND THEN
         _Severity := 'DEBUG3',
         _Message  := format('Created new EnvironmentID %s to call function', _EnvironmentID)
     );
-    IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL THEN
+    IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL
+    OR Closure(_DeclarationNodeID)
+    THEN
         -- Class method
         _InstanceNodeID := _DeclarationNodeID;
     ELSE
@@ -212,7 +214,9 @@ IF _ReturningCall THEN
         _Message  := format('Returning function call at %s from %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_RetNodeID),'MAGENTA'))
     );
 
-    IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL THEN
+    IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL
+    OR Closure(_DeclarationNodeID)
+    THEN
         -- Class method
         PERFORM Kill_Edge(_RetEdgeID);
         PERFORM Log(
