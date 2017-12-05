@@ -65,25 +65,6 @@ FROM (
     AND Nodes.DeathPhaseID IS NULL
 ) AS Arguments;
 
--- IF EXISTS (
---     SELECT 1
---     FROM Edges
---     INNER JOIN Nodes ON Nodes.NodeID = Dereference(Edges.ParentNodeID)
---     WHERE Edges.ChildNodeID = _NodeID
---     AND Edges.DeathPhaseID  IS NULL
---     AND Nodes.DeathPhaseID  IS NULL
---     AND Nodes.PrimitiveType IS NULL
--- )
--- AND _ZeroArgsFunctionExists IS NOT TRUE
--- THEN
---     -- There are at least one parent node with no value/type yet,
---     -- or the parent is some valueless node such as a function,
---     -- in which case we can only compute a value for it if
---     -- this node we want to eval has a EVAL-function with empty arguments,
---     -- and since we don't have that we can't eval.
---     RETURN NULL;
--- END IF;
-
 WITH X AS (
     SELECT
         (
