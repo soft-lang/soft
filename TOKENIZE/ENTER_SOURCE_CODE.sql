@@ -52,8 +52,8 @@ INNER JOIN Programs  ON Programs.ProgramID   = Nodes.ProgramID
 INNER JOIN Phases    ON Phases.PhaseID       = Programs.PhaseID
 INNER JOIN Languages ON Languages.LanguageID = Phases.LanguageID
 WHERE Nodes.NodeID      = _NodeID
-AND Phases.Phase        = 'TOKENIZE'
-AND NodeTypes.NodeType  = 'SOURCE_CODE'
+--AND Phases.Phase        = 'TOKENIZE'
+--AND NodeTypes.NodeType  = 'SOURCE_CODE'
 AND Nodes.PrimitiveType = 'text'::regtype;
 
 _NumChars := length(_SourceCode);

@@ -22,6 +22,7 @@ _LanguageID             integer;
 _ParentNodeIDs          integer[];
 _InitNodeID             integer;
 _Name                   name;
+_ClassNodeID            integer;
 _OK                     boolean;
 BEGIN
 
@@ -197,6 +198,19 @@ IF NOT FOUND THEN
     ELSE
         -- Normal function
         _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+
+        _ClassNodeID := Find_Node(
+            _NodeID  := _DeclarationNodeID,
+            _Descend := TRUE,
+            _Strict  := FALSE,
+            _Path    := '-> CLASS_DECLARATION'
+        );
+        IF _ClassNodeID IS NOT NULL THEN
+            PERFORM New_Edge(
+                _ParentNodeID := _InstanceNodeID,
+                _ChildNodeID  := _ClassNodeID
+            );
+        END IF;
     END IF;
 
     _RetNodeID := Find_Node(_NodeID := _InstanceNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');

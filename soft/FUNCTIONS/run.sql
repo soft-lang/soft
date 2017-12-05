@@ -105,6 +105,7 @@ BEGIN
     _RunAgain := Walk_Tree(_ProgramID);
 EXCEPTION WHEN OTHERS THEN
     _Error := SQLERRM;
+    RAISE WARNING 'Walk_Tree(_ProgramID := %) died with error: %', _ProgramID, Colorize(_Error, 'RED');
 END;
 
 IF NOT _RunAgain THEN
@@ -146,4 +147,4 @@ $$;
 
 GRANT ALL ON FUNCTION Run(_ProcessID integer) TO pgcronjob;
 
-SELECT cron.New_Connection_Pool(_Name := 'soft.Run', _MaxProcesses := 4);
+SELECT cron.New_Connection_Pool(_Name := 'soft.Run', _MaxProcesses := 8);

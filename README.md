@@ -109,6 +109,16 @@ Used by languages that need to represent the `nil` value.
 
 Used by `Run_Test()` to tell if we should run it `AGAIN` or if we're `DONE`.
 
+```sql
+\ir soft/TYPES/node.sql
+```
+
+Used to pass `NodeID` to operator functions when the node doesn't
+have a primitive value, i.e. when it's a complex value,
+such as a function, array, or some other non-primitive value.
+The operator function can then do whatever it want with the passed
+`node` arguments, to decide what to return.
+
 ## LANGUAGES
 
 ```sql

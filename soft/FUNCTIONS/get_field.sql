@@ -52,8 +52,6 @@ IF _CreateIfNotExists IS TRUE THEN
     FROM Nodes
     WHERE NodeID = _NodeID;
 
-    RAISE NOTICE 'Created new field with name % NodeID %', _Name, _FieldNodeID;
-
     PERFORM New_Edge(
         _ParentNodeID     := _FieldNodeID,
         _ChildNodeID      := _NodeID,

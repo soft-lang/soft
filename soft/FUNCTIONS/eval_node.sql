@@ -14,18 +14,15 @@ _ParentArgValues        text;
 _ReturnValue            text;
 _CastTest               text;
 _Count                  integer;
-_ZeroArgsFunctionExists boolean;
 _OK                     boolean;
 BEGIN
 
 SELECT
     Phases.Phase,
-    pg_proc.proname AS FunctionName,
-    (pg_proc.pronargs = 0) AS ZeroArgsFunctionExists
+    pg_proc.proname AS FunctionName
 INTO
     _Phase,
-    _FunctionName,
-    _ZeroArgsFunctionExists
+    _FunctionName
 FROM Nodes
 INNER JOIN NodeTypes    ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 INNER JOIN pg_proc      ON pg_proc.proname      = NodeTypes.NodeType
@@ -41,41 +38,51 @@ IF NOT FOUND THEN
 END IF;
 
 SELECT
-    array_agg(Primitive_Type(Nodes.NodeID) ORDER BY Edges.EdgeID),
+    array_agg(PrimitiveType ORDER BY EdgeID),
     string_agg(
-        quote_literal(Primitive_Value(Nodes.NodeID))
+        quote_literal(PrimitiveValue)
         ||'::'||
-        Primitive_Type(Nodes.NodeID)::text,
+        PrimitiveType::text,
         ','
-        ORDER BY Edges.EdgeID
+        ORDER BY EdgeID
     )
 INTO STRICT
     _ParentValueTypes,
     _ParentArgValues
-FROM Edges
-INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
-WHERE Edges.ChildNodeID = _NodeID
-AND Edges.DeathPhaseID IS NULL
-AND Nodes.DeathPhaseID IS NULL;
-
-IF EXISTS (
-    SELECT 1
+FROM (
+    SELECT
+        Edges.EdgeID,
+        COALESCE(Primitive_Type(Nodes.NodeID), 'node'::regtype) AS PrimitiveType,
+        CASE
+            WHEN Primitive_Type(Nodes.NodeID) IS NOT NULL
+            THEN Primitive_Value(Nodes.NodeID)
+            ELSE Nodes.NodeID::text
+        END AS PrimitiveValue
     FROM Edges
-    INNER JOIN Nodes ON Nodes.NodeID = Dereference(Edges.ParentNodeID)
+    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
     WHERE Edges.ChildNodeID = _NodeID
-    AND Edges.DeathPhaseID  IS NULL
-    AND Nodes.DeathPhaseID  IS NULL
-    AND Nodes.PrimitiveType IS NULL
-)
-AND _ZeroArgsFunctionExists IS NOT TRUE
-THEN
-    -- There are at least one parent node with no value/type yet,
-    -- or the parent is some valueless node such as a function,
-    -- in which case we can only compute a value for it if
-    -- this node we want to eval has a EVAL-function with empty arguments,
-    -- and since we don't have that we can't eval.
-    RETURN NULL;
-END IF;
+    AND Edges.DeathPhaseID IS NULL
+    AND Nodes.DeathPhaseID IS NULL
+) AS Arguments;
+
+-- IF EXISTS (
+--     SELECT 1
+--     FROM Edges
+--     INNER JOIN Nodes ON Nodes.NodeID = Dereference(Edges.ParentNodeID)
+--     WHERE Edges.ChildNodeID = _NodeID
+--     AND Edges.DeathPhaseID  IS NULL
+--     AND Nodes.DeathPhaseID  IS NULL
+--     AND Nodes.PrimitiveType IS NULL
+-- )
+-- AND _ZeroArgsFunctionExists IS NOT TRUE
+-- THEN
+--     -- There are at least one parent node with no value/type yet,
+--     -- or the parent is some valueless node such as a function,
+--     -- in which case we can only compute a value for it if
+--     -- this node we want to eval has a EVAL-function with empty arguments,
+--     -- and since we don't have that we can't eval.
+--     RETURN NULL;
+-- END IF;
 
 WITH X AS (
     SELECT

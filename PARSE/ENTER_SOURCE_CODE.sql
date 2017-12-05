@@ -30,8 +30,6 @@ _OK                         boolean;
 _AnyNodePattern    CONSTANT text := '<[A-Z_]+(\d+)>';
 _SingleNodePattern CONSTANT text := '^<[A-Z_]+(\d+)>$';
 _ProgramNodeType            text;
-_IllegalNodePattern         text;
-_IllegalNodePatterns        text[];
 _Children                   integer;
 _Parents                    integer;
 _Killed                     integer;
@@ -162,10 +160,9 @@ LOOP
             PERFORM Kill_Node(_NodeID);
             RETURN TRUE;
         ELSE
-            _IllegalNodePatterns  := NULL;
-            RAISE EXCEPTION E'Illegal node patterns (%): %',
-                array_length(_IllegalNodePatterns,1),
-                array_to_string(_IllegalNodePatterns, ', ')
+            RAISE EXCEPTION E'Illegal node pattern NodeID %: %',
+                _NodeID,
+                _Nodes
             USING HINT = 'Define a node type with a catch-all node pattern with NodeSeverity e.g. ERROR and a suitable name e.g. UNPARSEABLE';
         END IF;
     END IF;

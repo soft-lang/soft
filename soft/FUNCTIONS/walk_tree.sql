@@ -59,8 +59,6 @@ SET Iterations = Iterations + 1
 WHERE ProgramID = _ProgramID
 RETURNING TRUE INTO STRICT _OK;
 
-PERFORM Eval_Node(_NodeID);
-
 IF _Direction = 'ENTER' THEN
     SELECT
         Edges.ParentNodeID
@@ -92,6 +90,8 @@ END IF;
 IF _Direction IS DISTINCT FROM 'LEAVE' THEN
     RAISE EXCEPTION 'Unexpected Direction %', _Direction;
 END IF;
+
+PERFORM Eval_Node(_NodeID);
 
 PERFORM Leave_Node(_NodeID);
 

@@ -16,4 +16,5 @@ FROM (
     AND   NodeTypes.NodeType = 'DECLARATION'
 ) AS VariablesDeclaredAtSameLevel
 WHERE Is_Ancestor_To(_AncestorNodeID := NthParent, _DescendantNodeID := $1)
+AND   NthParent <> Left($1)
 $$;
