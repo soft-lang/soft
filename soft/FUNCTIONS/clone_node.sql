@@ -82,7 +82,6 @@ IN
     AND Edges.DeathPhaseID      IS NULL
     AND ParentNode.DeathPhaseID IS NULL
     AND ChildNode.DeathPhaseID  IS NULL
-    AND ChildNode.PrimitiveType IS NULL
     ORDER BY Edges.EdgeID
 LOOP
     IF _ParentNodeID = _OriginRootNodeID THEN

@@ -116,7 +116,7 @@ IF FOUND THEN
     END IF;
 
 ELSE
-    RAISE EXCEPTION 'Type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes;
+    RAISE EXCEPTION 'Type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes USING HINT = format('NodeID %s', _NodeID);
 END IF;
 
 PERFORM Set_Node_Value(_NodeID := _NodeID, _PrimitiveType := _ReturnType, _PrimitiveValue := _ReturnValue);
