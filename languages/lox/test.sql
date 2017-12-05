@@ -19,7 +19,7 @@ SELECT COUNT(*) FROM (
     AND   FilePath    NOT LIKE '%/test/scanning/%'
     AND   FilePath    NOT LIKE '%/test/expressions/%'
     AND   FilePath    !~ '/limit/(loop_too_large|too_many_constants|too_many_locals|too_many_upvalues|stack_overflow)\.lox$'
-    AND   FilePath NOT IN (
+    AND   FilePath IN (
         'github.com/munificent/craftinginterpreters/test/class/inherited_method.lox',
         'github.com/munificent/craftinginterpreters/test/inheritance/inherit_methods.lox',
         'github.com/munificent/craftinginterpreters/test/inheritance/set_fields_from_base_class.lox',

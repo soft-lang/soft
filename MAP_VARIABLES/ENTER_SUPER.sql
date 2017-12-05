@@ -1,0 +1,15 @@
+CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_SUPER"(_NodeID integer)
+RETURNS boolean
+LANGUAGE plpgsql
+AS $$
+DECLARE
+_OK boolean;
+BEGIN
+UPDATE Nodes SET
+    PrimitiveValue = NULL,
+    PrimitiveType  = NULL
+WHERE NodeID = _NodeID
+RETURNING TRUE INTO STRICT _OK;
+RETURN TRUE;
+END;
+$$;

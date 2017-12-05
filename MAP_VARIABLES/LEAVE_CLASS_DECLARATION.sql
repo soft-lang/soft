@@ -3,10 +3,12 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ParentNodeIDs integer[];
-_NameNodeID    integer;
-_MethodNodeID  integer;
-_OK            boolean;
+_ParentNodeIDs    integer[];
+_NameNodeID       integer;
+_MethodNodeID     integer;
+_SuperNameNodeID  integer;
+_SuperClassNodeID integer;
+_OK               boolean;
 BEGIN
 PERFORM Set_Walkable(_NodeID, FALSE);
 
@@ -16,7 +18,34 @@ FROM Edges
 WHERE ChildNodeID = _NodeID
 AND   DeathPhaseID IS NULL;
 
-IF _ParentNodeIDs IS NULL THEN
+_SuperNameNodeID := Parent(_NodeID, _NodeType := 'SUPER_CLASS');
+IF _SuperNameNodeID IS NOT NULL THEN
+    _ParentNodeIDs := array_remove(_ParentNodeIDs, _SuperNameNodeID);
+    _SuperClassNodeID := Find_Node(
+        _NodeID                    := _NodeID,
+        _Descend                   := TRUE,
+        _Strict                    := FALSE,
+        _Names                     := ARRAY[Node_Name(_SuperNameNodeID)],
+        _MustBeDeclaredAfter       := TRUE,
+        _SelectLastIfMultipleMatch := TRUE,
+        _Path                      := '<- DECLARATION <- VARIABLE[1] -> DECLARATION <- CLASS_DECLARATION'
+    );
+    IF _SuperClassNodeID IS NOT NULL THEN
+        PERFORM New_Edge(
+            _ParentNodeID := _SuperClassNodeID,
+            _ChildNodeID  := _SuperNameNodeID
+        );
+        PERFORM Set_Walkable(_SuperNameNodeID, FALSE);
+    ELSE
+        PERFORM Log(
+            _NodeID   := _NodeID,
+            _Severity := 'ERROR',
+            _Message  := format('Undefined super class %s', Colorize(Node_Name(_SuperNameNodeID), 'RED'))
+        );
+    END IF;
+END IF;
+
+IF (array_length(_ParentNodeIDs,1) > 0) IS NOT TRUE THEN
     -- Empty class
     RETURN TRUE;
 END IF;

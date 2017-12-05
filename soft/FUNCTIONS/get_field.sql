@@ -3,10 +3,12 @@ RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ClassNodeID   integer;
-_NodeType      text;
-_ParentNodeIDs integer[];
-_FieldNodeID   integer;
+_ClassNodeID      integer;
+_NodeType         text;
+_ParentNodeIDs    integer[];
+_FieldNodeID      integer;
+_SuperClassNodeID integer;
+_SearchNodeID     integer;
 BEGIN
 
 _NodeType := Node_Type(_NodeID);
@@ -21,16 +23,26 @@ IF NULLIF(_Name,'') IS NULL THEN
     RAISE EXCEPTION 'Field cannot be NULL nor empty string. NodeID % Name %', _NodeID, _Name;
 END IF;
 
-_FieldNodeID := Find_Node(
-    _NodeID  := _NodeID,
-    _Descend := FALSE,
-    _Strict  := FALSE,
-    _Names   := ARRAY[_Name],
-    _Paths   := ARRAY[
-        '<- FUNCTION_DECLARATION[1]',
-        '<- VARIABLE[1]'
-    ]
-);
+_SearchNodeID := _NodeID;
+LOOP
+    _FieldNodeID := Find_Node(
+        _NodeID  := _SearchNodeID,
+        _Descend := FALSE,
+        _Strict  := FALSE,
+        _Names   := ARRAY[_Name],
+        _Paths   := ARRAY[
+            '<- FUNCTION_DECLARATION[1]',
+            '<- VARIABLE[1]'
+        ]
+    );
+    IF _FieldNodeID IS NOT NULL THEN
+        EXIT;
+    END IF;
+    _SearchNodeID := Parent(Parent(_SearchNodeID, 'SUPER_CLASS'));
+    IF _SearchNodeID IS NULL THEN
+        EXIT;
+    END IF;
+END LOOP;
 
 IF _FieldNodeID IS NOT NULL THEN
     PERFORM Log(
