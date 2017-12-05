@@ -1715,7 +1715,7 @@ against all literal NodeTypes Literal or LiteralPattern.
 ### EXTRACT_TESTS
 
 ```sql
-\ir EXTRACT_TESTS/ENTER_TEST_OUTPUT_EXPECT.sql
+\ir EXTRACT_TESTS/ENTER_TEST_EXPECTED_STDOUT.sql
 ```
 
 For languages where tests are inlined in the code
@@ -1732,9 +1732,7 @@ next phase `DISCARD`.
 ```sql
 \ir DISCARD/ENTER_WHITE_SPACE.sql
 \ir DISCARD/ENTER_COMMENT.sql
-\ir DISCARD/ENTER_TEST_OUTPUT_EXPECT.sql
-\ir DISCARD/ENTER_TEST_ERROR_EXPECT.sql
-\ir DISCARD/ENTER_TEST_ERROR_LINE_EXPECT.sql
+\ir DISCARD/ENTER_TEST_EXPECTED_STDOUT.sql
 ```
 
 The `DISCARD` phase eliminates `WHITE_SPACE` nodes.

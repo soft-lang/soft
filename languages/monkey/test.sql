@@ -173,7 +173,7 @@ SELECT New_Test(
     _Language      := :'language',
     _Program       := 'evaluator_test.go:TestErrorHandling:'||N,
     _SourceCode    := TestErrorHandling.T[N][1],
-    _ExpectedError := TestErrorHandling.T[N][2]
+    _ExpectedError := ARRAY[TestErrorHandling.T[N][2]]
 ) FROM (
     SELECT ARRAY[
         [
@@ -349,7 +349,7 @@ SELECT New_Test(
     _Language      := :'language',
     _Program       := 'evaluator_test.go:TestBuiltinFunctions2:'||N,
     _SourceCode    := TestBuiltinFunctions.T[N][1],
-    _ExpectedError := TestBuiltinFunctions.T[N][2]
+    _ExpectedError := ARRAY[TestBuiltinFunctions.T[N][2]]
 ) FROM (
     SELECT ARRAY[
         ['len(1)',            'Cannot compute length of type integer'],

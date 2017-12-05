@@ -6,7 +6,7 @@ _ExpectedType   regtype   DEFAULT NULL,
 _ExpectedValue  text      DEFAULT NULL,
 _ExpectedTypes  regtype[] DEFAULT NULL,
 _ExpectedValues text[]    DEFAULT NULL,
-_ExpectedError  text      DEFAULT NULL,
+_ExpectedError  text[]    DEFAULT NULL,
 _ExpectedLog    text      DEFAULT NULL,
 _ExpectedSTDOUT text[]    DEFAULT NULL,
 _LogSeverity    severity  DEFAULT 'NOTICE'

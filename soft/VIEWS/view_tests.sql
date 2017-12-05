@@ -36,7 +36,7 @@ CASE
         END
     WHEN Programs.Error IS NOT NULL THEN
         CASE
-            WHEN Tests.ExpectedError = Programs.Error THEN TRUE
+            WHEN Tests.ExpectedError[1] = Programs.Error THEN TRUE
             ELSE FALSE
         END
 END AS OK,

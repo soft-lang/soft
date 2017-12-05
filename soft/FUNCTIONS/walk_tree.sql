@@ -14,26 +14,11 @@ _EdgeID       integer;
 _Count        bigint;
 _Direction    direction;
 _SaveDOTIR    boolean;
-_Phase        text;
+_CurrentPhase text;
+_LogPhase     text;
 _Severity     severity;
 _OK           boolean;
 BEGIN
-
-SELECT
-    Phases.Phase,
-    Log.Severity
-INTO
-    _Phase,
-    _Severity
-FROM Log
-INNER JOIN Phases ON Phases.PhaseID = Log.PhaseID
-WHERE Log.ProgramID  = _ProgramID
-AND   Log.Severity  >= Phases.StopSeverity
-LIMIT 1;
-IF FOUND THEN
-    PERFORM Notice(Colorize(format('Stopping due to %s during %s', _Severity, _Phase), 'RED'));
-    RETURN FALSE;
-END IF;
 
 IF (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) IS NULL THEN
     RAISE NOTICE 'No program node for ProgramID %, exiting', _ProgramID;
@@ -47,6 +32,26 @@ INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
 INNER JOIN Nodes  ON Nodes.NodeID   = Programs.NodeID
 WHERE Programs.ProgramID = _ProgramID
 FOR UPDATE OF Programs;
+
+SELECT
+    CurrentPhase.Phase,
+    LogPhase.Phase,
+    Log.Severity
+INTO
+    _CurrentPhase,
+    _LogPhase,
+    _Severity
+FROM Phases AS CurrentPhase
+CROSS JOIN Log
+INNER JOIN Phases AS LogPhase ON LogPhase.PhaseID = Log.PhaseID
+WHERE CurrentPhase.PhaseID = _PhaseID
+AND   Log.ProgramID        = _ProgramID
+AND   Log.Severity        >= CurrentPhase.StopSeverity
+LIMIT 1;
+IF FOUND THEN
+    PERFORM Notice(Colorize(format('Stopping at %s due to %s during %s', _CurrentPhase, _Severity, _LogPhase), 'RED'));
+    RETURN FALSE;
+END IF;
 
 PERFORM Log(
     _NodeID    := _NodeID,

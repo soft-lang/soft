@@ -22,8 +22,8 @@ SELECT New_Language(
     _UndefinedNonGlobalVariables := 'WARNING'
 );
 
-SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE');
-SELECT New_Phase(_Language := :'language', _Phase := 'EXTRACT_TESTS');
+SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE',      _StopSeverity := 'FATAL');
+SELECT New_Phase(_Language := :'language', _Phase := 'EXTRACT_TESTS', _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD');
 SELECT New_Phase(_Language := :'language', _Phase := 'PARSE');
 SELECT New_Phase(_Language := :'language', _Phase := 'VALIDATE');
