@@ -25,12 +25,12 @@ CASE
                 ) = Tests.ExpectedLog
             )
             THEN TRUE
-            WHEN Tests.ExpectedSTDOUT IS NOT NULL AND Tests.ExpectedSTDOUT = COALESCE((
-                SELECT array_agg(Log.Message ORDER BY Log.LogID)
+            WHEN Tests.ExpectedSTDOUT IS NOT NULL AND array_to_string(Tests.ExpectedSTDOUT,E'\n') = COALESCE((
+                SELECT string_agg(Log.Message, E'\n' ORDER BY Log.LogID)
                 FROM Log
                 WHERE Log.ProgramID = Tests.ProgramID
                 AND   Log.Severity  = 'STDOUT'
-            ),ARRAY[NULL]::text[])
+            ),NULL::text)
             THEN TRUE
             ELSE FALSE
         END

@@ -100,9 +100,10 @@ IF _VariableNodeID IS NULL THEN
             );
             RETURN TRUE;
         END IF;
+
         PERFORM Log(
             _NodeID   := _NodeID,
-            _Severity := 'ERROR',
+            _Severity := CASE WHEN Global(_NodeID) THEN (Language(_NodeID)).UndefinedNonGlobalVariables ELSE 'ERROR' END,
             _Message  := format('Undefined variable %s', Colorize(_Name, 'RED'))
         );
         RETURN FALSE;

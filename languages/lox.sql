@@ -8,17 +8,18 @@ BEGIN;
 TRUNCATE TABLE Languages CASCADE;
 
 SELECT New_Language(
-    _Language              := :'language',
-    _VariableBinding       := 'CAPTURE_BY_REFERENCE',
-    _ImplicitReturnValues  := TRUE,
-    _StatementReturnValues := FALSE,
-    _ZeroBasedNumbering    := TRUE,
-    _TruthyNonBooleans     := TRUE,
-    _NilIfArrayOutOfBounds := TRUE,
-    _NilIfMissingHashKey   := TRUE,
-    _ClassInitializerName  := 'init',
-    _StripZeroes           := TRUE,
-    _NegativeZeroes        := TRUE
+    _Language                    := :'language',
+    _VariableBinding             := 'CAPTURE_BY_REFERENCE',
+    _ImplicitReturnValues        := TRUE,
+    _StatementReturnValues       := FALSE,
+    _ZeroBasedNumbering          := TRUE,
+    _TruthyNonBooleans           := TRUE,
+    _NilIfArrayOutOfBounds       := TRUE,
+    _NilIfMissingHashKey         := TRUE,
+    _ClassInitializerName        := 'init',
+    _StripZeroes                 := TRUE,
+    _NegativeZeroes              := TRUE,
+    _UndefinedNonGlobalVariables := 'WARNING'
 );
 
 SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE');

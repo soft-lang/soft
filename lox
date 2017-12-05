@@ -3,8 +3,8 @@
 # while true ; do PGUSER=pgcronjob PGDATABASE=$USER ./pgcronjob ; psql -X -f install.sql ; done
 killall perl # to kill pgcronjob
 sleep 1
-./install
-cp languages/lox/node_types.csv node_types.csv
-psql -q -X -f languages/lox.sql
-mv node_types.csv languages/lox/node_types.csv
+./install &&
+cp languages/lox/node_types.csv node_types.csv &&
+psql -q -X -f languages/lox.sql &&
+mv node_types.csv languages/lox/node_types.csv &&
 while true ; do psql -c "SELECT OK, COUNT(*), ARRAY_AGG(Program ORDER BY Program) FROM View_Tests GROUP BY OK;"; psql -c "SELECT * FROM View_Tests WHERE NOT OK;"; sleep 1; done
