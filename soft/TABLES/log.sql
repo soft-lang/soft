@@ -7,5 +7,6 @@ Severity             severity    NOT NULL,
 Message              text        NOT NULL,
 Logtime              timestamptz NOT NULL DEFAULT now(),
 DOTIRID              integer              REFERENCES DOTIR(DOTIRID),
+ErrorInfo            hstore,
 PRIMARY KEY (LogID)
 );

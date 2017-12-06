@@ -4,6 +4,71 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := :'language',
+    _Program       := 'evaluator_test.go:TestErrorHandling:'||N,
+    _SourceCode    := TestErrorHandling.T[N][1],
+    _ExpectedError := ARRAY[TestErrorHandling.T[N][2]]
+) FROM (
+    SELECT ARRAY[
+        [
+            '5 + true;',
+            'type mismatch: INTEGER + BOOLEAN'
+        ],
+        [
+            '5 + true; 5;',
+            'type mismatch: INTEGER + BOOLEAN'
+        ],
+        [
+            '-true',
+            'unknown operator: -BOOLEAN'
+        ],
+        [
+            'true + false;',
+            'unknown operator: BOOLEAN + BOOLEAN'
+        ],
+        [
+            'true + false + true + false;',
+            'unknown operator: BOOLEAN + BOOLEAN'
+        ],
+        [
+            '5; true + false; 5',
+            'unknown operator: BOOLEAN + BOOLEAN'
+        ],
+        [
+            '"Hello" - "World"',
+            'unknown operator: STRING - STRING'
+        ],
+        [
+            'if (10 > 1) { true + false; }',
+            'unknown operator: BOOLEAN + BOOLEAN'
+        ],
+        [
+            'if (10 > 1) {
+               if (10 > 1) {
+                 return true + false;
+               }
+             
+               return 1;
+             }',
+            'unknown operator: BOOLEAN + BOOLEAN'
+        ],
+        [
+            '{"name": "Monkey"}[fn(x) { x }];',
+            'unusable as hash key: FUNCTION'
+        ],
+        [
+            '999[1]',
+            'index operator not supported: INTEGER'
+        ]
+    ] AS T
+) AS TestErrorHandling
+CROSS JOIN generate_series(1,array_length(TestErrorHandling.T,1)) AS N;
+
+
+/*
+
+
+SELECT New_Test(
+    _Language      := :'language',
     _Program       := 'fibonacci1',
     _SourceCode    := $$
         let fibonacci = fn(n,i,a,b) {
@@ -537,3 +602,11 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '120'
 );
+
+*/
+
+SELECT COUNT(*) FROM (
+    SELECT ProgramID, Run(Language, Program)
+    FROM View_Programs
+    WHERE Language = :'language'
+) AS Tests;

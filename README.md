@@ -23,7 +23,7 @@ BEGIN;
 
 SET client_encoding TO 'UTF8';
 
-SET search_path TO soft;
+SET search_path TO soft, public, pg_temp;
 
 ```
 
@@ -256,6 +256,45 @@ simple arithmetic expressions using `+ - / * ( )`
 Note that the NodeTypes for the various arithmetic tokens
 don't have any explicit precedence, but their arithmetic *operators* do,
 i.e. the `ADD` operator has it, but not the `PLUS` token.
+
+## ERROR TYPES
+
+```sql
+\ir soft/TABLES/errortypes.sql
+\ir soft/FUNCTIONS/new_error_type.sql
+\ir soft/FUNCTIONS/interpolate.sql
+\ir soft/FUNCTIONS/error.sql
+```
+
+To be able to run the official test suites for languages,
+it is necessary to generate the exact same warning and error messages
+as the test suites.
+
+When an certain type of error occurs in a program, different languages
+might handle it completely different. Some might ignore it completely,
+intentionally or because the official implementation of the language
+cannot detect the type of error. Since we want to mimic the official
+implementation exactly, we need a way to specify what to do for each
+type of error, and how to represent it.
+
+Each type of error has been assigned a unique `ErrorType`.
+When an error occurs, all the bits and pieces to create a customized
+text message are included in a `hstore` named `ErrorInfo`.
+
+If the message contains words identical to any of the keys in ErrorInfo,
+you need to speicfy a single character `Sigil` and prefix the keys
+with it in the message, so that only those placeholders will be replaced
+with the keys in ErrorInfo.
+
+To specify you want the error info key to be written in CAPS, simply
+write the keys in CAPS. Or, if you want it in lower case, simply
+write it in lower case. If you want to keep the original text as it
+is, then write the key in CamelCase. This works, because keys are
+guaranteed to never be a single character, only CAPS, nor only lower case.
+
+Any error types not defined in `error_types.csv` for the language,
+will result in an `ERROR` of the given error type, with the error info,
+but without any error message, except the `ErrorType`.
 
 ## GRAMMAR
 
@@ -998,6 +1037,16 @@ Let's us colorize the input text.
 
 ```sql
 SELECT Notice(Colorize(_Text := 'Hello green world!', _Color := 'GREEN'));
+```
+
+```sql
+\ir soft/FUNCTIONS/strip_ansi.sql
+```
+
+Strips the ANSI escape codes from a text string.
+
+```sql
+SELECT Strip_ANSI(Colorize(_Text := 'Hello green world!', _Color := 'GREEN'));
 ```
 
 ```sql

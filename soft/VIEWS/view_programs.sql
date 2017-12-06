@@ -6,8 +6,7 @@ Programs.Program,
 Phases.Phase,
 Programs.LogSeverity,
 Node(Nodes.NodeID),
-Programs.Direction,
-Programs.Error
+Programs.Direction
 FROM Programs
 INNER JOIN Languages       ON Languages.LanguageID = Programs.LanguageID
 INNER JOIN Phases          ON Phases.PhaseID       = Programs.PhaseID

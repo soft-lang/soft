@@ -1,0 +1,3 @@
+"errortype","severity","message","sigil"
+"INFIX_OPERATOR_DOES_NOT_EXIST","ERROR","unknown operator: $LEFTOPERANDTYPE $OperatorSymbol $RIGHTOPERANDTYPE","$"
+"PREFIX_OPERATOR_DOES_NOT_EXIST","ERROR","unknown operator: $OperatorSymbol$OPERANDTYPE","$"

@@ -7,47 +7,45 @@ Programs.Program,
 Phases.Phase,
 CASE
     WHEN Programs.DeathTime IS NULL THEN NULL
-    WHEN Programs.Error IS NULL THEN
-        CASE
-            WHEN Tests.ExpectedType  = Programs.ResultType  AND Tests.ExpectedValue  = Programs.ResultValue  THEN TRUE
-            WHEN Tests.ExpectedTypes = Programs.ResultTypes AND Tests.ExpectedValues = Programs.ResultValues THEN TRUE
-            WHEN Tests.ExpectedLog IS NOT NULL AND EXISTS (
-                SELECT 1
-                FROM Log
-                INNER JOIN Phases    ON Phases.PhaseID       = Log.PhaseID
-                INNER JOIN Nodes     ON Nodes.NodeID         = Log.NodeID
-                INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-                WHERE Log.ProgramID = Tests.ProgramID
-                AND format('%s %s %s',
-                    Phases.Phase,
-                    Log.Severity::text,
-                    NodeTypes.NodeType
-                ) = Tests.ExpectedLog
-            )
-            THEN TRUE
-            WHEN Tests.ExpectedSTDOUT IS NOT NULL AND array_to_string(Tests.ExpectedSTDOUT,E'\n') = COALESCE((
-                SELECT string_agg(Log.Message, E'\n' ORDER BY Log.LogID)
-                FROM Log
-                WHERE Log.ProgramID = Tests.ProgramID
-                AND   Log.Severity  = 'STDOUT'
-            ),NULL::text)
-            THEN TRUE
-            ELSE FALSE
-        END
-    WHEN Programs.Error IS NOT NULL THEN
-        CASE
-            WHEN Tests.ExpectedError[1] = Programs.Error THEN TRUE
-            ELSE FALSE
-        END
+    WHEN Tests.ExpectedType  = Programs.ResultType  AND Tests.ExpectedValue  = Programs.ResultValue  THEN TRUE
+    WHEN Tests.ExpectedTypes = Programs.ResultTypes AND Tests.ExpectedValues = Programs.ResultValues THEN TRUE
+    WHEN Tests.ExpectedLog IS NOT NULL AND EXISTS (
+        SELECT 1
+        FROM Log
+        INNER JOIN Phases    ON Phases.PhaseID       = Log.PhaseID
+        INNER JOIN Nodes     ON Nodes.NodeID         = Log.NodeID
+        INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
+        WHERE Log.ProgramID = Tests.ProgramID
+        AND format('%s %s %s',
+            Phases.Phase,
+            Log.Severity::text,
+            NodeTypes.NodeType
+        ) = Tests.ExpectedLog
+    )
+    THEN TRUE
+    WHEN Tests.ExpectedSTDOUT IS NOT NULL AND array_to_string(Tests.ExpectedSTDOUT,E'\n') = (
+        SELECT string_agg(Log.Message, E'\n' ORDER BY Log.LogID)
+        FROM Log
+        WHERE Log.ProgramID = Tests.ProgramID
+        AND   Log.Severity  = 'STDOUT'
+    )
+    THEN TRUE
+    WHEN Tests.ExpectedError IS NOT NULL AND array_to_string(Tests.ExpectedError,E'\n') = (
+        SELECT string_agg(Log.Message, E'\n' ORDER BY Log.LogID)
+        FROM Log
+        WHERE Log.ProgramID = Tests.ProgramID
+        AND   Log.Severity  = 'ERROR'
+    )
+    THEN TRUE
+    ELSE FALSE
 END AS OK,
 (
-    SELECT regexp_replace(Log.Message,'\x1b\[\d+m','','g')
+    SELECT Strip_ANSI(Log.Message)
     FROM Log
     WHERE Log.ProgramID = Programs.ProgramID
     ORDER BY Log.LogID DESC
     LIMIT 1
-) AS Log,
-Programs.Error
+) AS LastLog
 FROM Tests
 INNER JOIN Programs        ON Programs.ProgramID   = Tests.ProgramID
 INNER JOIN Languages       ON Languages.LanguageID = Programs.LanguageID

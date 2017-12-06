@@ -13,10 +13,10 @@ SELECT COUNT(*) FROM (
         _FileSuffix := '\.lox$'
     )
     WHERE TRUE
---    AND   FileContent LIKE '%// expect:%'
---    AND   FileContent NOT LIKE '%// expect runtime error:%'
---    AND   FileContent NOT LIKE '%// Error%'
---    AND   FileContent NOT LIKE '%// [line '
+--  AND   FileContent LIKE '%// expect:%'
+    AND  (FileContent NOT LIKE '%// expect runtime error:%'
+       OR FileContent NOT LIKE '%// Error%'
+       OR FileContent NOT LIKE '%// [line ')
     AND   FilePath    NOT LIKE '%/test/scanning/%'
     AND   FilePath    NOT LIKE '%/test/expressions/%'
     AND   FilePath    !~ '/limit/(loop_too_large|too_many_constants|too_many_locals|too_many_upvalues|stack_overflow)\.lox$'

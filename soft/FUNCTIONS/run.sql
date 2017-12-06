@@ -57,7 +57,7 @@ $$;
 CREATE OR REPLACE FUNCTION Run(_ProcessID integer)
 RETURNS batchjobstate
 SECURITY DEFINER
-SET search_path TO soft, pg_temp
+SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -69,7 +69,9 @@ _ResultType      regtype;
 _ResultValue     text;
 _ResultTypes     regtype[];
 _ResultValues    text[];
-_Error           text;
+_ErrorType       text;
+_ErrorInfo       hstore;
+_Severity        severity;
 _RunAgain        boolean;
 _ApplicationName text;
 _Started         boolean;
@@ -103,14 +105,62 @@ END IF;
 _RunAgain := FALSE;
 BEGIN
     _RunAgain := Walk_Tree(_ProgramID);
-EXCEPTION WHEN OTHERS THEN
-    _Error := SQLERRM;
-    RAISE WARNING 'Walk_Tree(_ProgramID := %) died with error: %', _ProgramID, Colorize(_Error, 'RED');
+EXCEPTION
+WHEN undefined_function THEN
+    RAISE WARNING 'undefined_function: SQLSTATE % SQLERRM %', SQLSTATE, SQLERRM;
+    -- These regexes will have to be made more advanced
+    -- if types with white-space are to be supported.
+    IF SQLERRM ~ '^operator does not exist: [^ ]+ [^ ]+$' THEN
+        RAISE WARNING 'PREFIX';
+        _ErrorType := 'PREFIX_OPERATOR_DOES_NOT_EXIST';
+        _ErrorInfo := hstore(ARRAY[
+            ['OperatorSymbol', substring(SQLERRM from '^operator does not exist: ([^ ]+) [^ ]+$')],
+            ['OperandType',    substring(SQLERRM from '^operator does not exist: [^ ]+ ([^ ]+)$')]
+        ]);
+    ELSIF SQLERRM ~ '^operator does not exist: [^ ]+ [^ ]+ [^ ]+$' THEN
+        RAISE WARNING 'INFIX';
+        _ErrorType := 'INFIX_OPERATOR_DOES_NOT_EXIST';
+        _ErrorInfo := hstore(ARRAY[
+            ['LeftOperandType',  substring(SQLERRM from '^operator does not exist: ([^ ]+) [^ ]+ [^ ]+$')],
+            ['OperatorSymbol',   substring(SQLERRM from '^operator does not exist: [^ ]+ ([^ ]+) [^ ]+$')],
+            ['RightOperandType', substring(SQLERRM from '^operator does not exist: [^ ]+ [^ ]+ ([^ ]+)$')]
+        ]);
+    ELSE
+        _ErrorType := 'OTHERS';
+    END IF;
+    RAISE WARNING 'SQLERRM: %', SQLERRM;
+WHEN OTHERS THEN
+    RAISE WARNING 'OTHERS: SQLSTATE % SQLERRM %', SQLSTATE, SQLERRM;
+    _ErrorType := 'OTHERS';
 END;
 
+IF _ErrorType = 'OTHERS' THEN
+    _ErrorInfo := hstore(ARRAY[
+        ['SQLSTATE', SQLSTATE],
+        ['SQLERRM',  SQLERRM]
+    ]);
+END IF;
+
+RAISE NOTICE 'ErrorType % RunAgain %', _ErrorType, _RunAgain;
+
 IF NOT _RunAgain THEN
-    IF _Error IS NULL THEN
-        _ResultNodeID := Dereference((SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID));
+    SELECT Dereference(NodeID)
+    INTO STRICT _ResultNodeID
+    FROM Programs
+    WHERE ProgramID = _ProgramID;
+    IF _ErrorType IS NOT NULL THEN
+
+        RAISE WARNING 'ErrorType % ErrorInfo %', _ErrorType, _ErrorInfo;
+
+        IF _ResultNodeID IS NULL THEN
+            RAISE EXCEPTION 'Unable to log error "%" for "%" (ProgramID %)', Colorize(_ErrorType || _ErrorInfo::text, 'RED'), Colorize(_Program), _ProgramID;
+        END IF;
+        PERFORM Error(
+            _NodeID    := _ResultNodeID,
+            _ErrorType := _ErrorType,
+            _ErrorInfo := _ErrorInfo
+        );
+    ELSE
         SELECT     PrimitiveType, PrimitiveValue
         INTO STRICT  _ResultType,   _ResultValue
         FROM Nodes
@@ -135,8 +185,7 @@ IF NOT _RunAgain THEN
         ResultType   = _ResultType,
         ResultValue  = _ResultValue,
         ResultTypes  = _ResultTypes,
-        ResultValues = _ResultValues,
-        Error        = _Error
+        ResultValues = _ResultValues
     WHERE ProgramID = _ProgramID
     RETURNING TRUE INTO STRICT _OK;
 END IF;

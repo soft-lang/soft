@@ -36,6 +36,8 @@ SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'push',  _
 SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'last',  _ImplementationFunction := 'LAST');
 SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'puts',  _ImplementationFunction := 'PUTS');
 
+-- Import NodeTypes:
+
 CREATE TEMP TABLE ImportNodeTypes (
 RowID          serial NOT NULL,
 NodeType       text   NOT NULL,
@@ -85,6 +87,33 @@ DROP TABLE ImportNodeTypes;
 
 -- Normalize file since external editor might use quotes differently:
 \COPY (SELECT * FROM View_Node_Types) TO node_types.csv WITH CSV HEADER QUOTE '"';
+
+-- Import ErrorTypes:
+
+CREATE TEMP TABLE ImportErrorTypes (
+RowID          serial NOT NULL,
+ErrorType      text   NOT NULL,
+Severity       text   NOT NULL,
+Message        text   NOT NULL,
+Sigil          char,
+PRIMARY KEY (RowID),
+UNIQUE (ErrorType)
+);
+
+\COPY ImportErrorTypes (ErrorType, Severity, Message, Sigil) FROM error_types.csv WITH CSV HEADER QUOTE '"';
+
+SELECT COUNT(*) FROM (
+    SELECT New_Error_Type(
+        _Language       := :'language',
+        _ErrorType      := NULLIF(ErrorType,''),
+        _Severity       := NULLIF(Severity,'')::severity,
+        _Message        := NULLIF(Message,''),
+        _Sigil          := NULLIF(Sigil,'')
+    ) FROM (SELECT * FROM ImportErrorTypes ORDER BY RowID) AS X
+) AS Y;
+
+DROP TABLE ImportErrorTypes;
+
 
 \ir truthy-non-booleans.sql
 
