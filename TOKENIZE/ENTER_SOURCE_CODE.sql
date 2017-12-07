@@ -182,9 +182,16 @@ LOOP
         _ChildNodeID  := _NodeID
     );
 
+    IF _NodeSeverity IS NOT NULL THEN
+        PERFORM Error(
+            _NodeID    := _TokenNodeID,
+            _ErrorType := _NodeType
+        );
+    END IF;
+
     PERFORM Log(
         _NodeID   := _TokenNodeID,
-        _Severity := COALESCE(_NodeSeverity, 'DEBUG5'),
+        _Severity := 'DEBUG5',
         _Message  := format('%s <- %s',
             Colorize(Node(_TokenNodeID, _Short := TRUE), 'CYAN'),
             Colorize(One_Line(_Literal), 'MAGENTA')

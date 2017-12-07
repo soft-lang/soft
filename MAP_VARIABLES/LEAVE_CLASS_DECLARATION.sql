@@ -18,31 +18,33 @@ FROM Edges
 WHERE ChildNodeID = _NodeID
 AND   DeathPhaseID IS NULL;
 
-_SuperNameNodeID := Parent(_NodeID, _NodeType := 'SUPER_CLASS');
+_SuperNameNodeID := Parent(_NodeID, _NodeType := 'SUPERCLASS');
 IF _SuperNameNodeID IS NOT NULL THEN
     _ParentNodeIDs := array_remove(_ParentNodeIDs, _SuperNameNodeID);
     _SuperClassNodeID := Find_Node(
-        _NodeID                    := _NodeID,
-        _Descend                   := TRUE,
-        _Strict                    := FALSE,
-        _Names                     := ARRAY[Node_Name(_SuperNameNodeID)],
-        _MustBeDeclaredAfter       := TRUE,
-        _SelectLastIfMultipleMatch := TRUE,
-        _Path                      := '<- DECLARATION <- VARIABLE[1] -> DECLARATION <- CLASS_DECLARATION'
+        _NodeID := Find_Node(
+            _NodeID                    := _NodeID,
+            _Descend                   := TRUE,
+            _Strict                    := TRUE,
+            _Names                     := ARRAY[Node_Name(_SuperNameNodeID)],
+            _MustBeDeclaredAfter       := TRUE,
+            _SelectLastIfMultipleMatch := TRUE,
+            _Path                      := '<- DECLARATION <- VARIABLE[1]',
+            _ErrorType                 := 'UNDEFINED_SUPERCLASS'
+        ),
+        _Descend   := FALSE,
+        _Strict    := TRUE,
+        _Path      := '-> DECLARATION <- CLASS_DECLARATION',
+        _ErrorType := 'SUPERCLASS_MUST_BE_CLASS'
     );
-    IF _SuperClassNodeID IS NOT NULL THEN
-        PERFORM New_Edge(
-            _ParentNodeID := _SuperClassNodeID,
-            _ChildNodeID  := _SuperNameNodeID
-        );
-        PERFORM Set_Walkable(_SuperNameNodeID, FALSE);
-    ELSE
-        PERFORM Log(
-            _NodeID   := _NodeID,
-            _Severity := 'ERROR',
-            _Message  := format('Undefined super class %s', Colorize(Node_Name(_SuperNameNodeID), 'RED'))
-        );
+    IF _SuperClassNodeID IS NULL THEN
+        RETURN NULL;
     END IF;
+    PERFORM New_Edge(
+        _ParentNodeID := _SuperClassNodeID,
+        _ChildNodeID  := _SuperNameNodeID
+    );
+    PERFORM Set_Walkable(_SuperNameNodeID, FALSE);
 END IF;
 
 IF (array_length(_ParentNodeIDs,1) > 0) IS NOT TRUE THEN

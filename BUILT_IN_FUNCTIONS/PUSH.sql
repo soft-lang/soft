@@ -10,30 +10,26 @@ _PushNodeID        integer;
 _OK                boolean;
 BEGIN
 
-SELECT array_agg(ParentNodeID ORDER BY EdgeID)
-INTO STRICT _ParentNodes
-FROM Edges
-WHERE ChildNodeID = _NodeID
-AND DeathPhaseID IS NULL;
+_ParentNodes := Call_Args(_NodeID);
 
-IF array_length(_ParentNodes, 1) IS DISTINCT FROM 3 THEN
+IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
     RAISE EXCEPTION 'push() takes exactly two arguments';
 END IF;
 
-IF Node_Type(Dereference(_ParentNodes[2])) <> 'ARRAY' THEN
+IF Node_Type(Dereference(_ParentNodes[1])) <> 'ARRAY' THEN
     PERFORM Error(
         _NodeID    := _NodeID,
         _ErrorType := 'UNEXPECTED_ARGUMENT',
         _ErrorInfo := hstore(ARRAY[
             ['FunctionName', BuiltIn(_NodeID, 'PUSH')],
             ['Want',         Translate(_NodeID, 'ARRAY')],
-            ['Got',          Translate(_NodeID, Node_Type(Dereference(_ParentNodes[2])))]
+            ['Got',          Translate(_NodeID, Node_Type(Dereference(_ParentNodes[1])))]
         ])
     );
 END IF;
 
-_ClonedNodeID := Clone_Node(Dereference(_ParentNodes[2]));
-_PushNodeID   := Clone_Node(Dereference(_ParentNodes[3]));
+_ClonedNodeID := Clone_Node(Dereference(_ParentNodes[1]));
+_PushNodeID   := Clone_Node(Dereference(_ParentNodes[2]));
 
 PERFORM New_Edge(
     _ParentNodeID := _PushNodeID,

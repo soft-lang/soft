@@ -9,7 +9,6 @@ _NilIfArrayOutOfBounds       boolean,
 _NilIfMissingHashKey         boolean,
 _StripZeroes                 boolean,
 _NegativeZeroes              boolean,
-_UndefinedNonGlobalVariables severity,
 _ClassInitializerName        text      DEFAULT NULL,
 _Translation                 hstore    DEFAULT NULL
 )
@@ -20,8 +19,8 @@ DECLARE
 _LanguageID integer;
 BEGIN
 
-INSERT INTO Languages ( Language,  ImplicitReturnValues,  StatementReturnValues,  VariableBinding,  ZeroBasedNumbering,  TruthyNonBooleans,  NilIfArrayOutOfBounds,  NilIfMissingHashKey,  StripZeroes,  NegativeZeroes,  UndefinedNonGlobalVariables,  ClassInitializerName,  Translation)
-VALUES                (_Language, _ImplicitReturnValues, _StatementReturnValues, _VariableBinding, _ZeroBasedNumbering, _TruthyNonBooleans, _NilIfArrayOutOfBounds, _NilIfMissingHashKey, _StripZeroes, _NegativeZeroes, _UndefinedNonGlobalVariables, _ClassInitializerName, _Translation)
+INSERT INTO Languages ( Language,  ImplicitReturnValues,  StatementReturnValues,  VariableBinding,  ZeroBasedNumbering,  TruthyNonBooleans,  NilIfArrayOutOfBounds,  NilIfMissingHashKey,  StripZeroes,  NegativeZeroes,  ClassInitializerName,  Translation)
+VALUES                (_Language, _ImplicitReturnValues, _StatementReturnValues, _VariableBinding, _ZeroBasedNumbering, _TruthyNonBooleans, _NilIfArrayOutOfBounds, _NilIfMissingHashKey, _StripZeroes, _NegativeZeroes, _ClassInitializerName, _Translation)
 RETURNING    LanguageID
 INTO STRICT _LanguageID;
 

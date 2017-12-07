@@ -23,6 +23,7 @@ _ParentNodeIDs          integer[];
 _InitNodeID             integer;
 _Name                   name;
 _ClassNodeID            integer;
+_ArgumentNodeIDs        integer[];
 _OK                     boolean;
 BEGIN
 
@@ -114,6 +115,19 @@ ELSIF _NodeType = 'CLASS_DECLARATION' THEN
             _Severity := 'DEBUG3',
             _Message  := format('Init call at %s to %s', Colorize(Node(_NodeID),'CYAN'), Colorize(Node(_InitNodeID),'MAGENTA'))
         );
+    ELSE
+        _ArgumentNodeIDs := Call_Args(_NodeID);
+        IF _ArgumentNodeIDs IS NOT NULL THEN
+            PERFORM Error(
+                _NodeID    := _NodeID,
+                _ErrorType := 'WRONG_NUMBER_OF_ARGUMENTS',
+                _ErrorInfo := hstore(ARRAY[
+                    ['Got', array_length(_ArgumentNodeIDs, 1)::text],
+                    ['Want', '0']
+                ])
+            );
+            RETURN;
+        END IF;
     END IF;
     PERFORM Set_Reference_Node(_ReferenceNodeID := _InstanceNodeID, _NodeID := _NodeID);
     RETURN;

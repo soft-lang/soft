@@ -9,25 +9,21 @@ _NodeType      text;
 _OK            boolean;
 BEGIN
 
-SELECT array_agg(ParentNodeID ORDER BY EdgeID)
-INTO STRICT _ParentNodes
-FROM Edges
-WHERE ChildNodeID = _NodeID
-AND DeathPhaseID IS NULL;
+_ParentNodes := Call_Args(_NodeID);
 
-IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
+IF array_length(_ParentNodes, 1) IS DISTINCT FROM 1 THEN
     PERFORM Error(
         _NodeID    := _NodeID,
         _ErrorType := 'WRONG_NUMBER_OF_ARGUMENTS',
         _ErrorInfo := hstore(ARRAY[
-            ['Got', (array_length(_ParentNodes, 1)-1)::text],
+            ['Got', array_length(_ParentNodes, 1)::text],
             ['Want', '1']
         ])
     );
     RETURN;
 END IF;
 
-_ParentNodeID := Dereference(_ParentNodes[2]);
+_ParentNodeID := Dereference(_ParentNodes[1]);
 
 SELECT NodeTypes.NodeType INTO STRICT _NodeType
 FROM Nodes

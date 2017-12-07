@@ -227,9 +227,16 @@ LOOP
         END IF;
     END LOOP;
 
+    IF _NodeSeverity IS NOT NULL THEN
+        PERFORM Error(
+            _NodeID    := _NodeID,
+            _ErrorType := _ChildNodeType
+        );
+    END IF;
+
     PERFORM Log(
         _NodeID   := _ChildNodeID,
-        _Severity := COALESCE(_NodeSeverity,'DEBUG2'),
+        _Severity := 'DEBUG2',
         _Message  := format('%s%s <- %s <- %s',
             Colorize(_ChildNodeString || CASE WHEN _GrowIntoNodeType IS NOT NULL THEN '('||_ChildNodeType||')' ELSE '' END, 'GREEN'),
             CASE WHEN _NodeSeverity = 'DEBUG5' THEN ' <- ' || Colorize(_NodePattern, 'CYAN') END,

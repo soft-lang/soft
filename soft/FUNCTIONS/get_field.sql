@@ -38,7 +38,7 @@ LOOP
     IF _FieldNodeID IS NOT NULL THEN
         EXIT;
     END IF;
-    _SearchNodeID := Parent(Parent(_SearchNodeID, 'SUPER_CLASS'));
+    _SearchNodeID := Parent(Parent(_SearchNodeID, 'SUPERCLASS'));
     IF _SearchNodeID IS NULL THEN
         EXIT;
     END IF;

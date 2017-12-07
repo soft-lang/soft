@@ -7,7 +7,7 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'NOTICE'
+        _LogSeverity := 'DEBUG5'
     ) FROM Get_Files(
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
@@ -22,8 +22,8 @@ SELECT COUNT(*) FROM (
     AND   FilePath    !~ '/limit/(loop_too_large|too_many_constants|too_many_locals|too_many_upvalues|stack_overflow)\.lox$'
 ) AS Tests;
 
-SELECT COUNT(*) FROM (
-    SELECT ProgramID, Run(Language, Program)
-    FROM View_Programs
-    WHERE Language = :'language'
-) AS Tests;
+-- SELECT COUNT(*) FROM (
+--     SELECT ProgramID, Run(Language, Program)
+--     FROM View_Programs
+--     WHERE Language = :'language'
+-- ) AS Tests;

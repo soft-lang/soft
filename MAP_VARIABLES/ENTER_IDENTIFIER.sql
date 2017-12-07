@@ -103,7 +103,7 @@ IF _VariableNodeID IS NULL THEN
 
         PERFORM Error(
             _NodeID    := _NodeID,
-            _ErrorType := 'UNDEFINED_VARIABLE',
+            _ErrorType := CASE WHEN Global(_NodeID) THEN 'UNDEFINED_GLOBAL_VARIABLE' ELSE 'UNDEFINED_VARIABLE' END,
             _ErrorInfo := hstore(ARRAY[
                 ['IdentifierName', _Name]
             ])

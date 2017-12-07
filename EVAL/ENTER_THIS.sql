@@ -7,10 +7,11 @@ BEGIN
 
 PERFORM Set_Reference_Node(
     _ReferenceNodeID := Find_Node(
-        _NodeID  := _NodeID,
-        _Descend := TRUE,
-        _Strict  := TRUE,
-        _Path    := '-> CLASS_DECLARATION'
+        _NodeID    := _NodeID,
+        _Descend   := TRUE,
+        _Strict    := TRUE,
+        _Path      := '-> CLASS_DECLARATION',
+        _ErrorType := 'THIS_OUTSIDE_CLASS'
     ),
     _NodeID := _NodeID
 );

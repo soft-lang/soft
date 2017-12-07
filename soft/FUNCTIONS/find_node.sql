@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text DEFAULT NULL, _Paths text[] DEFAULT NULL, _Names name[] DEFAULT NULL, _MustBeDeclaredAfter boolean DEFAULT FALSE, _SelectLastIfMultipleMatch boolean DEFAULT FALSE)
+CREATE OR REPLACE FUNCTION Find_Node(_NodeID integer, _Descend boolean, _Strict boolean, _Path text DEFAULT NULL, _Paths text[] DEFAULT NULL, _Names name[] DEFAULT NULL, _MustBeDeclaredAfter boolean DEFAULT FALSE, _SelectLastIfMultipleMatch boolean DEFAULT FALSE, _ErrorType text DEFAULT NULL)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -189,7 +189,15 @@ LOOP
     END IF;
 END LOOP;
 IF _Strict THEN
-    RAISE EXCEPTION 'Query did not return exactly one row: NodeID % Paths "%" SQL "%"', _NodeID, array_to_string(_Paths,','), _SQL;
+    IF _ErrorType IS NOT NULL THEN
+        PERFORM Error(
+            _NodeID    := _InputNodeID,
+            _ErrorType := _ErrorType
+        );
+        RETURN NULL;
+    ELSE
+        RAISE EXCEPTION 'Query did not return exactly one row: NodeID % Paths "%" SQL "%"', _NodeID, array_to_string(_Paths,','), _SQL;
+    END IF;
 END IF;
 PERFORM Log(
     _NodeID   := _InputNodeID,

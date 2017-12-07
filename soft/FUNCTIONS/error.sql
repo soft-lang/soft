@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION Error(
 _NodeID    integer,
 _ErrorType text,
-_ErrorInfo hstore
+_ErrorInfo hstore DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql

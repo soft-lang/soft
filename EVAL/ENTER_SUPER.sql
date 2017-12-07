@@ -6,11 +6,12 @@ DECLARE
 _SuperClassNodeID integer;
 BEGIN
 _SuperClassNodeID := Parent(Parent(Find_Node(
-    _NodeID  := _NodeID,
-    _Descend := TRUE,
-    _Strict  := TRUE,
-    _Path    := '-> CLASS_DECLARATION'
-),'SUPER_CLASS'));
+    _NodeID    := _NodeID,
+    _Descend   := TRUE,
+    _Strict    := TRUE,
+    _Path      := '-> CLASS_DECLARATION',
+    _ErrorType := 'SUPER_OUTSIDE_CLASS'
+),'SUPERCLASS'));
 
 IF _SuperClassNodeID IS NULL THEN
     RAISE EXCEPTION 'Cannot find super class node at NodeID %', _NodeID;

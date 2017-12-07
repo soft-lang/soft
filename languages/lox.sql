@@ -18,17 +18,16 @@ SELECT New_Language(
     _NilIfMissingHashKey         := TRUE,
     _ClassInitializerName        := 'init',
     _StripZeroes                 := TRUE,
-    _NegativeZeroes              := TRUE,
-    _UndefinedNonGlobalVariables := 'WARNING'
+    _NegativeZeroes              := TRUE
 );
 
 SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE',      _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'EXTRACT_TESTS', _StopSeverity := 'FATAL');
-SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD');
-SELECT New_Phase(_Language := :'language', _Phase := 'PARSE');
-SELECT New_Phase(_Language := :'language', _Phase := 'VALIDATE');
-SELECT New_Phase(_Language := :'language', _Phase := 'REDUCE');
-SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _SaveDOTIR := TRUE);
+SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD',       _StopSeverity := 'FATAL');
+SELECT New_Phase(_Language := :'language', _Phase := 'PARSE',         _StopSeverity := 'FATAL');
+SELECT New_Phase(_Language := :'language', _Phase := 'VALIDATE',      _StopSeverity := 'FATAL');
+SELECT New_Phase(_Language := :'language', _Phase := 'REDUCE',        _StopSeverity := 'FATAL');
+SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _StopSeverity := 'FATAL', _SaveDOTIR := TRUE);
 SELECT New_Phase(_Language := :'language', _Phase := 'SHORT_CIRCUIT', _SaveDOTIR := TRUE);
 SELECT New_Phase(_Language := :'language', _Phase := 'EVAL',          _SaveDOTIR := TRUE);
 

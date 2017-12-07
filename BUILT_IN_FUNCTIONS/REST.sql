@@ -10,17 +10,13 @@ _ClonedNodeID      integer;
 _OK                boolean;
 BEGIN
 
-SELECT array_agg(ParentNodeID ORDER BY EdgeID)
-INTO STRICT _ParentNodes
-FROM Edges
-WHERE ChildNodeID = _NodeID
-AND DeathPhaseID IS NULL;
+_ParentNodes := Call_Args(_NodeID);
 
-IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
+IF array_length(_ParentNodes, 1) IS DISTINCT FROM 1 THEN
     RAISE EXCEPTION 'rest() takes exactly one array as argument';
 END IF;
 
-_ParentNodeID := Dereference(_ParentNodes[2]);
+_ParentNodeID := Dereference(_ParentNodes[1]);
 
 IF Node_Type(_ParentNodeID) <> 'ARRAY' THEN
     RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodeID);

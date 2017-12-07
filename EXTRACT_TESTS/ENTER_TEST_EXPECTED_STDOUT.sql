@@ -15,7 +15,7 @@ FROM Nodes WHERE NodeID = _NodeID;
 _Comment := Primitive_Value(_NodeID);
 
 _ExpectedSTDOUT := substring(_Comment from '// expect: ?(.*)');
-_ExpectedError  := substring(_Comment from $RE$// (?:(?:\[(?:(?:java|c) )?line \d+\] )?Error(?: at '[^']+')?: |expect runtime error: )(.*)$RE$);
+_ExpectedError  := substring(_Comment from $RE$// (?:(?:\[(?:(?:java|c) )?line \d+\] )?Error(?: at (?:'[^']+'|end))?: |expect runtime error: )(.*)$RE$);
 
 IF _ExpectedSTDOUT IS NOT NULL THEN
     UPDATE Tests

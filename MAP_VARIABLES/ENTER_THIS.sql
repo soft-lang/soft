@@ -5,6 +5,14 @@ AS $$
 DECLARE
 _OK boolean;
 BEGIN
+PERFORM Find_Node(
+    _NodeID    := _NodeID,
+    _Descend   := TRUE,
+    _Strict    := TRUE,
+    _Path      := '-> CLASS_DECLARATION',
+    _ErrorType := 'THIS_OUTSIDE_CLASS'
+);
+
 UPDATE Nodes SET
     PrimitiveValue = NULL,
     PrimitiveType  = NULL

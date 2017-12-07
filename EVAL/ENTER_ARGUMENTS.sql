@@ -33,15 +33,7 @@ INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
 WHERE Nodes.DeathPhaseID IS NULL
 AND   NodeTypes.NodeType = 'CALL';
 
-SELECT array_agg(ParentNodeID ORDER BY EdgeID)
-INTO STRICT _CopyFromNodeIDs
-FROM (
-    SELECT EdgeID, ParentNodeID FROM Edges
-    WHERE ChildNodeID = _CallNodeID
-    AND DeathPhaseID IS NULL
-    ORDER BY EdgeID
-    OFFSET 1
-) AS X;
+_CopyFromNodeIDs := Call_Args(_CallNodeID);
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT _CopyToNodeIDs 
@@ -57,7 +49,15 @@ THEN
 END IF;
 
 IF array_length(_CopyFromNodeIDs,1) IS DISTINCT FROM array_length(_CopyToNodeIDs,1) THEN
-    RAISE EXCEPTION 'Number of function arguments differ between call args and the declared functions args: NodeID % CallNodeID % CopyFromNodeIDs % CopyToNodeIDs %', _NodeID, _CallNodeID, _CopyFromNodeIDs, _CopyToNodeIDs;
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'WRONG_NUMBER_OF_ARGUMENTS',
+        _ErrorInfo := hstore(ARRAY[
+            ['Got',  array_length(_CopyFromNodeIDs, 1)::text],
+            ['Want', array_length(_CopyToNodeIDs, 1)::text]
+        ])
+    );
+    RETURN;
 END IF;
 
 FOR _i IN 1..array_length(_CopyFromNodeIDs,1) LOOP

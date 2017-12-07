@@ -141,7 +141,6 @@ SELECT New_Language(
     _NilIfMissingHashKey         := TRUE,
     _StripZeroes                 := FALSE,
     _NegativeZeroes              := FALSE,
-    _UndefinedNonGlobalVariables := 'ERROR',
     _ClassInitializerName        := NULL,
     _Translation                 := NULL
 );
@@ -1326,6 +1325,14 @@ so that e.g. `1.0000` becomes `1`, or `12.34000` becomes `12.34`.
 \ir soft/FUNCTIONS/builtin.sql
 ```
 
+Returns the language name for a built-in function.
+
+```sql
+\ir soft/FUNCTIONS/call_args.sql
+```
+
+Returns an array of NodeIDs for the arguments to a function `CALL`.
+
 ## CLONING OF NODES
 
 To clone a node means creating new Nodes with the same `PrimitiveValue`s
@@ -1783,6 +1790,7 @@ next phase `DISCARD`.
 \ir DISCARD/ENTER_WHITE_SPACE.sql
 \ir DISCARD/ENTER_COMMENT.sql
 \ir DISCARD/ENTER_TEST_EXPECTED_STDOUT.sql
+\ir DISCARD/ENTER_ILLEGAL.sql
 ```
 
 The `DISCARD` phase eliminates `WHITE_SPACE` nodes.

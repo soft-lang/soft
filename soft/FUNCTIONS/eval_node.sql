@@ -3,18 +3,19 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Phase                  text;
-_FunctionName           name;
-_ArgTypes               oidvector;
-_ReturnType             regtype;
-_InputArgTypes          regtype[];
-_SQL                    text;
-_ParentValueTypes       regtype[];
-_ParentArgValues        text;
-_ReturnValue            text;
-_CastTest               text;
-_Count                  integer;
-_OK                     boolean;
+_Phase            text;
+_FunctionName     name;
+_ArgTypes         oidvector;
+_ReturnType       regtype;
+_InputArgTypes    regtype[];
+_SQL              text;
+_ParentValueTypes regtype[];
+_ParentArgValues  text;
+_ReturnValue      text;
+_CastTest         text;
+_Count            integer;
+_ErrorType        text;
+_OK               boolean;
 BEGIN
 
 SELECT
@@ -127,6 +128,11 @@ ELSE
         );
         RETURN FALSE;
     ELSIF array_length(_ParentValueTypes,1) = 2 THEN
+        IF _FunctionName = 'PLUS' THEN
+            _ErrorType := 'PLUS_OPERATOR_TYPE_MISMATCH';
+        ELSE
+            _ErrorType := 'INFIX_OPERATOR_TYPE_MISMATCH';
+        END IF;
         PERFORM Error(
             _NodeID    := _NodeID,
             _ErrorType := 'INFIX_OPERATOR_TYPE_MISMATCH',
