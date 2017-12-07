@@ -12,6 +12,7 @@ StripZeroes                 boolean         NOT NULL,
 NegativeZeroes              boolean         NOT NULL,
 UndefinedNonGlobalVariables severity        NOT NULL,
 ClassInitializerName        text,
+Translation                 hstore,
 PRIMARY KEY (LanguageID),
 UNIQUE (Language)
 );

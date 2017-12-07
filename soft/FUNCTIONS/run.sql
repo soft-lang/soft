@@ -75,6 +75,8 @@ _Severity        severity;
 _RunAgain        boolean;
 _ApplicationName text;
 _Started         boolean;
+_SQLSTATE        text;
+_SQLERRM         text;
 _OK              boolean;
 BEGIN
 
@@ -107,41 +109,38 @@ BEGIN
     _RunAgain := Walk_Tree(_ProgramID);
 EXCEPTION
 WHEN undefined_function THEN
-    RAISE WARNING 'undefined_function: SQLSTATE % SQLERRM %', SQLSTATE, SQLERRM;
     -- These regexes will have to be made more advanced
     -- if types with white-space are to be supported.
     IF SQLERRM ~ '^operator does not exist: [^ ]+ [^ ]+$' THEN
-        RAISE WARNING 'PREFIX';
         _ErrorType := 'PREFIX_OPERATOR_DOES_NOT_EXIST';
         _ErrorInfo := hstore(ARRAY[
-            ['OperatorSymbol', substring(SQLERRM from '^operator does not exist: ([^ ]+) [^ ]+$')],
-            ['OperandType',    substring(SQLERRM from '^operator does not exist: [^ ]+ ([^ ]+)$')]
+            ['OperatorSymbol', Translate(_NodeID, substring(SQLERRM from '^operator does not exist: ([^ ]+) [^ ]+$'))],
+            ['OperandType',    Translate(_NodeID, substring(SQLERRM from '^operator does not exist: [^ ]+ ([^ ]+)$'))]
         ]);
     ELSIF SQLERRM ~ '^operator does not exist: [^ ]+ [^ ]+ [^ ]+$' THEN
-        RAISE WARNING 'INFIX';
         _ErrorType := 'INFIX_OPERATOR_DOES_NOT_EXIST';
         _ErrorInfo := hstore(ARRAY[
-            ['LeftOperandType',  substring(SQLERRM from '^operator does not exist: ([^ ]+) [^ ]+ [^ ]+$')],
-            ['OperatorSymbol',   substring(SQLERRM from '^operator does not exist: [^ ]+ ([^ ]+) [^ ]+$')],
-            ['RightOperandType', substring(SQLERRM from '^operator does not exist: [^ ]+ [^ ]+ ([^ ]+)$')]
+            ['LeftOperandType',  Translate(_NodeID, substring(SQLERRM from '^operator does not exist: ([^ ]+) [^ ]+ [^ ]+$'))],
+            ['OperatorSymbol',   Translate(_NodeID, substring(SQLERRM from '^operator does not exist: [^ ]+ ([^ ]+) [^ ]+$'))],
+            ['RightOperandType', Translate(_NodeID, substring(SQLERRM from '^operator does not exist: [^ ]+ [^ ]+ ([^ ]+)$'))]
         ]);
     ELSE
         _ErrorType := 'OTHERS';
+        _SQLSTATE  := SQLSTATE;
+        _SQLERRM   := SQLERRM;
     END IF;
-    RAISE WARNING 'SQLERRM: %', SQLERRM;
 WHEN OTHERS THEN
-    RAISE WARNING 'OTHERS: SQLSTATE % SQLERRM %', SQLSTATE, SQLERRM;
     _ErrorType := 'OTHERS';
+    _SQLSTATE  := SQLSTATE;
+    _SQLERRM   := SQLERRM;
 END;
 
 IF _ErrorType = 'OTHERS' THEN
     _ErrorInfo := hstore(ARRAY[
-        ['SQLSTATE', SQLSTATE],
-        ['SQLERRM',  SQLERRM]
+        ['SQLSTATE', _SQLSTATE],
+        ['SQLERRM',  _SQLERRM]
     ]);
 END IF;
-
-RAISE NOTICE 'ErrorType % RunAgain %', _ErrorType, _RunAgain;
 
 IF NOT _RunAgain THEN
     SELECT Dereference(NodeID)
@@ -149,8 +148,6 @@ IF NOT _RunAgain THEN
     FROM Programs
     WHERE ProgramID = _ProgramID;
     IF _ErrorType IS NOT NULL THEN
-
-        RAISE WARNING 'ErrorType % ErrorInfo %', _ErrorType, _ErrorInfo;
 
         IF _ResultNodeID IS NULL THEN
             RAISE EXCEPTION 'Unable to log error "%" for "%" (ProgramID %)', Colorize(_ErrorType || _ErrorInfo::text, 'RED'), Colorize(_Program), _ProgramID;

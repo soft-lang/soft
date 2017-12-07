@@ -16,10 +16,15 @@ SELECT New_Language(
     _TruthyNonBooleans           := TRUE,
     _NilIfArrayOutOfBounds       := TRUE,
     _NilIfMissingHashKey         := TRUE,
-    _ClassInitializerName        := NULL,
     _StripZeroes                 := FALSE,
     _NegativeZeroes              := FALSE,
-    _UndefinedNonGlobalVariables := 'ERROR'
+    _UndefinedNonGlobalVariables := 'ERROR',
+    _Translation                 := hstore(ARRAY[
+        ['integer',              'INTEGER'],
+        ['boolean',              'BOOLEAN'],
+        ['text',                 'STRING'],
+        ['FUNCTION_DECLARATION', 'FUNCTION']
+    ])
 );
 
 SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE');

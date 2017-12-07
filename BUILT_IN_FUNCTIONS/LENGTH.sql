@@ -16,7 +16,15 @@ WHERE ChildNodeID = _NodeID
 AND DeathPhaseID IS NULL;
 
 IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
-    RAISE EXCEPTION 'Length does not have exactly one parent node';
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'WRONG_NUMBER_OF_ARGUMENTS',
+        _ErrorInfo := hstore(ARRAY[
+            ['Got', (array_length(_ParentNodes, 1)-1)::text],
+            ['Want', '1']
+        ])
+    );
+    RETURN;
 END IF;
 
 _ParentNodeID := Dereference(_ParentNodes[2]);
@@ -44,7 +52,15 @@ ELSIF Primitive_Type(_ParentNodeID) = 'text'::regtype THEN
     WHERE NodeID = _NodeID
     RETURNING TRUE INTO STRICT _OK;
 ELSE
-    RAISE EXCEPTION 'Cannot compute length of type %', Primitive_Type(_ParentNodeID);
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'ARGUMENT_NOT_SUPPORTED',
+        _ErrorInfo := hstore(ARRAY[
+            ['FunctionName', BuiltIn(_NodeID, 'LENGTH')],
+            ['ArgumentType', Translate(_NodeID, Primitive_Type(_ParentNodeID)::text)]
+        ])
+    );
+    RETURN;
 END IF;
 
 RETURN;

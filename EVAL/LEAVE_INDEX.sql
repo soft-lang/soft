@@ -59,7 +59,14 @@ ELSIF _NodeType = 'HASH' THEN
     _HashKeyType  := Primitive_Type(_IndexNodeID);
     _HashKeyValue := Primitive_Value(_IndexNodeID);
     IF _HashKeyType IS NULL THEN
-        RAISE EXCEPTION 'Unusable as hash key: %', Node_Type(_IndexNodeID);
+        PERFORM Error(
+            _NodeID    := _NodeID,
+            _ErrorType := 'UNUSABLE_HASH_KEY',
+            _ErrorInfo := hstore(ARRAY[
+                ['HashKeyType', Translate(_NodeID, Node_Type(_IndexNodeID))]
+            ])
+        );
+        RETURN;
     END IF;
     FOR _HashPairNodeID IN
     SELECT ParentNodeID
@@ -89,7 +96,14 @@ ELSIF _NodeType = 'HASH' THEN
         RAISE EXCEPTION 'Hash key "%" of type "%" does not exist', _HashKeyValue, _HashKeyType;
     END IF;
 ELSE
-    RAISE EXCEPTION 'Index does not work with NodeType %', _NodeType;
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'INDEX_OPERATOR_NOT_SUPPORTED',
+        _ErrorInfo := hstore(ARRAY[
+            ['OperandType', Translate(_NodeID, _NodeType)]
+        ])
+    );
+    RETURN;
 END IF;
 
 RETURN;

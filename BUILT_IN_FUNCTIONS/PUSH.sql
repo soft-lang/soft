@@ -21,7 +21,15 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 3 THEN
 END IF;
 
 IF Node_Type(Dereference(_ParentNodes[2])) <> 'ARRAY' THEN
-    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(Dereference(_ParentNodes[2]));
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'UNEXPECTED_ARGUMENT',
+        _ErrorInfo := hstore(ARRAY[
+            ['FunctionName', BuiltIn(_NodeID, 'PUSH')],
+            ['Want',         Translate(_NodeID, 'ARRAY')],
+            ['Got',          Translate(_NodeID, Node_Type(Dereference(_ParentNodes[2])))]
+        ])
+    );
 END IF;
 
 _ClonedNodeID := Clone_Node(Dereference(_ParentNodes[2]));

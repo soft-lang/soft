@@ -101,10 +101,12 @@ IF _VariableNodeID IS NULL THEN
             RETURN TRUE;
         END IF;
 
-        PERFORM Log(
-            _NodeID   := _NodeID,
-            _Severity := CASE WHEN Global(_NodeID) THEN (Language(_NodeID)).UndefinedNonGlobalVariables ELSE 'ERROR' END,
-            _Message  := format('Undefined variable %s', Colorize(_Name, 'RED'))
+        PERFORM Error(
+            _NodeID    := _NodeID,
+            _ErrorType := 'UNDEFINED_VARIABLE',
+            _ErrorInfo := hstore(ARRAY[
+                ['IdentifierName', _Name]
+            ])
         );
         RETURN FALSE;
     END IF;

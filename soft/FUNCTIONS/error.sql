@@ -28,8 +28,9 @@ AND   ErrorTypes.ErrorType = _ErrorType;
 
 RETURN Log(
     _NodeID    := _NodeID,
-    _Severity  := _Severity,
+    _Severity  := COALESCE(_Severity,'ERROR'),
     _Message   := _Message,
+    _ErrorType := _ErrorType,
     _ErrorInfo := _ErrorInfo
 );
 END;

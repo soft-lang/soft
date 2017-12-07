@@ -5,6 +5,8 @@ killall perl # to kill pgcronjob
 sleep 1
 ./install &&
 cp languages/lox/node_types.csv node_types.csv &&
+cp languages/lox/error_types.csv error_types.csv &&
 psql -q -X -f languages/lox.sql &&
 mv node_types.csv languages/lox/node_types.csv &&
+mv error_types.csv languages/lox/error_types.csv &&
 while true ; do clear ; psql -c "SELECT * FROM View_Tests WHERE NOT OK;"; sleep 1; done

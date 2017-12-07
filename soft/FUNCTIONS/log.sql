@@ -3,6 +3,7 @@ _NodeID    integer,
 _Severity  severity,
 _Message   text    DEFAULT NULL,
 _SaveDOTIR boolean DEFAULT FALSE,
+_ErrorType text    DEFAULT NULL,
 _ErrorInfo hstore  DEFAULT NULL
 )
 RETURNS integer
@@ -56,14 +57,10 @@ IF _SaveDOTIR THEN
     _DOTIRID := Save_DOTIR(_NodeID := _NodeID);
 END IF;
 
-IF _Message IS NULL THEN
-    RETURN NULL;
-END IF;
+PERFORM Notice(format('%s %s %s %s %s %s: "%s"', _ProgramID, (SELECT MAX(DOTIRID) FROM DOTIR), _Phase, _NodeType, Colorize(_Severity::text||COALESCE(':'||_ErrorType,''), _Color), _NodeID, _Message));
 
-PERFORM Notice(format('%s %s %s %s %s %s: "%s"', _ProgramID, (SELECT MAX(DOTIRID) FROM DOTIR), _Phase, _NodeType, Colorize(_Severity::text, _Color), _NodeID, _Message));
-
-INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTIRID,  ErrorInfo)
-SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTIRID, _ErrorInfo
+INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTIRID,  ErrorInfo,  ErrorType)
+SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTIRID, _ErrorInfo, _ErrorType
 FROM Programs WHERE ProgramID = _ProgramID
 RETURNING LogID INTO STRICT _LogID;
 RETURN _LogID;

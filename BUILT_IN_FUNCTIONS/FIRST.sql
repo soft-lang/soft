@@ -22,7 +22,16 @@ END IF;
 _ParentNodeID := Dereference(_ParentNodes[2]);
 
 IF Node_Type(_ParentNodeID) <> 'ARRAY' THEN
-    RAISE EXCEPTION 'Argument must be ARRAY, got %', Node_Type(_ParentNodeID);
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'UNEXPECTED_ARGUMENT',
+        _ErrorInfo := hstore(ARRAY[
+            ['FunctionName', BuiltIn(_NodeID, 'FIRST')],
+            ['Want',         Translate(_NodeID, 'ARRAY')],
+            ['Got',          Translate(_NodeID, Node_Type(_ParentNodeID))]
+        ])
+    );
+    RETURN;
 END IF;
 
 SELECT

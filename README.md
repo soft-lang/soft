@@ -139,10 +139,11 @@ SELECT New_Language(
     _TruthyNonBooleans           := TRUE,
     _NilIfArrayOutOfBounds       := TRUE,
     _NilIfMissingHashKey         := TRUE,
-    _ClassInitializerName        := NULL,
     _StripZeroes                 := FALSE,
     _NegativeZeroes              := FALSE,
-    _UndefinedNonGlobalVariables := 'ERROR'
+    _UndefinedNonGlobalVariables := 'ERROR',
+    _ClassInitializerName        := NULL,
+    _Translation                 := NULL
 );
 SELECT * FROM Languages;
 ```
@@ -264,6 +265,8 @@ i.e. the `ADD` operator has it, but not the `PLUS` token.
 \ir soft/FUNCTIONS/new_error_type.sql
 \ir soft/FUNCTIONS/interpolate.sql
 \ir soft/FUNCTIONS/error.sql
+\ir soft/FUNCTIONS/operator_symbol.sql
+\ir soft/FUNCTIONS/translate.sql
 ```
 
 To be able to run the official test suites for languages,
@@ -285,12 +288,6 @@ If the message contains words identical to any of the keys in ErrorInfo,
 you need to speicfy a single character `Sigil` and prefix the keys
 with it in the message, so that only those placeholders will be replaced
 with the keys in ErrorInfo.
-
-To specify you want the error info key to be written in CAPS, simply
-write the keys in CAPS. Or, if you want it in lower case, simply
-write it in lower case. If you want to keep the original text as it
-is, then write the key in CamelCase. This works, because keys are
-guaranteed to never be a single character, only CAPS, nor only lower case.
 
 Any error types not defined in `error_types.csv` for the language,
 will result in an `ERROR` of the given error type, with the error info,
@@ -1324,6 +1321,10 @@ SELECT Print_Node(_NodeID := 2);
 
 Strips meaningless zeroes at the end from numeric values,
 so that e.g. `1.0000` becomes `1`, or `12.34000` becomes `12.34`.
+
+```sql
+\ir soft/FUNCTIONS/builtin.sql
+```
 
 ## CLONING OF NODES
 

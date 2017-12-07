@@ -45,7 +45,15 @@ END AS OK,
     WHERE Log.ProgramID = Programs.ProgramID
     ORDER BY Log.LogID DESC
     LIMIT 1
-) AS LastLog
+) AS LastLog,
+(
+    SELECT Log.ErrorInfo
+    FROM Log
+    WHERE Log.ProgramID = Programs.ProgramID
+    AND Log.ErrorInfo IS NOT NULL
+    ORDER BY Log.LogID DESC
+    LIMIT 1
+) AS LastError
 FROM Tests
 INNER JOIN Programs        ON Programs.ProgramID   = Tests.ProgramID
 INNER JOIN Languages       ON Languages.LanguageID = Programs.LanguageID

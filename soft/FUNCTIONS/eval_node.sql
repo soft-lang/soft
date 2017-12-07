@@ -56,7 +56,7 @@ FROM (
         CASE
             WHEN Primitive_Type(Nodes.NodeID) IS NOT NULL
             THEN Primitive_Value(Nodes.NodeID)
-            ELSE Nodes.NodeID::text
+            ELSE Dereference(Nodes.NodeID)::text
         END AS PrimitiveValue
     FROM Edges
     INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
@@ -116,7 +116,30 @@ IF FOUND THEN
     END IF;
 
 ELSE
-    RAISE EXCEPTION 'Type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes USING HINT = format('NodeID %s', _NodeID);
+    IF array_length(_ParentValueTypes,1) = 1 THEN
+        PERFORM Error(
+            _NodeID    := _NodeID,
+            _ErrorType := 'PREFIX_OPERATOR_TYPE_MISMATCH',
+            _ErrorInfo := hstore(ARRAY[
+                ['OperandType',    Translate(_NodeID, _ParentValueTypes[1]::text)],
+                ['OperatorSymbol', Translate(_NodeID, Operator_Symbol(_NodeID, _FunctionName))]
+            ])
+        );
+        RETURN FALSE;
+    ELSIF array_length(_ParentValueTypes,1) = 2 THEN
+        PERFORM Error(
+            _NodeID    := _NodeID,
+            _ErrorType := 'INFIX_OPERATOR_TYPE_MISMATCH',
+            _ErrorInfo := hstore(ARRAY[
+                ['LeftOperandType',  Translate(_NodeID, _ParentValueTypes[1]::text)],
+                ['OperatorSymbol',   Translate(_NodeID, Operator_Symbol(_NodeID, _FunctionName))],
+                ['RightOperandType', Translate(_NodeID, _ParentValueTypes[2]::text)]
+            ])
+        );
+        RETURN FALSE;
+    ELSE
+        RAISE EXCEPTION 'Unknown type mismatch: %.%(%)', _Phase, _FunctionName, _ParentValueTypes USING HINT = format('NodeID %s', _NodeID);
+    END IF;
 END IF;
 
 PERFORM Set_Node_Value(_NodeID := _NodeID, _PrimitiveType := _ReturnType, _PrimitiveValue := _ReturnValue);

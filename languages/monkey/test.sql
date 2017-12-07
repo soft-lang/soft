@@ -4,71 +4,6 @@ SET search_path TO soft, public, pg_temp;
 
 SELECT New_Test(
     _Language      := :'language',
-    _Program       := 'evaluator_test.go:TestErrorHandling:'||N,
-    _SourceCode    := TestErrorHandling.T[N][1],
-    _ExpectedError := ARRAY[TestErrorHandling.T[N][2]]
-) FROM (
-    SELECT ARRAY[
-        [
-            '5 + true;',
-            'type mismatch: INTEGER + BOOLEAN'
-        ],
-        [
-            '5 + true; 5;',
-            'type mismatch: INTEGER + BOOLEAN'
-        ],
-        [
-            '-true',
-            'unknown operator: -BOOLEAN'
-        ],
-        [
-            'true + false;',
-            'unknown operator: BOOLEAN + BOOLEAN'
-        ],
-        [
-            'true + false + true + false;',
-            'unknown operator: BOOLEAN + BOOLEAN'
-        ],
-        [
-            '5; true + false; 5',
-            'unknown operator: BOOLEAN + BOOLEAN'
-        ],
-        [
-            '"Hello" - "World"',
-            'unknown operator: STRING - STRING'
-        ],
-        [
-            'if (10 > 1) { true + false; }',
-            'unknown operator: BOOLEAN + BOOLEAN'
-        ],
-        [
-            'if (10 > 1) {
-               if (10 > 1) {
-                 return true + false;
-               }
-             
-               return 1;
-             }',
-            'unknown operator: BOOLEAN + BOOLEAN'
-        ],
-        [
-            '{"name": "Monkey"}[fn(x) { x }];',
-            'unusable as hash key: FUNCTION'
-        ],
-        [
-            '999[1]',
-            'index operator not supported: INTEGER'
-        ]
-    ] AS T
-) AS TestErrorHandling
-CROSS JOIN generate_series(1,array_length(TestErrorHandling.T,1)) AS N;
-
-
-/*
-
-
-SELECT New_Test(
-    _Language      := :'language',
     _Program       := 'fibonacci1',
     _SourceCode    := $$
         let fibonacci = fn(n,i,a,b) {
@@ -243,35 +178,35 @@ SELECT New_Test(
     SELECT ARRAY[
         [
             '5 + true;',
-            'Type mismatch: EVAL.ADD({integer,boolean})'
+            'type mismatch: INTEGER + BOOLEAN'
         ],
         [
             '5 + true; 5;',
-            'Type mismatch: EVAL.ADD({integer,boolean})'
+            'type mismatch: INTEGER + BOOLEAN'
         ],
         [
             '-true',
-            'operator does not exist: - boolean'
+            'unknown operator: -BOOLEAN'
         ],
         [
             'true + false;',
-            'operator does not exist: boolean + boolean'
+            'unknown operator: BOOLEAN + BOOLEAN'
         ],
         [
             'true + false + true + false;',
-            'operator does not exist: boolean + boolean'
+            'unknown operator: BOOLEAN + BOOLEAN'
         ],
         [
             '5; true + false; 5',
-            'operator does not exist: boolean + boolean'
+            'unknown operator: BOOLEAN + BOOLEAN'
         ],
         [
             '"Hello" - "World"',
-            'operator does not exist: text - text'
+            'unknown operator: STRING - STRING'
         ],
         [
             'if (10 > 1) { true + false; }',
-            'operator does not exist: boolean + boolean'
+            'unknown operator: BOOLEAN + BOOLEAN'
         ],
         [
             'if (10 > 1) {
@@ -281,26 +216,23 @@ SELECT New_Test(
              
                return 1;
              }',
-            'operator does not exist: boolean + boolean'
+            'unknown operator: BOOLEAN + BOOLEAN'
+        ],
+        [
+            'foobar',
+            'identifier not found: foobar'
         ],
         [
             '{"name": "Monkey"}[fn(x) { x }];',
-            'Unusable as hash key: FUNCTION_DECLARATION'
+            'unusable as hash key: FUNCTION'
         ],
         [
             '999[1]',
-            'Index does not work with NodeType INTEGER'
+            'index operator not supported: INTEGER'
         ]
     ] AS T
 ) AS TestErrorHandling
 CROSS JOIN generate_series(1,array_length(TestErrorHandling.T,1)) AS N;
-
-SELECT New_Test(
-    _Language      := :'language',
-    _Program       := 'evaluator_test.go:undeclared',
-    _SourceCode    := $$foobar$$,
-    _ExpectedLog   := 'MAP_VARIABLES ERROR IDENTIFIER'
-);
 
 SELECT New_Test(
     _Language      := :'language',
@@ -417,11 +349,11 @@ SELECT New_Test(
     _ExpectedError := ARRAY[TestBuiltinFunctions.T[N][2]]
 ) FROM (
     SELECT ARRAY[
-        ['len(1)',            'Cannot compute length of type integer'],
-        ['len("one", "two")', 'Length does not have exactly one parent node'],
-        ['first(1)',          'Argument must be ARRAY, got INTEGER'],
-        ['last(1)',           'Argument must be ARRAY, got INTEGER'],
-        ['push(1, 1)',        'Argument must be ARRAY, got INTEGER']
+        ['len(1)',            'argument to `len` not supported, got INTEGER'],
+        ['len("one", "two")', 'wrong number of arguments. got=2, want=1'],
+        ['first(1)',          'argument to `first` must be ARRAY, got INTEGER'],
+        ['last(1)',           'argument to `last` must be ARRAY, got INTEGER'],
+        ['push(1, 1)',        'argument to `push` must be ARRAY, got INTEGER']
     ] AS T
 ) AS TestBuiltinFunctions
 CROSS JOIN generate_series(1,array_length(TestBuiltinFunctions.T,1)) AS N;
@@ -602,8 +534,6 @@ SELECT New_Test(
     _ExpectedType  := 'integer'::regtype,
     _ExpectedValue := '120'
 );
-
-*/
 
 SELECT COUNT(*) FROM (
     SELECT ProgramID, Run(Language, Program)
