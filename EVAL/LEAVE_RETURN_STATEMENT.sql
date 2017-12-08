@@ -50,6 +50,14 @@ IF _FunctionDeclarationNodeID IS NOT NULL THEN
         _ReturnValueNodeID := _ReturnValueNodeID
     );
 ELSE
+    IF NOT (Language(_NodeID)).ReturnFromTopLevel THEN
+        PERFORM Error(
+            _NodeID := _NodeID,
+            _ErrorType := 'CANNOT_RETURN_FROM_TOP_LEVEL'
+        );
+        RETURN;
+    END IF;
+
     -- Returning from program
     _ProgramNodeID := Get_Program_Node(_ProgramID := _ProgramID);
     _RetNodeID := Find_Node(

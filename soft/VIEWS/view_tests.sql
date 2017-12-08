@@ -39,6 +39,16 @@ CASE
         AND   Log.Message IS NOT NULL
     )
     THEN TRUE
+    WHEN Tests.ExpectedSTDOUT IS NULL
+    AND  Tests.ExpectedError  IS NULL
+    AND NOT EXISTS (
+        SELECT 1
+        FROM Log
+        WHERE Log.ProgramID = Tests.ProgramID
+        AND   Log.Severity  IN ('STDOUT', 'ERROR')
+        AND   Log.Message IS NOT NULL
+    )
+    THEN TRUE
     ELSE FALSE
 END AS OK,
 (

@@ -10,8 +10,11 @@ NilIfArrayOutOfBounds       boolean         NOT NULL,
 NilIfMissingHashKey         boolean         NOT NULL,
 StripZeroes                 boolean         NOT NULL,
 NegativeZeroes              boolean         NOT NULL,
+ReturnFromTopLevel          boolean         NOT NULL,
+ParametersOwnScope          boolean         NOT NULL,
 ClassInitializerName        text,
 Translation                 hstore,
+MaxParameters               integer,
 PRIMARY KEY (LanguageID),
 UNIQUE (Language)
 );

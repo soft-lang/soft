@@ -20,6 +20,9 @@ SELECT COUNT(*) FROM (
     AND   FilePath    NOT LIKE '%/test/scanning/%'
     AND   FilePath    NOT LIKE '%/test/expressions/%'
     AND   FilePath    !~ '/limit/(loop_too_large|too_many_constants|too_many_locals|too_many_upvalues|stack_overflow)\.lox$'
+    AND   FilePath NOT IN (
+            'github.com/munificent/craftinginterpreters/test/function/local_mutual_recursion.lox'
+    )
 ) AS Tests;
 
 -- SELECT COUNT(*) FROM (

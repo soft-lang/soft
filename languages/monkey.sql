@@ -18,6 +18,8 @@ SELECT New_Language(
     _NilIfMissingHashKey         := TRUE,
     _StripZeroes                 := FALSE,
     _NegativeZeroes              := FALSE,
+    _ReturnFromTopLevel          := TRUE,
+    _ParametersOwnScope          := FALSE,
     _Translation                 := hstore(ARRAY[
         ['integer',              'INTEGER'],
         ['boolean',              'BOOLEAN'],

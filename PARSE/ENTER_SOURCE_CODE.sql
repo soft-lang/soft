@@ -30,6 +30,7 @@ _OK                         boolean;
 _AnyNodePattern    CONSTANT text := '<[A-Z_]+(\d+)>';
 _SingleNodePattern CONSTANT text := '^<[A-Z_]+(\d+)>$';
 _ProgramNodeType            text;
+_ProgramNodeTypeID          integer;
 _Children                   integer;
 _Parents                    integer;
 _Killed                     integer;
@@ -69,7 +70,7 @@ AND   Edges.DeathPhaseID IS NULL;
 -- Freeing tokens from the source code node so that they can be parsed
 PERFORM Kill_Edge(EdgeID) FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NodeID;
 
-SELECT NodeType INTO STRICT _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
+SELECT NodeTypeID, NodeType INTO STRICT _ProgramNodeTypeID, _ProgramNodeType FROM NodeTypes WHERE LanguageID = _LanguageID ORDER BY NodeTypeID DESC LIMIT 1;
 
 _ProgramNodePattern := format('^<%s(\d+)>$',_ProgramNodeType);
 
@@ -85,6 +86,23 @@ SET ExpandedNodePattern = Expand_Node_Pattern(NodePattern, LanguageID)
 WHERE LanguageID        = _LanguageID
 AND NodePattern         IS NOT NULL
 AND ExpandedNodePattern IS NULL;
+
+IF _Nodes IS NULL THEN
+    -- Empty program
+    _ProgramNodeID := New_Node(
+        _ProgramID  := _ProgramID,
+        _NodeTypeID := _ProgramNodeTypeID,
+        _Walkable   := TRUE
+    );
+    PERFORM Log(
+        _NodeID   := _NodeID,
+        _Severity := 'INFO',
+        _Message  := format('Empty program')
+    );
+    PERFORM Set_Program_Node(_ProgramNodeID);
+    PERFORM Kill_Node(_NodeID);
+    RETURN TRUE;
+END IF;
 
 _Children := 0;
 _Parents  := 0;

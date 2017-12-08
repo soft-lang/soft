@@ -141,8 +141,11 @@ SELECT New_Language(
     _NilIfMissingHashKey         := TRUE,
     _StripZeroes                 := FALSE,
     _NegativeZeroes              := FALSE,
+    _ReturnFromTopLevel          := TRUE,
+    _ParametersOwnScope          := FALSE,
     _ClassInitializerName        := NULL,
-    _Translation                 := NULL
+    _Translation                 := NULL,
+    _MaxParameters               := NULL
 );
 SELECT * FROM Languages;
 ```
@@ -1333,6 +1336,12 @@ Returns the language name for a built-in function.
 
 Returns an array of NodeIDs for the arguments to a function `CALL`.
 
+```sql
+\ir soft/FUNCTIONS/retry.sql
+```
+
+Helper-function to manually retry running the program upon errors.
+
 ## CLONING OF NODES
 
 To clone a node means creating new Nodes with the same `PrimitiveValue`s
@@ -1726,6 +1735,12 @@ SELECT Find_Node(
 This means we want to follow an `Edge` where `ParentNodeID=2` and where
 the `ChildNodeID` should point to a node of type `ADD`.
 
+```sql
+\ir soft/FUNCTIONS/resolve.sql
+```
+
+Resolve uses Find_Node() to do name resolution.
+
 ## SEMANTIC FUNCTIONALITY
 
 So far we have only implemented the core functionality of the compiler,
@@ -1818,6 +1833,7 @@ left most match is selected.
 ```sql
 \ir VALIDATE/ENTER_ASSIGNMENT.sql
 \ir VALIDATE/ENTER_RETURN_STATEMENT.sql
+\ir VALIDATE/ENTER_CALL.sql
 ```
 
 The `VALIDATE` phase inspects the AST to check for
@@ -1884,6 +1900,7 @@ depending on if the left argument was
 \ir EVAL/ENTER_ARGUMENTS.sql
 \ir EVAL/ENTER_THIS.sql
 \ir EVAL/ENTER_SUPER.sql
+\ir EVAL/ENTER_IDENTIFIER.sql
 \ir EVAL/EQUAL.sql
 \ir EVAL/GREATER_THAN.sql
 \ir EVAL/GREATER_THAN_OR_EQUAL_TO.sql

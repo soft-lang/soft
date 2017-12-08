@@ -123,22 +123,22 @@ ELSE
             _ErrorType := 'PREFIX_OPERATOR_TYPE_MISMATCH',
             _ErrorInfo := hstore(ARRAY[
                 ['OperandType',    Translate(_NodeID, _ParentValueTypes[1]::text)],
-                ['OperatorSymbol', Translate(_NodeID, Operator_Symbol(_NodeID, _FunctionName))]
+                ['OperatorSymbol', Translate(_NodeID, Operator_Symbol(_NodeID))]
             ])
         );
         RETURN FALSE;
     ELSIF array_length(_ParentValueTypes,1) = 2 THEN
-        IF _FunctionName = 'PLUS' THEN
-            _ErrorType := 'PLUS_OPERATOR_TYPE_MISMATCH';
+        IF _FunctionName = 'ADD' THEN
+            _ErrorType := 'ADD_OPERATOR_TYPE_MISMATCH';
         ELSE
             _ErrorType := 'INFIX_OPERATOR_TYPE_MISMATCH';
         END IF;
         PERFORM Error(
             _NodeID    := _NodeID,
-            _ErrorType := 'INFIX_OPERATOR_TYPE_MISMATCH',
+            _ErrorType := _ErrorType,
             _ErrorInfo := hstore(ARRAY[
                 ['LeftOperandType',  Translate(_NodeID, _ParentValueTypes[1]::text)],
-                ['OperatorSymbol',   Translate(_NodeID, Operator_Symbol(_NodeID, _FunctionName))],
+                ['OperatorSymbol',   Translate(_NodeID, Operator_Symbol(_NodeID))],
                 ['RightOperandType', Translate(_NodeID, _ParentValueTypes[2]::text)]
             ])
         );

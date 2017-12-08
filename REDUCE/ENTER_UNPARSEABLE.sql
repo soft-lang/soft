@@ -3,10 +3,10 @@ RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID    integer;
-_ChildNodeID  integer;
-_ParentNodeID integer;
-_OK           boolean;
+_ProgramID     integer;
+_EdgeIDs       integer[];
+_ParentNodeIDs integer[];
+_OK            boolean;
 BEGIN
 
 SELECT
@@ -29,12 +29,41 @@ PERFORM Log(
     _SaveDOTIR  := FALSE
 );
 
-SELECT Kill_Edge(EdgeID), ParentNodeID INTO STRICT _OK, _ParentNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ChildNodeID = _NodeID;
-PERFORM Kill_Node(_ParentNodeID);
-SELECT Kill_Edge(EdgeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
-PERFORM Kill_Node(_NodeID);
+WITH RECURSIVE
+Parents AS (
+    SELECT
+        Edges.EdgeID,
+        Edges.ParentNodeID
+    FROM Nodes
+    INNER JOIN Edges ON Edges.ChildNodeID = Nodes.NodeID
+    WHERE Nodes.NodeID = _NodeID
+    AND   Nodes.DeathPhaseID IS NULL
+    AND   Edges.DeathPhaseID IS NULL
+    UNION ALL
+    SELECT
+        Edges.EdgeID,
+        Edges.ParentNodeID
+    FROM Parents
+    INNER JOIN Edges ON Edges.ChildNodeID = Parents.ParentNodeID
+    INNER JOIN Nodes ON Nodes.NodeID      = Edges.ParentNodeID
+    WHERE Nodes.DeathPhaseID IS NULL
+    AND   Edges.DeathPhaseID IS NULL
+)
+SELECT
+    array_agg(EdgeID),
+    array_agg(ParentNodeID)
+INTO
+    _EdgeIDs,
+    _ParentNodeIDs
+FROM Parents;
 
-PERFORM Set_Program_Node(_NodeID := _ChildNodeID);
+PERFORM Set_Program_Node(_NodeID := Child(_NodeID));
+
+PERFORM Kill_Edge(unnest) FROM unnest(_EdgeIDs);
+PERFORM Kill_Node(unnest) FROM unnest(_ParentNodeIDs);
+
+PERFORM Kill_Edge(EdgeID) FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
+PERFORM Kill_Node(_NodeID);
 
 RETURN TRUE;
 END;

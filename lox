@@ -8,13 +8,11 @@ cp languages/lox/node_types.csv node_types.csv &&
 cp languages/lox/error_types.csv error_types.csv &&
 psql -q -X -f languages/lox.sql &&
 mv node_types.csv languages/lox/node_types.csv &&
-mv error_types.csv languages/lox/error_types.csv
-
+mv error_types.csv languages/lox/error_types.csv &&
 psql -X -c "\
 SET search_path TO soft, public, pg_temp; \
 SELECT COUNT(Run(Language, Program)) \
 FROM View_Programs \
 WHERE Language = 'lox' AND Program LIKE '%$1%'\
-"
-
+" &&
 while true ; do clear ; psql -c "SELECT * FROM View_Tests WHERE OK IS NOT NULL ORDER BY OK"; sleep 1; done

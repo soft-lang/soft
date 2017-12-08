@@ -54,20 +54,10 @@ THEN
     RETURN TRUE;
 END IF;
 
-_VariableNodeID := Find_Node(
-    _NodeID                    := _NodeID,
-    _Descend                   := TRUE,
-    _Strict                    := FALSE,
-    _Names                     := ARRAY[_Name],
-    _MustBeDeclaredAfter       := (Node_Type(Child(_NodeID)) <> 'CALL'),
-    _SelectLastIfMultipleMatch := TRUE,
-    _Paths                     := ARRAY[
-        '<- DECLARATION <- VARIABLE[1]',
-        '<- ARGUMENTS   <- VARIABLE[1]'
-    ]
-);
+_VariableNodeID := Resolve(_NodeID, _Name);
+
 IF _VariableNodeID IS NULL THEN
-    -- Self-referring function:
+    -- Check if it's a self-referring function:
     _VariableNodeID := Find_Node(
         _NodeID  := Find_Node(
             _NodeID            := _NodeID,

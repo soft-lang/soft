@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Get_Field(_NodeID integer, _Name name, _CreateIfNotExists boolean DEFAULT FALSE)
+CREATE OR REPLACE FUNCTION Get_Field(_NodeID integer, _Name name, _Assignment boolean DEFAULT FALSE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -16,7 +16,14 @@ _NodeType := Node_Type(_NodeID);
 IF _NodeType = 'CLASS_DECLARATION' THEN
     _ClassNodeID := _NodeID;
 ELSE
-    RAISE EXCEPTION 'Cannot get field from NodeID % since it is of unsupported NodeType %', _NodeID, _NodeType;
+    PERFORM Error(
+        _NodeID := _NodeID,
+        _ErrorType := CASE WHEN _Assignment THEN 'ONLY_INSTANCES_HAVE_FIELDS' ELSE 'ONLY_INSTANCES_HAVE_PROPERTIES' END,
+        _ErrorInfo := hstore(ARRAY[
+            ['NodeType', _NodeType]
+        ])
+    );
+    RETURN NULL;
 END IF;
 
 IF NULLIF(_Name,'') IS NULL THEN
@@ -53,7 +60,9 @@ IF _FieldNodeID IS NOT NULL THEN
     RETURN _FieldNodeID;
 END IF;
 
-IF _CreateIfNotExists IS TRUE THEN
+IF _Assignment IS TRUE THEN
+    -- We want to allow new field to be created if they do not exist
+    -- when we are assigning.
     SELECT New_Node(
         _ProgramID      := ProgramID,
         _NodeTypeID     := (SELECT NodeTypeID FROM NodeTypes WHERE NodeType = 'VARIABLE'),

@@ -35,10 +35,13 @@ _Call := Find_Node(
 ) IS NOT NULL;
 
 _FieldNodeID := Get_Field(
-    _NodeID            := Dereference(_ParentNodes[1]),
-    _Name              := Primitive_Value(_ParentNodes[2])::name,
-    _CreateIfNotExists := _Assignment
+    _NodeID     := Dereference(_ParentNodes[1]),
+    _Name       := Primitive_Value(_ParentNodes[2])::name,
+    _Assignment := _Assignment
 );
+IF _FieldNodeID IS NULL THEN
+    RETURN;
+END IF;
 
 UPDATE Nodes SET
     PrimitiveType  = NULL,
