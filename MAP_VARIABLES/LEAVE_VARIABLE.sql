@@ -9,7 +9,7 @@ IF Declared(Resolve(_NodeID, Node_Name(_NodeID))) = Declared(_NodeID)
 THEN
     PERFORM Error(
         _NodeID    := _NodeID,
-        _ErrorType := 'REDECLARED_VARIABLE',
+        _ErrorType := CASE WHEN Global(_NodeID) THEN 'REDECLARED_GLOBAL_VARIABLE' ELSE 'REDECLARED_VARIABLE' END,
         _ErrorInfo := hstore(ARRAY[
             ['VariableName', Node_Name(_NodeID)::text]
         ])

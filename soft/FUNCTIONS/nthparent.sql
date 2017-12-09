@@ -26,7 +26,7 @@ FROM (
 ) AS X
 WHERE ROW_NUMBER = _Nth;
 IF NOT FOUND THEN
-    RAISE EXCEPTION 'Unable to find NthParnet NodeID % Nth % AssertNodeType %', _NodeID, _Nth, _AssertNodeType;
+    RAISE EXCEPTION 'Unable to find NthParent NodeID % Nth % AssertNodeType %', _NodeID, _Nth, _AssertNodeType;
 END IF;
 
 IF _NodeType <> _AssertNodeType THEN

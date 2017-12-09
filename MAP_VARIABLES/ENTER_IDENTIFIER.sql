@@ -12,6 +12,7 @@ _VariableNodeID            integer;
 _ChildNodeID               integer;
 _ImplementationFunction    text;
 _MustBeDeclaredAfter       boolean;
+_DeclarationNodeID         integer;
 _OK                        boolean;
 BEGIN
 
@@ -55,6 +56,22 @@ THEN
 END IF;
 
 _VariableNodeID := Resolve(_NodeID, _Name);
+
+_DeclarationNodeID := Find_Node(
+    _NodeID  := _NodeID,
+    _Descend := TRUE,
+    _Strict  := FALSE,
+    _Path    := '-> DECLARATION'
+);
+IF _DeclarationNodeID IS NOT NULL THEN
+    IF  Node_Name(NthParent(_DeclarationNodeID, _Nth := 1, _AssertNodeType := 'VARIABLE')) = _Name
+    AND Node_Type(NthParent(_DeclarationNodeID, _Nth := 2)) NOT IN ('FUNCTION_DECLARATION', 'CLASS_DECLARATION') THEN
+        PERFORM Error(
+            _NodeID    := _NodeID,
+            _ErrorType := 'LOCAL_VAR_IN_OWN_INITIALIZER'
+        );
+    END IF;
+END IF;
 
 IF _VariableNodeID IS NULL THEN
     -- Check if it's a self-referring function:

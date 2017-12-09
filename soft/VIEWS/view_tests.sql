@@ -31,8 +31,8 @@ CASE
         AND   Log.Message IS NOT NULL
     )
     THEN TRUE
-    WHEN Tests.ExpectedError IS NOT NULL AND array_to_string(Tests.ExpectedError,E'\n') = (
-        SELECT string_agg(Log.Message, E'\n' ORDER BY Log.LogID)
+    WHEN Tests.ExpectedError IS NOT NULL AND array_to_string(Sort_Array(Tests.ExpectedError),E'\n') = (
+        SELECT string_agg(Log.Message, E'\n' ORDER BY Log.Message)
         FROM Log
         WHERE Log.ProgramID = Tests.ProgramID
         AND   Log.Severity  = 'ERROR'

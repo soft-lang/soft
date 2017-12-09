@@ -1342,6 +1342,10 @@ Returns an array of NodeIDs for the arguments to a function `CALL`.
 
 Helper-function to manually retry running the program upon errors.
 
+```sql
+\ir soft/FUNCTIONS/sort_array.sql
+```
+
 ## CLONING OF NODES
 
 To clone a node means creating new Nodes with the same `PrimitiveValue`s
@@ -1834,6 +1838,10 @@ left most match is selected.
 \ir VALIDATE/ENTER_ASSIGNMENT.sql
 \ir VALIDATE/ENTER_RETURN_STATEMENT.sql
 \ir VALIDATE/ENTER_CALL.sql
+\ir VALIDATE/ENTER_WHILE_BODY.sql
+\ir VALIDATE/ENTER_FOR_BODY.sql
+\ir VALIDATE/ENTER_TRUE_BRANCH.sql
+\ir VALIDATE/ENTER_FALSE_BRANCH.sql
 ```
 
 The `VALIDATE` phase inspects the AST to check for

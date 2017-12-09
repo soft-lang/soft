@@ -11,3 +11,4 @@
 "WRONG_NUMBER_OF_ARGUMENTS","ERROR","wrong number of arguments. got=Got, want=Want",""
 "UNEXPECTED_ARGUMENT","ERROR","argument to `FunctionName` must be Want, got Got",""
 "REDECLARED_VARIABLE","NOTICE","",""
+"LOCAL_VAR_IN_OWN_INITIALIZER","NOTICE","",""

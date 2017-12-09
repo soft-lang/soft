@@ -1,0 +1,7 @@
+CREATE OR REPLACE FUNCTION Sort_Array(anyarray)
+RETURNS anyarray
+LANGUAGE sql
+IMMUTABLE
+AS $$
+SELECT ARRAY(SELECT unnest FROM unnest($1) ORDER BY unnest)
+$$;

@@ -7,7 +7,7 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'DEBUG5'
+        _LogSeverity := 'NOTICE'
     ) FROM Get_Files(
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
@@ -19,6 +19,7 @@ SELECT COUNT(*) FROM (
        OR FileContent NOT LIKE '%// [line ')
     AND   FilePath    NOT LIKE '%/test/scanning/%'
     AND   FilePath    NOT LIKE '%/test/expressions/%'
+    AND   FilePath    NOT LIKE '%/test/benchmark/%'
     AND   FilePath    !~ '/limit/(loop_too_large|too_many_constants|too_many_locals|too_many_upvalues|stack_overflow)\.lox$'
     AND   FilePath NOT IN (
             'github.com/munificent/craftinginterpreters/test/function/local_mutual_recursion.lox'

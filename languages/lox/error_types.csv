@@ -33,3 +33,6 @@
 "TOO_MANY_PARAMETERS","ERROR","Cannot have more than MaxParameters parameters.",""
 "TOO_MANY_ARGUMENTS","ERROR","Cannot have more than MaxParameters arguments.",""
 "REDECLARED_VARIABLE","ERROR","Variable with this name already declared in this scope.",""
+"PRINT_MISSING_ARGUMENT","ERROR","Expect expression.",""
+"REDECLARED_GLOBAL_VARIABLE","NOTICE","",""
+"LOCAL_VAR_IN_OWN_INITIALIZER","ERROR","Cannot read local variable in its own initializer.",""

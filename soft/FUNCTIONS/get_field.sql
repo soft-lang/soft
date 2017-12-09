@@ -13,7 +13,11 @@ BEGIN
 
 _NodeType := Node_Type(_NodeID);
 
-IF _NodeType = 'CLASS_DECLARATION' THEN
+RAISE NOTICE 'Get_Field NodeID % NodeType %', _NodeID, _NodeType;
+
+IF _NodeType = 'CLASS_DECLARATION'
+AND Node_Name(_NodeID) IS NOT NULL
+THEN
     _ClassNodeID := _NodeID;
 ELSE
     PERFORM Error(
