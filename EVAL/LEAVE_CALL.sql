@@ -101,7 +101,7 @@ ELSIF _NodeType = 'CLASS_DECLARATION' THEN
     WHERE NodeID = _InstanceNodeID
     RETURNING TRUE INTO STRICT _OK;
 
-    _InitNodeID := Get_Field(_InstanceNodeID, (Language(_NodeID)).ClassInitializerName, _Strict := FALSE);
+    _InitNodeID := Get_Field(_InstanceNodeID, (Language(_NodeID)).ClassInitializerName, _Strict := FALSE, _SearchSuperClass := FALSE);
     IF _InitNodeID IS NOT NULL THEN
         _RetNodeID := Find_Node(_NodeID := _InitNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
         PERFORM New_Edge(
@@ -213,11 +213,12 @@ IF NOT FOUND THEN
         _Severity := 'DEBUG3',
         _Message  := format('Created new EnvironmentID %s to call function', _EnvironmentID)
     );
-    IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL
+    IF Child(_DeclarationNodeID, 'CLASS_DECLARATION') IS NOT NULL
+    OR Child(_DeclarationNodeID, 'SUPERCLASS')        IS NOT NULL
     OR Closure(_DeclarationNodeID)
     THEN
-        -- Class method
         _InstanceNodeID := _DeclarationNodeID;
+        RAISE NOTICE '**** Class or superclass _InstanceNodeID %', _InstanceNodeID;
     ELSE
         -- Normal function
         _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
@@ -226,7 +227,10 @@ IF NOT FOUND THEN
             _NodeID  := _DeclarationNodeID,
             _Descend := TRUE,
             _Strict  := FALSE,
-            _Path    := '-> CLASS_DECLARATION'
+            _Paths   := ARRAY[
+                '-> CLASS_DECLARATION',
+                '-> SUPERCLASS'
+            ]
         );
         IF _ClassNodeID IS NOT NULL THEN
             PERFORM New_Edge(

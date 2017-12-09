@@ -3,10 +3,12 @@ RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
+_VariableNodeID integer;
 BEGIN
 
 -- If there is a variable declared with the same name at the same scope level,
-IF Declared(Resolve(_NodeID, Node_Name(_NodeID))) = Declared(_NodeID)
+_VariableNodeID := Resolve(_NodeID, Node_Name(_NodeID));
+IF Declared(_VariableNodeID) = Declared(_NodeID)
 -- or if there is a duplicate parameter:
 OR Node_Type(Child(_NodeID)) = 'ARGUMENTS' AND EXISTS (
     SELECT 1
@@ -23,7 +25,8 @@ THEN
         _NodeID    := _NodeID,
         _ErrorType := CASE WHEN Global(_NodeID) THEN 'REDECLARED_GLOBAL_VARIABLE' ELSE 'REDECLARED_VARIABLE' END,
         _ErrorInfo := hstore(ARRAY[
-            ['VariableName', Node_Name(_NodeID)::text]
+            ['VariableName', Node_Name(_NodeID)::text],
+            ['VariableNodeID', _VariableNodeID::text]
         ])
     );
 END IF;

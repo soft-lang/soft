@@ -99,25 +99,34 @@ CREATE TEMP TABLE ImportErrorTypes (
 RowID          serial NOT NULL,
 ErrorType      text   NOT NULL,
 Severity       text   NOT NULL,
-Message        text   NOT NULL,
+Phase          text,
+NodeType       text,
+NodePattern    text,
+Message        text,
 Sigil          char,
 PRIMARY KEY (RowID),
 UNIQUE (ErrorType)
 );
 
-\COPY ImportErrorTypes (ErrorType, Severity, Message, Sigil) FROM error_types.csv WITH CSV HEADER QUOTE '"';
+\COPY ImportErrorTypes (ErrorType, Severity, Phase, NodeType, NodePattern, Message, Sigil) FROM error_types.csv WITH CSV HEADER QUOTE '"';
 
 SELECT COUNT(*) FROM (
     SELECT New_Error_Type(
         _Language       := :'language',
         _ErrorType      := NULLIF(ErrorType,''),
         _Severity       := NULLIF(Severity,'')::severity,
+        _Phase          := NULLIF(Phase,'')::name,
+        _NodeType       := NULLIF(NodeType,''),
+        _NodePattern    := NULLIF(NodePattern,''),
         _Message        := NULLIF(Message,''),
         _Sigil          := NULLIF(Sigil,'')
     ) FROM (SELECT * FROM ImportErrorTypes ORDER BY RowID) AS X
 ) AS Y;
 
 DROP TABLE ImportErrorTypes;
+
+-- Normalize file since external editor might use quotes differently:
+\COPY (SELECT * FROM View_Error_Types) TO error_types.csv WITH CSV HEADER QUOTE '"';
 
 \ir truthy-non-booleans.sql
 

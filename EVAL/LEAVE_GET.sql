@@ -3,11 +3,13 @@ RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_Assignment  boolean;
-_Call        boolean;
-_ParentNodes integer[];
-_FieldNodeID integer;
-_OK          boolean;
+_ClassNodeID    integer;
+_ClassRefNodeID integer;
+_Assignment     boolean;
+_Call           boolean;
+_ParentNodes    integer[];
+_FieldNodeID    integer;
+_OK             boolean;
 BEGIN
 
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
@@ -20,12 +22,13 @@ IF array_length(_ParentNodes, 1) IS DISTINCT FROM 2 THEN
     RAISE EXCEPTION 'Get does not have exactly two parent nodes NodeID % ParentNodes %', _NodeID, _ParentNodes;
 END IF;
 
-_Assignment := Find_Node(
-    _NodeID  := _NodeID,
-    _Descend := FALSE,
-    _Strict  := FALSE,
-    _Path    := '-> ASSIGNMENT'
-) IS NOT NULL;
+IF Child(_NodeID, 'ASSIGNMENT') IS NOT NULL
+AND Has_Child(_NodeID, _IsNthParent := 1)
+THEN
+    _Assignment := TRUE;
+ELSE
+    _Assignment := FALSE;
+END IF;
 
 _Call := Find_Node(
     _NodeID  := _NodeID,
@@ -44,19 +47,43 @@ IF _FieldNodeID IS NULL THEN
 END IF;
 
 UPDATE Nodes SET
-    PrimitiveType  = NULL,
-    PrimitiveValue = NULL
+    PrimitiveType   = NULL,
+    PrimitiveValue  = NULL,
+    ReferenceNodeID = NULL
 WHERE NodeID = _NodeID
 RETURNING TRUE INTO STRICT _OK;
 
 IF  NOT _Assignment
 AND NOT _Call
 THEN
-    RAISE NOTICE 'Cloning _FieldNodeID % since _Assignment % _Call %', _FieldNodeID, _Assignment, _Call;
-    _FieldNodeID := Clone(_FieldNodeID);
+    IF Primitive_Value(_FieldNodeID) IS NOT NULL THEN
+        UPDATE Nodes SET
+            PrimitiveType   = Primitive_Type(_FieldNodeID),
+            PrimitiveValue  = Primitive_Value(_FieldNodeID)
+        WHERE NodeID = _NodeID
+        RETURNING TRUE INTO STRICT _OK;
+    ELSE
+        _ClassNodeID := Child(_FieldNodeID);
+        _FieldNodeID := Clone(_FieldNodeID);
+        SELECT New_Node(
+            _ProgramID     := ProgramID,
+            _NodeTypeID    := NodeTypeID,
+            _NodeName      := NodeName,
+            _EnvironmentID := (SELECT EnvironmentID FROM Nodes WHERE NodeID = _FieldNodeID)
+        ) INTO _ClassRefNodeID
+        FROM Nodes WHERE NodeID = _ClassNodeID;
+    
+        PERFORM Set_Reference_Node(_ReferenceNodeID := _ClassNodeID, _NodeID := _ClassRefNodeID);
+    
+        PERFORM New_Edge(
+            _ParentNodeID := _FieldNodeID,
+            _ChildNodeID  := _ClassRefNodeID
+        );
+        PERFORM Set_Reference_Node(_ReferenceNodeID := _FieldNodeID, _NodeID := _NodeID);
+    END IF;
+ELSE
+    PERFORM Set_Reference_Node(_ReferenceNodeID := _FieldNodeID, _NodeID := _NodeID);
 END IF;
-
-PERFORM Set_Reference_Node(_ReferenceNodeID := _FieldNodeID, _NodeID := _NodeID);
 
 RETURN;
 END;

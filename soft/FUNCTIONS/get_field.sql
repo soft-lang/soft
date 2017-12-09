@@ -1,25 +1,22 @@
-CREATE OR REPLACE FUNCTION Get_Field(_NodeID integer, _Name name, _Assignment boolean DEFAULT FALSE, _Strict boolean DEFAULT TRUE)
+CREATE OR REPLACE FUNCTION Get_Field(_NodeID integer, _Name name, _Assignment boolean DEFAULT FALSE, _Strict boolean DEFAULT TRUE, _SearchSuperClass boolean DEFAULT TRUE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ClassNodeID      integer;
-_NodeType         text;
-_ParentNodeIDs    integer[];
-_FieldNodeID      integer;
-_SuperClassNodeID integer;
-_SearchNodeID     integer;
+_NodeType                    text;
+_ParentNodeIDs               integer[];
+_FieldNodeID                 integer;
+_SuperClassDeclarationNodeID integer;
+_SearchNodeID                integer;
 BEGIN
 
 _NodeType := Node_Type(_NodeID);
 
 RAISE NOTICE 'Get_Field NodeID % NodeType % Name % Assignment %', _NodeID, _NodeType, _Name, _Assignment;
 
-IF _NodeType = 'CLASS_DECLARATION'
-AND Node_Name(_NodeID) IS NOT NULL
+IF (_NodeType = 'CLASS_DECLARATION' AND Node_Name(_NodeID) IS NOT NULL
+OR  _NodeType = 'SUPERCLASS') IS NOT TRUE
 THEN
-    _ClassNodeID := _NodeID;
-ELSE
     PERFORM Error(
         _NodeID := _NodeID,
         _ErrorType := CASE WHEN _Assignment THEN 'ONLY_INSTANCES_HAVE_FIELDS' ELSE 'ONLY_INSTANCES_HAVE_PROPERTIES' END,
@@ -46,10 +43,18 @@ LOOP
             '<- VARIABLE[1]'
         ]
     );
-    IF _FieldNodeID IS NOT NULL THEN
+    IF _FieldNodeID IS NOT NULL
+    OR _SearchSuperClass IS FALSE
+    THEN
         EXIT;
     END IF;
-    _SearchNodeID := Parent(Parent(_SearchNodeID, 'SUPERCLASS'));
+    _SearchNodeID := Parent(_SearchNodeID, 'SUPERCLASS');
+    _SuperClassDeclarationNodeID := Parent(_SearchNodeID, 'CLASS_DECLARATION');
+    IF _SuperClassDeclarationNodeID IS NOT NULL THEN
+        -- No instance of the super class yet,
+        -- so we need to create a new instance.
+        _SearchNodeID := Instantiate_SuperClass(_SuperClassDeclarationNodeID, _SearchNodeID);
+    END IF;
     IF _SearchNodeID IS NULL THEN
         EXIT;
     END IF;

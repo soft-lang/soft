@@ -3,41 +3,36 @@ RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_SuperClassNodeID integer;
-_SuperNodeID      integer;
-_OK               boolean;
+_SuperClassNodeID       integer;
+_ClassDeclarationNodeID integer;
+_SuperNodeID            integer;
+_OK                     boolean;
 BEGIN
 _SuperClassNodeID := Parent(Find_Node(
     _NodeID    := _NodeID,
     _Descend   := TRUE,
     _Strict    := TRUE,
-    _Path      := '-> CLASS_DECLARATION',
+    _Paths     := ARRAY[
+        '-> CLASS_DECLARATION',
+        '-> SUPERCLASS'
+    ],
     _ErrorType := 'SUPER_OUTSIDE_CLASS'
 ),'SUPERCLASS');
 
-_SuperNodeID := Parent(_SuperClassNodeID);
-
-IF _SuperNodeID IS NULL THEN
+IF _SuperClassNodeID IS NULL THEN
     RAISE EXCEPTION 'Cannot find super class node at NodeID %', _NodeID;
 END IF;
 
-IF Node_Name(_SuperNodeID) IS NULL THEN
+_ClassDeclarationNodeID := Parent(_SuperClassNodeID, 'CLASS_DECLARATION');
+
+IF _ClassDeclarationNodeID IS NOT NULL THEN
     -- No instance of the super class yet,
     -- so we need to create a new instance.
-
-    PERFORM Kill_Edge(Edge(_SuperNodeID, _SuperClassNodeID));
-    _SuperNodeID := Clone(_SuperNodeID);
-
-    UPDATE Nodes
-    SET NodeName = Node_Name(_SuperClassNodeID)
-    WHERE NodeID = _SuperNodeID
-    RETURNING TRUE INTO STRICT _OK;
-
-    PERFORM New_Edge(_SuperNodeID, _SuperClassNodeID);
+    _SuperClassNodeID := Instantiate_SuperClass(_ClassDeclarationNodeID, _SuperClassNodeID);
 END IF;
 
 PERFORM Set_Reference_Node(
-    _ReferenceNodeID := _SuperNodeID,
+    _ReferenceNodeID := _SuperClassNodeID,
     _NodeID          := _NodeID
 );
 RETURN;

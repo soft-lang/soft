@@ -133,15 +133,17 @@ LOOP
             SELECT NodeID, COUNT(*) OVER () FROM (
                 SELECT Node%1$s.NodeID
                 FROM Nodes AS Node0
-                %2$s
-                WHERE Node0.NodeID       = %3$s
+                %3$s
+                WHERE Node%1$s.NodeID   <> %2$s
+                AND   Node0.NodeID       = %4$s
                 AND   Node0.DeathPhaseID IS NULL
-                %4$s
                 %5$s
                 %6$s
+                %7$s
             ) AS X
         $SQL$,
             _NodeIndex,
+            _InputNodeID,
             _JOINs,
             _NodeID,
             _WHEREs,

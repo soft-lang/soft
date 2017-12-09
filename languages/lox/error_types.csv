@@ -1,39 +1,39 @@
-"errortype","severity","message","sigil"
-"INFIX_OPERATOR_DOES_NOT_EXIST","ERROR","Operands must be two numbers or two strings.",""
-"PREFIX_OPERATOR_DOES_NOT_EXIST","ERROR","Operand must be a number.",""
-"INFIX_OPERATOR_TYPE_MISMATCH","ERROR","Operands must be numbers.",""
-"ADD_OPERATOR_TYPE_MISMATCH","ERROR","Operands must be two numbers or two strings.",""
-"UNDEFINED_VARIABLE","WARNING","",""
-"UNDEFINED_GLOBAL_VARIABLE","WARNING","",""
-"ARGUMENT_NOT_SUPPORTED","ERROR","argument to `FunctionName` not supported, got ArgumentType",""
-"WRONG_NUMBER_OF_ARGUMENTS","ERROR","Expected Want arguments but got Got.",""
-"UNEXPECTED_ARGUMENT","ERROR","argument to `FunctionName` must be Want, got Got",""
-"CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES","ERROR","Can only call functions and classes.",""
-"EXPECT_VARIABLE_NAME","ERROR","Expect variable name.",""
-"ILLEGAL","ERROR","Unexpected character.",""
-"EXPECT_RPAREN_AFTER_ARGUMENTS","ERROR","Expect ')' after arguments.",""
-"EXPECT_IDENTIFIER_AFTER_DOT","ERROR","Expect property name after '.'.",""
-"EXPECT_EXPRESSION","ERROR","Expect expression.",""
-"EXPECT_LBRACE_BEFORE_FUNCTION_BODY","ERROR","Expect '{' before function body.",""
-"THIS_OUTSIDE_CLASS","ERROR","Cannot use 'this' outside of a class.",""
-"SUPER_OUTSIDE_CLASS","ERROR","Cannot use 'super' outside of a class.",""
-"SUPERCLASS_MUST_BE_CLASS","ERROR","Superclass must be a class.",""
-"EXPECT_SUPERCLASS_NAME","ERROR","Expect superclass name.",""
-"SUPER_IN_CLASS_WITHOUT_SUPERCLASS","ERROR","Cannot use 'super' in a class with no superclass.",""
-"EXPECT_DOT_AFTER_SUPER","ERROR","Expect '.' after 'super'.",""
-"EXPECT_SUPERCLASS_METHOD_NAME","ERROR","Expect superclass method name.",""
-"CANNOT_RETURN_FROM_TOP_LEVEL","ERROR","Cannot return from top-level code.",""
-"ONLY_INSTANCES_HAVE_PROPERTIES","ERROR","Only instances have properties.",""
-"INVALID_EXPRESSION","ERROR","Expect expression.",""
-"ONLY_INSTANCES_HAVE_FIELDS","ERROR","Only instances have fields.",""
-"UNDEFINED_VARIABLE_RUNTIME","ERROR","Undefined variable 'IdentifierName'.",""
-"INVALID_FOR_INIT","ERROR","Expect expression.",""
-"EXPECT_SEMICOLON_AFTER_VALUE","ERROR","Expect ';' after value.",""
-"EXPECT_SEMICOLON_AFTER_EXPRESSION","ERROR","Expect ';' after expression.",""
-"TOO_MANY_PARAMETERS","ERROR","Cannot have more than MaxParameters parameters.",""
-"TOO_MANY_ARGUMENTS","ERROR","Cannot have more than MaxParameters arguments.",""
-"REDECLARED_VARIABLE","ERROR","Variable with this name already declared in this scope.",""
-"PRINT_MISSING_ARGUMENT","ERROR","Expect expression.",""
-"REDECLARED_GLOBAL_VARIABLE","NOTICE","",""
-"LOCAL_VAR_IN_OWN_INITIALIZER","ERROR","Cannot read local variable in its own initializer.",""
-"UNDEFINED_PROPERTY","ERROR","Undefined property 'PropertyName'.",""
+errortype,severity,phase,nodetype,nodepattern,message,sigil
+CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES,ERROR,,,((?:BOOLEAN|INTEGER|TEXT|NIL) LPAREN),Can only call functions and classes.,
+EXPECT_VARIABLE_NAME,ERROR,,,(LET [A-Z_]+(?: EQ)?),Expect variable name.,
+EXPECT_LBRACE_BEFORE_FUNCTION_BODY,ERROR,,,(FUNCTION IDENTIFIER LPAREN(?: IDENTIFIER(?: COMMA IDENTIFIER)*)? RPAREN(?: (?!LBRACE)[A-Z_]+|$)),Expect '{' before function body.,
+EXPECT_SUPERCLASS_NAME,ERROR,,,(CLASS VARIABLE LT),Expect superclass name.,
+EXPECT_DOT_AFTER_SUPER,ERROR,,,(SUPER(?: (?!DOT)[A-Z_]+|$)),Expect '.' after 'super'.,
+EXPECT_SEMICOLON_AFTER_VALUE,ERROR,,,(PRINT EXPRESSION),Expect ';' after value.,
+EXPECT_SEMICOLON_AFTER_EXPRESSION,ERROR,,,(EXPRESSION),Expect ';' after expression.,
+EXPECT_IDENTIFIER_AFTER_DOT,ERROR,,,((?#VALUE) DOT(?: (?!IDENTIFIER|VALUE)[A-Z_]+|$)),Expect property name after '.'.,
+EXPECT_RPAREN_AFTER_ARGUMENTS,ERROR,,,(VALUE LPAREN(?: VALUE(?: COMMA VALUE)*)?.*),Expect ')' after arguments.,
+EXPECT_SUPERCLASS_METHOD_NAME,ERROR,,,(SUPER DOT(?: (?!IDENTIFIER|VALUE)[A-Z_]+|$)),Expect superclass method name.,
+INVALID_EXPRESSION,ERROR,,,^(?!VALUE$)([A-Z_]+(?: [A-Z_]+)*)$,Expect expression.,
+INVALID_FOR_INIT,ERROR,,,(FOR LPAREN),Expect expression.,
+PRINT_MISSING_ARGUMENT,ERROR,,,(PRINT SEMICOLON),Expect expression.,
+ADD_OPERATOR_TYPE_MISMATCH,ERROR,,,,Operands must be two numbers or two strings.,
+ARGUMENT_NOT_SUPPORTED,ERROR,,,,"argument to `FunctionName` not supported, got ArgumentType",
+CANNOT_RETURN_FROM_TOP_LEVEL,ERROR,,,,Cannot return from top-level code.,
+EXPECT_EXPRESSION,ERROR,,,,Expect expression.,
+ILLEGAL,ERROR,,,,Unexpected character.,
+INFIX_OPERATOR_DOES_NOT_EXIST,ERROR,,,,Operands must be two numbers or two strings.,
+INFIX_OPERATOR_TYPE_MISMATCH,ERROR,,,,Operands must be numbers.,
+LOCAL_VAR_IN_OWN_INITIALIZER,ERROR,,,,Cannot read local variable in its own initializer.,
+ONLY_INSTANCES_HAVE_FIELDS,ERROR,,,,Only instances have fields.,
+ONLY_INSTANCES_HAVE_PROPERTIES,ERROR,,,,Only instances have properties.,
+PREFIX_OPERATOR_DOES_NOT_EXIST,ERROR,,,,Operand must be a number.,
+REDECLARED_GLOBAL_VARIABLE,NOTICE,,,,,
+REDECLARED_VARIABLE,ERROR,,,,Variable with this name already declared in this scope.,
+SUPERCLASS_MUST_BE_CLASS,ERROR,,,,Superclass must be a class.,
+SUPER_IN_CLASS_WITHOUT_SUPERCLASS,ERROR,,,,Cannot use 'super' in a class with no superclass.,
+SUPER_OUTSIDE_CLASS,ERROR,,,,Cannot use 'super' outside of a class.,
+THIS_OUTSIDE_CLASS,ERROR,,,,Cannot use 'this' outside of a class.,
+TOO_MANY_ARGUMENTS,ERROR,,,,Cannot have more than MaxParameters arguments.,
+TOO_MANY_PARAMETERS,ERROR,,,,Cannot have more than MaxParameters parameters.,
+UNDEFINED_GLOBAL_VARIABLE,WARNING,,,,,
+UNDEFINED_PROPERTY,ERROR,,,,Undefined property 'PropertyName'.,
+UNDEFINED_VARIABLE,WARNING,,,,,
+UNDEFINED_VARIABLE_RUNTIME,ERROR,,,,Undefined variable 'IdentifierName'.,
+UNEXPECTED_ARGUMENT,ERROR,,,,"argument to `FunctionName` must be Want, got Got",
+WRONG_NUMBER_OF_ARGUMENTS,ERROR,,,,Expected Want arguments but got Got.,

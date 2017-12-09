@@ -57,7 +57,7 @@ IF _SaveDOTIR THEN
     _DOTIRID := Save_DOTIR(_NodeID := _NodeID);
 END IF;
 
-PERFORM Notice(format('%s %s %s %s %s %s: "%s"', _ProgramID, (SELECT MAX(DOTIRID) FROM DOTIR), _Phase, _NodeType, Colorize(_Severity::text||COALESCE(':'||_ErrorType,''), _Color), _NodeID, _Message));
+PERFORM Notice(format('%s %s %s %s %s %s: "%s" %s', _ProgramID, (SELECT MAX(DOTIRID) FROM DOTIR), _Phase, _NodeType, Colorize(_Severity::text||COALESCE(':'||_ErrorType,''), _Color), _NodeID, _Message, _ErrorInfo));
 
 INSERT INTO Log (ProgramID,  NodeID, PhaseID,  Severity,  Message,  DOTIRID,  ErrorInfo,  ErrorType)
 SELECT           ProgramID, _NodeID, PhaseID, _Severity, _Message, _DOTIRID, _ErrorInfo, _ErrorType
