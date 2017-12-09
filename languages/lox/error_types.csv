@@ -36,3 +36,4 @@
 "PRINT_MISSING_ARGUMENT","ERROR","Expect expression.",""
 "REDECLARED_GLOBAL_VARIABLE","NOTICE","",""
 "LOCAL_VAR_IN_OWN_INITIALIZER","ERROR","Cannot read local variable in its own initializer.",""
+"UNDEFINED_PROPERTY","ERROR","Undefined property 'PropertyName'.",""

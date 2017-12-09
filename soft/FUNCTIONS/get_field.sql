@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION Get_Field(_NodeID integer, _Name name, _Assignment boolean DEFAULT FALSE)
+CREATE OR REPLACE FUNCTION Get_Field(_NodeID integer, _Name name, _Assignment boolean DEFAULT FALSE, _Strict boolean DEFAULT TRUE)
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
@@ -13,7 +13,7 @@ BEGIN
 
 _NodeType := Node_Type(_NodeID);
 
-RAISE NOTICE 'Get_Field NodeID % NodeType %', _NodeID, _NodeType;
+RAISE NOTICE 'Get_Field NodeID % NodeType % Name % Assignment %', _NodeID, _NodeType, _Name, _Assignment;
 
 IF _NodeType = 'CLASS_DECLARATION'
 AND Node_Name(_NodeID) IS NOT NULL
@@ -86,7 +86,17 @@ IF _Assignment IS TRUE THEN
 
     RETURN _FieldNodeID;
 END IF;
-RAISE DEBUG 'No such field % in NodeID %', _Name, _NodeID;
+
+IF _Strict THEN
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'UNDEFINED_PROPERTY',
+        _ErrorInfo := hstore(ARRAY[
+            ['PropertyName', _Name]
+        ])
+    );
+END IF;
+
 RETURN NULL;
 END;
 $$;

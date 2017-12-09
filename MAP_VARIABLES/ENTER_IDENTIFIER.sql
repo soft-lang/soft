@@ -65,7 +65,9 @@ _DeclarationNodeID := Find_Node(
 );
 IF _DeclarationNodeID IS NOT NULL THEN
     IF  Node_Name(NthParent(_DeclarationNodeID, _Nth := 1, _AssertNodeType := 'VARIABLE')) = _Name
-    AND Node_Type(NthParent(_DeclarationNodeID, _Nth := 2)) NOT IN ('FUNCTION_DECLARATION', 'CLASS_DECLARATION') THEN
+    AND Node_Type(NthParent(_DeclarationNodeID, _Nth := 2)) NOT IN ('FUNCTION_DECLARATION', 'CLASS_DECLARATION')
+    AND NOT Global(_DeclarationNodeID)
+    THEN
         PERFORM Error(
             _NodeID    := _NodeID,
             _ErrorType := 'LOCAL_VAR_IN_OWN_INITIALIZER'

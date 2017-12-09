@@ -5,7 +5,19 @@ AS $$
 DECLARE
 BEGIN
 
+-- If there is a variable declared with the same name at the same scope level,
 IF Declared(Resolve(_NodeID, Node_Name(_NodeID))) = Declared(_NodeID)
+-- or if there is a duplicate parameter:
+OR Node_Type(Child(_NodeID)) = 'ARGUMENTS' AND EXISTS (
+    SELECT 1
+    FROM Edges
+    INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID
+    WHERE Edges.EdgeID            < Edge(_NodeID,Child(_NodeID))
+    AND   Edges.ChildNodeID       = Child(_NodeID)
+    AND   Node_Name(Nodes.NodeID) = Node_Name(_NodeID)
+    AND   Edges.DeathPhaseID      IS NULL
+    AND   Nodes.DeathPhaseID      IS NULL
+)
 THEN
     PERFORM Error(
         _NodeID    := _NodeID,

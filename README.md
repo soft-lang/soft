@@ -1346,6 +1346,10 @@ Helper-function to manually retry running the program upon errors.
 \ir soft/FUNCTIONS/sort_array.sql
 ```
 
+```sql
+\ir soft/FUNCTIONS/set_node_name.sql
+```
+
 ## CLONING OF NODES
 
 To clone a node means creating new Nodes with the same `PrimitiveValue`s

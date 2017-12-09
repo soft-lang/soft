@@ -47,6 +47,19 @@ WHERE Nodes.DeathPhaseID IS NULL;
 IF _NodeType = 'FUNCTION_DECLARATION' THEN
     -- Normal function
 ELSIF _NodeType = 'CLASS_DECLARATION' THEN
+    IF Node_Name(_DeclarationNodeID) IS NOT NULL THEN
+        -- Cannot call an instance of a class
+        PERFORM Error(
+            _NodeID    := _NodeID,
+            _ErrorType := 'CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES',
+            _ErrorInfo := hstore(ARRAY[
+                ['NodeType', _NodeType],
+                ['NodeName', Node_Name(_DeclarationNodeID)::text]
+            ])
+        );
+        RETURN;
+    END IF;
+
     SELECT
         RET.NodeID,
         RET.EdgeID,
@@ -79,28 +92,16 @@ ELSIF _NodeType = 'CLASS_DECLARATION' THEN
         RETURN;
     END IF; 
     -- Init class
-    INSERT INTO Environments (ProgramID, EnvironmentID)
-    SELECT _ProgramID, MAX(EnvironmentID)+1
-    FROM Environments
-    WHERE ProgramID = _ProgramID
-    RETURNING    EnvironmentID
-    INTO STRICT _EnvironmentID;
-
     _Name := Node_Name(Parent(Child(Dereference(_DeclarationNodeID),'DECLARATION'),'VARIABLE'));
 
-    PERFORM Log(
-        _NodeID   := _NodeID,
-        _Severity := 'DEBUG3',
-        _Message  := format('Created new EnvironmentID %s for class %s', _EnvironmentID, _Name)
-    );
-    _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);
+    _InstanceNodeID := Clone(_NodeID := _DeclarationNodeID);
 
     UPDATE Nodes
     SET NodeName = _Name
     WHERE NodeID = _InstanceNodeID
     RETURNING TRUE INTO STRICT _OK;
 
-    _InitNodeID := Get_Field(_InstanceNodeID, (Language(_NodeID)).ClassInitializerName);
+    _InitNodeID := Get_Field(_InstanceNodeID, (Language(_NodeID)).ClassInitializerName, _Strict := FALSE);
     IF _InitNodeID IS NOT NULL THEN
         _RetNodeID := Find_Node(_NodeID := _InitNodeID, _Descend := FALSE, _Strict := TRUE, _Path := '<- RET');
         PERFORM New_Edge(
@@ -166,7 +167,15 @@ ELSIF _NodeType = 'IDENTIFIER' THEN
 
     RETURN;
 ELSE
-    RAISE EXCEPTION 'Unexpected NodeType % NodeID % (%)', _NodeType, _NodeID, Node(_NodeID);
+    PERFORM Error(
+        _NodeID    := _NodeID,
+        _ErrorType := 'CAN_ONLY_CALL_FUNCTIONS_AND_CLASSES',
+        _ErrorInfo := hstore(ARRAY[
+            ['NodeType', _NodeType],
+            ['NodeName', Node_Name(_DeclarationNodeID)::text]
+        ])
+    );
+    RETURN;
 END IF;
 
 SELECT
