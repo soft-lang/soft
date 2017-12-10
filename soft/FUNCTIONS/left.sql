@@ -17,9 +17,6 @@ AND   Edges.DeathPhaseID IS NULL
 AND   Nodes.DeathPhaseID IS NULL
 ORDER BY Edges.EdgeID DESC
 LIMIT 1;
-IF NOT FOUND THEN
-    RAISE EXCEPTION 'No left node found for NodeID %', _NodeID;
-END IF;
 
 RETURN _LeftNodeID;
 END;

@@ -4,7 +4,6 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 _RightNodeID integer;
-_Count       bigint;
 BEGIN
 
 SELECT Edges.ParentNodeID
@@ -17,9 +16,6 @@ AND   Edges.DeathPhaseID IS NULL
 AND   Nodes.DeathPhaseID IS NULL
 ORDER BY Edges.EdgeID ASC
 LIMIT 1;
-IF NOT FOUND THEN
-    RAISE EXCEPTION 'No right node found for NodeID %', _NodeID;
-END IF;
 
 RETURN _RightNodeID;
 END;

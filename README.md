@@ -58,6 +58,9 @@ CREATE SCHEMA "DISCARD";
 DROP SCHEMA IF EXISTS "PARSE" CASCADE;
 CREATE SCHEMA "PARSE";
 
+DROP SCHEMA IF EXISTS "PARSE_ERRORS" CASCADE;
+CREATE SCHEMA "PARSE_ERRORS";
+
 DROP SCHEMA IF EXISTS "REDUCE" CASCADE;
 CREATE SCHEMA "REDUCE";
 
@@ -841,7 +844,7 @@ This results in a tree looking like this:
 
 ![layout](https://raw.githubusercontent.com/soft-lang/soft/master/doc/example_graph1.png)
 
-## DOTIR SERIALIZATION / DESERIALIZATION
+## DOTIR SERIALIZATION / DESERIALIZATION (TABLE)
 
 ```sql
 \ir soft/TABLES/dotir.sql
@@ -853,6 +856,35 @@ named DOTIR as in *DOT Intermediate Representation*.
 In DOTIR the `Nodes` data is serialized and stored in the node identifier
 in JSON format, which is invisible to the user when generating images for the DOT files,
 but which we will use to deserialize the file when importing a DOTIR file.
+
+## LOGGING AND DEBUGGING (TABLES)
+
+```sql
+\ir soft/TABLES/ansiescapecodes.sql
+```
+
+This installs a lookup-table with the ANSI escape codes
+for various colors, to make the output from the compiler
+a bit more colorful, e.g. fragments in a text can be highlighted
+in a different color to make it stand out what part of the
+source code we are referring to.
+
+```sql
+\ir soft/TABLES/log.sql
+```
+
+The Log table is written to by the `Log()` function.
+From the input NodeID, which is at what node
+the log message happened, we derive the program,
+and the current phase, which is stored to Log,
+together with the log message, the log severity
+and the current time.
+
+This allows us to carefully follow the different compilation
+phases and the program execution during eval
+at the desired log severity level.
+
+## DOTIR SERIALIZATION / DESERIALIZATION (FUNCTIONS)
 
 ```sql
 \ir soft/FUNCTIONS/serialize_node.sql
@@ -991,32 +1023,7 @@ Human friendly view showing all DOTIR snapshots
 SELECT * FROM View_DOTIR;
 ```
 
-## LOGGING AND DEBUGGING
-
-```sql
-\ir soft/TABLES/ansiescapecodes.sql
-```
-
-This installs a lookup-table with the ANSI escape codes
-for various colors, to make the output from the compiler
-a bit more colorful, e.g. fragments in a text can be highlighted
-in a different color to make it stand out what part of the
-source code we are referring to.
-
-```sql
-\ir soft/TABLES/log.sql
-```
-
-The Log table is written to by the `Log()` function.
-From the input NodeID, which is at what node
-the log message happened, we derive the program,
-and the current phase, which is stored to Log,
-together with the log message, the log severity
-and the current time.
-
-This allows us to carefully follow the different compilation
-phases and the program execution during eval
-at the desired log severity level.
+## LOGGING AND DEBUGGING (FUNCTIONS)
 
 ```sql
 \ir soft/FUNCTIONS/notice.sql
@@ -1838,6 +1845,12 @@ the NodePatterns defined in NodeTypes,
 in Precedence order, and if two NodeTypes
 of the same Precedence match, then the
 left most match is selected.
+
+### PARSE_ERRORS
+
+```sql
+\ir PARSE_ERRORS/ENTER_PROGRAM.sql
+```
 
 ### VALIDATE
 

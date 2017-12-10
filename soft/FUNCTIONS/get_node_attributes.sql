@@ -11,6 +11,7 @@ _Penwidth        text;
 _ReferenceNodeID integer;
 _ColorScheme     text    := 'set312';
 _NumColors       integer := 12;
+_FontColor       text;
 BEGIN
 
 SELECT
@@ -50,7 +51,15 @@ ELSE
     _Penwidth := '';
 END IF;
 
-RETURN format('style="%s" shape="%s" fillcolor="%s" penwidth="%s"', _Style, _Shape, _Fillcolor, _Penwidth);
+IF EXISTS (SELECT 1 FROM Log WHERE NodeID = _NodeID AND Severity = 'ERROR') THEN
+    _FontColor := 'red';
+ELSIF EXISTS (SELECT 1 FROM Log WHERE NodeID = _NodeID AND Severity = 'WARNING') THEN
+    _FontColor := 'yellow';
+ELSE
+    _FontColor := 'black';
+END IF;
+
+RETURN format('style="%s" shape="%s" fillcolor="%s" penwidth="%s" fontcolor="%s"', _Style, _Shape, _Fillcolor, _Penwidth, _FontColor);
 
 END;
 $$;

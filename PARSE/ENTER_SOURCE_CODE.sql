@@ -58,7 +58,7 @@ AND NodeTypes.NodeType = 'SOURCE_CODE'
 AND Nodes.PrimitiveType = 'text'::regtype
 AND Nodes.DeathPhaseID IS NULL;
 
-SELECT string_agg(format('<%s%s>',NodeTypes.NodeType,Nodes.NodeID), ' ' ORDER BY Nodes.NodeID)
+SELECT string_agg(format('<%s%s>',NodeTypes.NodeType,Nodes.NodeID), '' ORDER BY Nodes.NodeID)
 INTO _Nodes
 FROM Nodes
 INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
@@ -75,10 +75,10 @@ SELECT NodeTypeID, NodeType INTO STRICT _ProgramNodeTypeID, _ProgramNodeType FRO
 _ProgramNodePattern := format('^<%s(\d+)>$',_ProgramNodeType);
 
 PERFORM Log(
-    _NodeID   := _NodeID,
-    _Severity := 'DEBUG1',
-    _Message  := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA')),
-    _SaveDOTIR  := TRUE
+    _NodeID    := _NodeID,
+    _Severity  := 'DEBUG1',
+    _Message   := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA')),
+    _SaveDOTIR := TRUE
 );
 
 UPDATE NodeTypes
@@ -227,7 +227,7 @@ LOOP
         _Parents := _Parents + 1;
     END IF;
 
-    FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, ' ') LOOP
+    FOREACH _MatchedNode IN ARRAY regexp_split_to_array(_MatchedNodes, '(?=<)') LOOP
         _ParentNodeID := Get_Capturing_Group(_String := _MatchedNode, _Pattern := _SingleNodePattern, _Strict := TRUE)::integer;
 
         _EdgeID := New_Edge(
@@ -238,6 +238,7 @@ LOOP
             _Parents := _Parents + 1;
         ELSIF _GrowIntoNodeType IS NOT NULL
         AND NOT EXISTS (SELECT 1 FROM Edges WHERE ChildNodeID = _ParentNodeID AND DeathPhaseID IS NULL)
+        AND _NodeSeverity IS NULL
         THEN
             PERFORM Kill_Edge(_EdgeID);
             PERFORM Kill_Node(_ParentNodeID);
@@ -247,7 +248,7 @@ LOOP
 
     IF _NodeSeverity IS NOT NULL THEN
         PERFORM Error(
-            _NodeID    := _NodeID,
+            _NodeID    := _ChildNodeID,
             _ErrorType := _ChildNodeType
         );
     END IF;

@@ -11,3 +11,5 @@ ErrorType            text,
 ErrorInfo            hstore,
 PRIMARY KEY (LogID)
 );
+
+CREATE INDEX Index_Log_NodeID ON Log(NodeID);

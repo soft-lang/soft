@@ -29,6 +29,8 @@ _NodePattern := regexp_replace(
     'g'
 );
 
+_NodePattern := regexp_replace(_NodePattern, '\s+', '', 'g');
+
 RETURN _NodePattern;
 END;
 $$;

@@ -218,7 +218,6 @@ IF NOT FOUND THEN
     OR Closure(_DeclarationNodeID)
     THEN
         _InstanceNodeID := _DeclarationNodeID;
-        RAISE NOTICE '**** Class or superclass _InstanceNodeID %', _InstanceNodeID;
     ELSE
         -- Normal function
         _InstanceNodeID := Clone_Node(_NodeID := _DeclarationNodeID, _SelfRef := FALSE, _EnvironmentID := _EnvironmentID);

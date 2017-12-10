@@ -28,6 +28,7 @@ SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE',      _StopSever
 SELECT New_Phase(_Language := :'language', _Phase := 'EXTRACT_TESTS', _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD',       _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'PARSE',         _StopSeverity := 'FATAL');
+SELECT New_Phase(_Language := :'language', _Phase := 'PARSE_ERRORS');
 SELECT New_Phase(_Language := :'language', _Phase := 'VALIDATE',      _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'REDUCE',        _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _StopSeverity := 'FATAL', _SaveDOTIR := TRUE);

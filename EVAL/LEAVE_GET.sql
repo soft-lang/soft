@@ -72,9 +72,9 @@ THEN
             _EnvironmentID := (SELECT EnvironmentID FROM Nodes WHERE NodeID = _FieldNodeID)
         ) INTO _ClassRefNodeID
         FROM Nodes WHERE NodeID = _ClassNodeID;
-    
+
         PERFORM Set_Reference_Node(_ReferenceNodeID := _ClassNodeID, _NodeID := _ClassRefNodeID);
-    
+
         PERFORM New_Edge(
             _ParentNodeID := _FieldNodeID,
             _ChildNodeID  := _ClassRefNodeID

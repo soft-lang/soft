@@ -15,7 +15,10 @@ SELECT
     Value
 FROM each(_ErrorInfo)
 LOOP
-    _Text := replace(_Text, _Key, _Value);
+    IF _Key IS NULL THEN
+        RAISE EXCEPTION 'NULL key in ErrorInfo %', _ErrorInfo;
+    END IF;
+    _Text := replace(_Text, _Key, COALESCE(_Value,'NULL'));
 END LOOP;
 RETURN _Text;
 END;
