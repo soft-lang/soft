@@ -193,4 +193,9 @@ $$;
 
 GRANT ALL ON FUNCTION Run(_ProcessID integer) TO pgcronjob;
 
-SELECT cron.New_Connection_Pool(_Name := 'soft.Run', _MaxProcesses := 8);
+DO LANGUAGE plpgsql $$
+BEGIN
+IF NOT EXISTS (SELECT 1 FROM cron.ConnectionPools WHERE Name = 'soft.Run') THEN
+    PERFORM cron.New_Connection_Pool(_Name := 'soft.Run', _MaxProcesses := 8);
+END IF;
+END$$;

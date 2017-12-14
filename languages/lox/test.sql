@@ -7,21 +7,22 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'NOTICE'
+        _LogSeverity := 'DEBUG5'
     ) FROM Get_Files(
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
     )
     WHERE TRUE
-    AND   FileContent LIKE '%// expect:%'
-    AND   FileContent NOT LIKE '%// expect runtime error:%'
-    AND   FileContent NOT LIKE '%// Error%'
-    AND   FileContent NOT LIKE '%// [line %'
-    AND   FileContent NOT LIKE '%// [java line %'
---  AND  (FileContent LIKE '%// expect runtime error:%'
---     OR FileContent LIKE '%// Error%'
+--    AND   FileContent LIKE '%// expect:%'
+--    AND   FileContent NOT LIKE '%// expect runtime error:%'
+--    AND   FileContent NOT LIKE '%// Error%'
+--    AND   FileContent NOT LIKE '%// [line %'
+--    AND   FileContent NOT LIKE '%// [java line %'
+  AND  (FileContent LIKE '%// expect runtime error:%'
+     OR FileContent LIKE '%// expect:%')
 --     OR FileContent LIKE '%// [line %'
 --     OR FileContent LIKE '%// [java line %')
+--    AND FileContent NOT LIKE '%// Error%'
     AND   FilePath    NOT LIKE '%/test/scanning/%'
     AND   FilePath    NOT LIKE '%/test/expressions/%'
     AND   FilePath    NOT LIKE '%/test/benchmark/%'

@@ -4,6 +4,50 @@ Soft is not a hard-coded single-language compiler front end.
 
 This document is not only a README but also the install and test script.
 
+## INSTALL
+
+These instructions assume you have a clean installation of Ubuntu Server 16.04.3 LTS.
+
+All database users will be superusers and without any passwords etc.
+Only use for local testing.
+
+
+```sh
+sudo add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install postgresql-9.6
+
+# Trust all connections allowing us to connect as any database user:
+sudo perl -s -i -p -e 's/peer/trust/g' /etc/postgresql/9.6/main/pg_hba.conf
+sudo service postgresql restart
+
+sudo -u postgres createuser -s $USER
+sudo -u postgres createdb -O $USER $USER
+
+# Install and run pgcronjob in a separate terminal window
+sudo -u postgres createuser pgcronjob
+git clone https://github.com/trustly/pgcronjob.git
+git checkout ShareConnectionsBetweenProcessesInSameConnectionPool
+sudo apt-get install libdbi-perl libdbd-pg-perl libdatetime-perl
+sudo -u postgres createuser -s pgcronjob
+sudo -u postgres createuser -s sudo
+psql -X -f install.sql
+PGUSER=pgcronjob PGDATABASE=$USER ./pgcronjob
+
+sudo -u postgres mkdir -p /var/lib/postgresql/9.6/main/github.com/munificent
+sudo -u postgres git -C /var/lib/postgresql/9.6/main/github.com/munificent clone https://github.com/munificent/craftinginterpreters.git
+
+git clone https://github.com/soft-lang/soft.git
+
+
+
+
+```
+
+
+
+
 ## DATA MODEL
 
 *Show me your flowcharts and conceal your tables, and I shall continue to be mystified. Show me your tables, and I won’t usually need your flowcharts; they’ll be obvious.*

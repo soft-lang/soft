@@ -74,13 +74,6 @@ SELECT NodeTypeID, NodeType INTO STRICT _ProgramNodeTypeID, _ProgramNodeType FRO
 
 _ProgramNodePattern := format('^<%s(\d+)>$',_ProgramNodeType);
 
-PERFORM Log(
-    _NodeID    := _NodeID,
-    _Severity  := 'DEBUG1',
-    _Message   := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA')),
-    _SaveDOTIR := TRUE
-);
-
 UPDATE NodeTypes
 SET ExpandedNodePattern = Expand_Node_Pattern(NodePattern, LanguageID)
 WHERE LanguageID        = _LanguageID
@@ -103,6 +96,13 @@ IF _Nodes IS NULL THEN
     PERFORM Kill_Node(_NodeID);
     RETURN TRUE;
 END IF;
+
+PERFORM Log(
+    _NodeID    := _NodeID,
+    _Severity  := 'DEBUG1',
+    _Message   := format('Parsing %s from nodes %s', Colorize(_ProgramNodeType, 'CYAN'), Colorize(_Nodes, 'MAGENTA')),
+    _SaveDOTIR := TRUE
+);
 
 _Children := 0;
 _Parents  := 0;
@@ -197,7 +197,13 @@ LOOP
 
     PERFORM Set_Program_Node(_NodeID := _ChildNodeID);
 
-    _Nodes := regexp_replace(_Nodes, _MatchedNodes, _ChildNodeString);
+    IF _NodeSeverity IS NOT NULL
+    AND _GrowIntoNodeTypeID IS NULL
+    THEN
+        _Nodes := regexp_replace(_Nodes, _MatchedNodes, '');
+    ELSE
+        _Nodes := regexp_replace(_Nodes, _MatchedNodes, _ChildNodeString);
+    END IF;
 
     IF _GrowFromNodeTypeID IS NOT NULL AND _MatchedNodes !~ ('^<'||_GrowFromNodeType||'\d+>$') THEN
         PERFORM Log(
