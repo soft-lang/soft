@@ -73,6 +73,26 @@ SET search_path TO soft, public, pg_temp;
 
 Support reinstall by first dropping everything:
 
+Delete any PgCronJob jobs and processes
+created by us:
+```sql
+CREATE TEMP TABLE X AS
+SELECT
+    cron.Jobs.JobID,
+    cron.Processes.ProcessID
+FROM cron.Processes
+INNER JOIN cron.Jobs ON cron.Jobs.JobID = cron.Processes.JobID
+WHERE cron.Jobs.Function = 'soft.run(integer)';
+
+DELETE FROM cron.ErrorLog  WHERE ProcessID IN (SELECT ProcessID FROM X);
+DELETE FROM cron.Log       WHERE ProcessID IN (SELECT ProcessID FROM X);
+DELETE FROM cron.Processes WHERE ProcessID IN (SELECT ProcessID FROM X);
+DELETE FROM cron.Jobs      WHERE JobID     IN (SELECT JobID     FROM X);
+
+DROP TABLE pg_temp.X;
+```
+
+
 All core functionality and helper-functions
 shared between the compilation phases
 reside in the "soft" schema:
