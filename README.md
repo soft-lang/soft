@@ -38,15 +38,13 @@ PGUSER=pgcronjob PGDATABASE=$USER ./pgcronjob
 sudo -u postgres mkdir -p /var/lib/postgresql/9.6/main/github.com/munificent
 sudo -u postgres git -C /var/lib/postgresql/9.6/main/github.com/munificent clone https://github.com/munificent/craftinginterpreters.git
 
+echo 'SET search_path TO soft, public, pg_temp;' >> ~/.psqlrc
+
 git clone https://github.com/soft-lang/soft.git
-
-
-
-
+cd soft
+./install
+./lox
 ```
-
-
-
 
 ## DATA MODEL
 
