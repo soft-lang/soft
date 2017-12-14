@@ -43,7 +43,21 @@ echo 'SET search_path TO soft, public, pg_temp;' >> ~/.psqlrc
 git clone https://github.com/soft-lang/soft.git
 cd soft
 ./install
+
+# To run the lox tests:
 ./lox
+
+# To run the monkey tests:
+./monkey
+
+# You can edit the debug level by editing
+# languages/lox/test.sql and changing
+#        _LogSeverity := 'DEBUG5'
+# to e.g.
+#        _LogSeverity := 'NOTICE'
+# to make the tests run faster with less
+# output in the terminal where PgCronJob runs.
+
 ```
 
 ## DATA MODEL
