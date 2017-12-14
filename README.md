@@ -73,6 +73,15 @@ SET search_path TO soft, public, pg_temp;
 
 Support reinstall by first dropping everything:
 
+All core functionality and helper-functions
+shared between the compilation phases
+reside in the "soft" schema:
+
+```sql
+DROP SCHEMA IF EXISTS soft CASCADE;
+CREATE SCHEMA soft;
+```
+
 Delete any PgCronJob jobs and processes
 created by us:
 ```sql
@@ -90,16 +99,6 @@ DELETE FROM cron.Processes WHERE ProcessID IN (SELECT ProcessID FROM X);
 DELETE FROM cron.Jobs      WHERE JobID     IN (SELECT JobID     FROM X);
 
 DROP TABLE pg_temp.X;
-```
-
-
-All core functionality and helper-functions
-shared between the compilation phases
-reside in the "soft" schema:
-
-```sql
-DROP SCHEMA IF EXISTS soft CASCADE;
-CREATE SCHEMA soft;
 ```
 
 Compilation phases have their own schemas
