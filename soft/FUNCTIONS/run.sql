@@ -61,23 +61,22 @@ SET search_path TO soft, public, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ProgramID       integer;
-_Program         text;
-_NodeID          integer;
-_ResultNodeID    integer;
-_ResultType      regtype;
-_ResultValue     text;
-_ResultTypes     regtype[];
-_ResultValues    text[];
-_ErrorType       text;
-_ErrorInfo       hstore;
-_Severity        severity;
-_RunAgain        boolean;
-_ApplicationName text;
-_Started         boolean;
-_SQLSTATE        text;
-_SQLERRM         text;
-_OK              boolean;
+_ProgramID    integer;
+_Program      text;
+_NodeID       integer;
+_ResultNodeID integer;
+_ResultType   regtype;
+_ResultValue  text;
+_ResultTypes  regtype[];
+_ResultValues text[];
+_ErrorType    text;
+_ErrorInfo    hstore;
+_Severity     severity;
+_RunAgain     boolean;
+_Started      boolean;
+_SQLSTATE     text;
+_SQLERRM      text;
+_OK           boolean;
 BEGIN
 
 SELECT ProgramID,  Program,  NodeID,  Started
@@ -91,10 +90,7 @@ IF NOT FOUND THEN
     RETURN 'DONE';
 END IF;
 
-_ApplicationName := current_setting('application_name');
-IF _ApplicationName NOT LIKE ('%'||_Program||'%') THEN
-    PERFORM set_config('application_name', substr(format('%s %s', _ApplicationName, _Program),1,63), TRUE);
-END IF;
+PERFORM set_config('application_name', RIGHT(_Program,63), TRUE);
 
 IF NOT _Started THEN
     PERFORM Enter_Node(_NodeID);
