@@ -1,8 +1,4 @@
 #!/bin/bash
-# In another terminal, run:
-# while true ; do PGUSER=pgcronjob PGDATABASE=$USER ./pgcronjob ; psql -X -f install.sql ; done
-killall perl # to kill pgcronjob
-sleep 1 &&
 ./install &&
 cp languages/lox/node_types.csv node_types.csv &&
 cp languages/lox/error_types.csv error_types.csv &&
@@ -15,4 +11,4 @@ SELECT COUNT(Run(Language, Program)) \
 FROM View_Programs \
 WHERE Language = 'lox' AND Program LIKE '%$1%'\
 " &&
-while true ; do clear ; psql -c "SELECT * FROM View_Tests WHERE OK IS NOT NULL ORDER BY OK"; sleep 1; done
+while true ; do clear ; psql -c "SELECT Language, Phase, OK, COUNT(*) FROM View_Tests GROUP BY 1,2,3 ORDER BY 1,2,3"; sleep 1; done

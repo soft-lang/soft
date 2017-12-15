@@ -125,20 +125,5 @@ DROP TABLE ImportErrorTypes;
 
 \ir :language/test.sql
 
-CREATE OR REPLACE FUNCTION monkey(
-_SourceCode    text,
-_LogSeverity   severity DEFAULT 'NOTICE',
-_RunUntilPhase text     DEFAULT NULL
-) RETURNS BOOLEAN
-LANGUAGE sql
-AS $$
-SELECT Soft(
-    _Language      := 'monkey',
-    _SourceCode    := $1,
-    _LogSeverity   := $2,
-    _RunUntilPhase := $3
-)
-$$;
-
 COMMIT;
 

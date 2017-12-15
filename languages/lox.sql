@@ -133,21 +133,6 @@ DROP TABLE ImportErrorTypes;
 
 \ir nil-input.sql
 
-CREATE OR REPLACE FUNCTION lox(
-_SourceCode    text,
-_LogSeverity   severity DEFAULT 'NOTICE',
-_RunUntilPhase text     DEFAULT NULL
-) RETURNS BOOLEAN
-LANGUAGE sql
-AS $$
-SELECT Soft(
-    _Language      := 'lox',
-    _SourceCode    := $1,
-    _LogSeverity   := $2,
-    _RunUntilPhase := $3
-)
-$$;
-
 \ir :language/test.sql
 
 COMMIT;

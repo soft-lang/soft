@@ -2091,19 +2091,6 @@ SELECT * FROM View_Tests;
 \ir soft/FUNCTIONS/get_files.sql
 ```
 
-```sql
-\ir soft/FUNCTIONS/soft.sql
-```
-
-Run code directly without having to come up with a name for your program.
-
-```sql
-SELECT * FROM Soft(
-    _SourceCode := '1+2',
-    _Language   := 'TestLanguage'
-);
-```
-
 If you want to clean-up all test data written,
 you can manually run `TRUNCATE soft.Languages CASCADE` in `psql`,
 but in case you want to poke around, they are not truncated by default.
