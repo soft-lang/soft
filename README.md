@@ -26,30 +26,25 @@ sudo -u postgres createuser -s $USER
 sudo -u postgres createdb -O $USER $USER
 
 # Install and run pgcronjob in a separate terminal window
-sudo -u postgres createuser pgcronjob
-git clone https://github.com/trustly/pgcronjob.git
-git checkout ShareConnectionsBetweenProcessesInSameConnectionPool
-sudo apt-get install libdbi-perl libdbd-pg-perl libdatetime-perl
 sudo -u postgres createuser -s pgcronjob
 sudo -u postgres createuser -s sudo
+git clone https://github.com/trustly/pgcronjob.git
+cd pgcronjob
+git checkout ShareConnectionsBetweenProcessesInSameConnectionPool
+sudo apt-get install libdbi-perl libdbd-pg-perl libdatetime-perl
 psql -X -f install.sql
 PGUSER=pgcronjob PGDATABASE=$USER ./pgcronjob
 
+# In a separate terminal window:
 sudo -u postgres mkdir -p /var/lib/postgresql/9.6/main/github.com/munificent
 sudo -u postgres git -C /var/lib/postgresql/9.6/main/github.com/munificent clone https://github.com/munificent/craftinginterpreters.git
-
 echo 'SET search_path TO soft, public, pg_temp;' >> ~/.psqlrc
-
 git clone https://github.com/soft-lang/soft.git
 cd soft
-./install
-
 # To run the lox tests:
 ./lox
-
 # To run the monkey tests:
 ./monkey
-
 # You can edit the debug level by editing
 # languages/lox/test.sql and changing
 #        _LogSeverity := 'DEBUG5'
