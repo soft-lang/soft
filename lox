@@ -11,4 +11,4 @@ SELECT COUNT(Run(Language, Program)) \
 FROM View_Programs \
 WHERE Language = 'lox' AND Program LIKE '%$1%'\
 " &&
-while true ; do clear ; psql -c "SELECT Language, Phase, OK, COUNT(*) FROM View_Tests GROUP BY 1,2,3 ORDER BY 1,2,3"; sleep 1; done
+while true ; do clear ; psql -c "SELECT Language, Phase, OK, COUNT(*) FROM View_Tests GROUP BY 1,2,3 ORDER BY 1,2,3"; sleep 5; done
