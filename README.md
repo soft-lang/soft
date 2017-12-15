@@ -1556,14 +1556,14 @@ and if so, the first is returned.
 
 ```sql
 SELECT Get_Capturing_Group(
-    _String  := 'FOO1 BAR2 BAZ3',
-    _Pattern := 'FOO\d+ (BAR\d+) BAZ\d+',
+    _String  := '<FOO1><BAR2><BAZ3>',
+    _Pattern := '<FOO\d+>(<BAR\d+>)<BAZ\d+>',
     _Strict  := TRUE
 );
 
 SELECT Get_Capturing_Group(
-    _String  := 'FOO1 BAR2 BAZ3 FOO4 BAR5 BAZ6',
-    _Pattern := 'FOO\d+ (BAR\d+) BAZ\d+',
+    _String  := '<FOO1><BAR2><BAZ3><FOO4><BAR5><BAZ6>',
+    _Pattern := '<FOO\d+>(<BAR\d+>)<BAZ\d+>',
     _Strict  := FALSE
 );
 
