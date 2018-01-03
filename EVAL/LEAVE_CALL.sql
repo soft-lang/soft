@@ -215,7 +215,6 @@ IF NOT FOUND THEN
     );
     IF Child(_DeclarationNodeID, 'CLASS_DECLARATION') IS NOT NULL
     OR Child(_DeclarationNodeID, 'SUPERCLASS')        IS NOT NULL
-    OR Closure(_DeclarationNodeID)
     THEN
         _InstanceNodeID := _DeclarationNodeID;
     ELSE
@@ -255,7 +254,6 @@ IF _ReturningCall THEN
     );
 
     IF Find_Node(_NodeID := _DeclarationNodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> CLASS_DECLARATION') IS NOT NULL
-    OR Closure(_DeclarationNodeID)
     THEN
         -- Class method
         PERFORM Kill_Edge(_RetEdgeID);

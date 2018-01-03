@@ -9,8 +9,12 @@ _OK            boolean;
 BEGIN
 PERFORM Set_Walkable(_NodeID, FALSE);
 
-IF Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> DECLARATION -> STATEMENTS -> PROGRAM') IS NULL THEN
-    -- Not a globally declared function, so might be a closure.
+IF  Find_Node(_NodeID := _NodeID, _Descend := FALSE, _Strict := FALSE, _Path := '-> DECLARATION -> STATEMENTS -> PROGRAM') IS NULL
+AND Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := FALSE, _Paths := ARRAY['-> FOR_BODY', '-> WHILE_BODY']) IS NOT NULL
+THEN
+    -- Not a globally declared function,
+    -- and is within a loop,
+    -- so might be a closure.
     UPDATE Nodes
     SET Closure = TRUE
     FROM Get_Closure_Nodes(_NodeID) AS CapturedVariableNodeID

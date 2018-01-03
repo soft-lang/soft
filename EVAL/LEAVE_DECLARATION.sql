@@ -24,7 +24,7 @@ _NumArgs := array_length(_ParentNodes, 1);
 _ToNodeID   := _ParentNodes[1];
 _FromNodeID := _ParentNodes[2];
 
-_ScopeNodeID := Child(_NodeID);
+_ScopeNodeID := Find_Node(_NodeID := _NodeID, _Descend := TRUE, _Strict := FALSE, _Paths := ARRAY['-> FOR_BODY', '-> WHILE_BODY']);
 
 IF    Closure(_ToNodeID)
 AND Node_Type(_ToNodeID) = 'VARIABLE'
@@ -40,6 +40,24 @@ THEN
 ELSIF Closure(_FromNodeID)
 AND Node_Type(_FromNodeID) = 'FUNCTION_DECLARATION'
 THEN
+    PERFORM Kill_Edge(EdgeID) FROM (
+        SELECT Edge(CallNodeID, RetNodeID) AS EdgeID
+        FROM (
+            SELECT
+                CallNodeID,
+                Child(CallNodeID, 'RET') AS RetNodeID
+            FROM (
+                SELECT ChildNodeID AS CallNodeID
+                FROM Edges
+                WHERE ParentNodeID = _ToNodeID
+                AND   DeathPhaseID IS NULL
+                AND   Node_Type(ChildNodeID) = 'CALL'
+            ) AS Q1
+        ) AS Q2
+        WHERE CallNodeID IS NOT NULL
+        AND   RetNodeID  IS NOT NULL
+    ) AS Q3;
+
     SELECT EnvironmentID INTO STRICT _EnvironmentID FROM Environments WHERE ScopeNodeID = _ScopeNodeID;
     PERFORM Set_Reference_Node(_ReferenceNodeID := NULL, _NodeID := _FromNodeID);
     _ClonedNodeID := Clone(_FromNodeID, _EnvironmentID := _EnvironmentID);
