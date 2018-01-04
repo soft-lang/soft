@@ -2031,6 +2031,8 @@ depending on if the left argument was
 \ir EVAL/NOT_EQUAL.sql
 \ir EVAL/SUBTRACT.sql
 \ir EVAL/UNARY_MINUS.sql
+\ir EVAL/LEAVE_FALSE_BRANCH.sql
+\ir EVAL/LEAVE_TRUE_BRANCH.sql
 ```
 
 The `EVAL` phase computes the values

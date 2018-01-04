@@ -11,7 +11,7 @@ SELECT New_Language(
     _Language                    := :'language',
     _VariableBinding             := 'CAPTURE_BY_REFERENCE',
     _ImplicitReturnValues        := TRUE,
-    _StatementReturnValues       := FALSE,
+    _StatementReturnValues       := TRUE,
     _ZeroBasedNumbering          := TRUE,
     _TruthyNonBooleans           := TRUE,
     _NilIfArrayOutOfBounds       := TRUE,
