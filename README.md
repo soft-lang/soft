@@ -1310,7 +1310,7 @@ Returns the number of children for a node.
 Returns `TRUE` if there is exactly one child for the node.
 The optional param `IsNthParent` can be used to check which
 edge we are connected to the child via, useful to e.g. check
-which argument number a node is to `ARGUMENTS`.
+which argument number a node is to `PARAMETERS`.
 
 
 ```sql
@@ -1966,6 +1966,7 @@ Returns `TRUE` if the node is not inside a function.
 \ir MAP_VARIABLES/LEAVE_IF_EXPRESSION.sql
 \ir MAP_VARIABLES/LEAVE_IF_STATEMENT.sql
 \ir MAP_VARIABLES/LEAVE_VARIABLE.sql
+\ir MAP_VARIABLES/LEAVE_ARGUMENTS.sql
 ```
 
 The `MAP_VARIABLES` phase looks up what
@@ -1995,7 +1996,7 @@ depending on if the left argument was
 \ir EVAL/ADD.sql
 \ir EVAL/DIVIDE.sql
 \ir EVAL/ENTER_RET.sql
-\ir EVAL/ENTER_ARGUMENTS.sql
+\ir EVAL/ENTER_PARAMETERS.sql
 \ir EVAL/ENTER_THIS.sql
 \ir EVAL/ENTER_SUPER.sql
 \ir EVAL/ENTER_IDENTIFIER.sql

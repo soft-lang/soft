@@ -535,6 +535,16 @@ SELECT New_Test(
     _ExpectedValue := '120'
 );
 
+SELECT New_Test(
+    _Language      := :'language',
+    _Program       := 'Anonymous functions',
+    _SourceCode    := $$
+        fn(x,y) {x*y}(1+2,3)
+    $$,
+    _ExpectedType  := 'integer'::regtype,
+    _ExpectedValue := '9'
+);
+
 SELECT COUNT(*) FROM (
     SELECT ProgramID, Run(Language, Program)
     FROM View_Programs

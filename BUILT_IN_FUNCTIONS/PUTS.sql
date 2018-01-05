@@ -7,10 +7,9 @@ _ParentNodeID integer;
 BEGIN
 FOR   _ParentNodeID IN
 SELECT ParentNodeID FROM Edges
-WHERE ChildNodeID = _NodeID
+WHERE ChildNodeID = Parent(_NodeID,'ARGUMENTS')
 AND DeathPhaseID IS NULL
 ORDER BY EdgeID
-OFFSET 1 -- Skip 'puts' IDENTIFIER node
 LOOP
     PERFORM Print_Node(_ParentNodeID);
 END LOOP;

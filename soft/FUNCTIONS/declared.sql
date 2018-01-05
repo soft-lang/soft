@@ -12,7 +12,7 @@ _ScopeNodeID integer;
 _Count       bigint;
 BEGIN
 
-_ScopeNodeID := Child(_NodeID, 'ARGUMENTS');
+_ScopeNodeID := Child(_NodeID, 'PARAMETERS');
 
 IF _ScopeNodeID IS NULL THEN
     SELECT

@@ -27,7 +27,7 @@ THEN
     END IF;
 END IF;
 
-_NumParameters := Count_Parents(Parent(_NodeID,'ARGUMENTS'));
+_NumParameters := Count_Parents(Parent(_NodeID,'PARAMETERS'));
 _MaxParameters := (Language(_NodeID)).MaxParameters;
 IF _NumParameters > _MaxParameters THEN
     PERFORM Error(

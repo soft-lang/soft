@@ -10,7 +10,7 @@ BEGIN
 _VariableNodeID := Resolve(_NodeID, Node_Name(_NodeID));
 IF Declared(_VariableNodeID) = Declared(_NodeID)
 -- or if there is a duplicate parameter:
-OR Node_Type(Child(_NodeID)) = 'ARGUMENTS' AND EXISTS (
+OR Node_Type(Child(_NodeID)) = 'PARAMETERS' AND EXISTS (
     SELECT 1
     FROM Edges
     INNER JOIN Nodes ON Nodes.NodeID = Edges.ParentNodeID

@@ -11,7 +11,7 @@ SELECT Find_Node(
     _SelectLastIfMultipleMatch := TRUE,
     _Paths                     := ARRAY[
         '<- DECLARATION <- VARIABLE[1]',
-        '<- ARGUMENTS   <- VARIABLE[1]'
+        '<- PARAMETERS  <- VARIABLE[1]'
     ]
 )
 $$;

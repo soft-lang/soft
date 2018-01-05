@@ -7,7 +7,7 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'NOTICE'
+        _LogSeverity := 'DEBUG5'
     ) FROM Get_Files(
         _Path       := 'github.com/munificent/craftinginterpreters/test',
         _FileSuffix := '\.lox$'
