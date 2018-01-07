@@ -39,12 +39,16 @@ IF Find_Node(
     _NodeID  := _NodeID,
     _Descend := FALSE,
     _Strict  := FALSE,
-    _Paths   := ARRAY[
-        '-> GET',
-        '-> CALL -> GET'
-    ]
+    _Path    := '-> GET'
 ) IS NOT NULL
 AND Has_Child(_NodeID, _IsNthParent := 2)
+OR Find_Node(
+    _NodeID  := _NodeID,
+    _Descend := FALSE,
+    _Strict  := FALSE,
+    _Path    := '-> CALL -> GET'
+) IS NOT NULL
+AND Has_Child(Child(_NodeID,'CALL'), _IsNthParent := 2)
 THEN
     PERFORM Log(
         _NodeID   := _NodeID,
