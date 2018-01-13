@@ -2142,5 +2142,9 @@ END$$;
 ```
 
 ```sql
+\ir soft/TABLES/contexts.sql
+```
+
+```sql
 COMMIT;
 ```

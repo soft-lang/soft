@@ -39,6 +39,8 @@ _ProgramNodePattern         text;
 _ProgramNodeID              integer;
 _EdgeID                     integer;
 _Matches                    integer;
+_LeftNodeType               text;
+_RightNodeType              text;
 BEGIN
 
 SELECT
@@ -196,6 +198,20 @@ LOOP
     _ChildNodeString := format('<%s%s>', COALESCE(_GrowIntoNodeType,_ChildNodeType), _ChildNodeID);
 
     PERFORM Set_Program_Node(_NodeID := _ChildNodeID);
+
+    _LeftNodeType  := (regexp_matches(_Nodes, format('<([A-Z]+)\d+>%s', _MatchedNodes)))[1];
+    _RightNodeType := (regexp_matches(_Nodes, format('%s<([A-Z]+)\d+>', _MatchedNodes)))[1];
+    IF NOT EXISTS (
+        SELECT 1 FROM Contexts
+        WHERE LeftNodeType  IS NOT DISTINCT FROM _LeftNodeType
+        AND   NodeType = _ChildNodeType
+        AND   RightNodeType IS NOT DISTINCT FROM _RightNodeType
+    ) THEN
+        INSERT INTO Contexts ( LeftNodeType,       NodeType,  RightNodeType)
+        VALUES               (_LeftNodeType, _ChildNodeType, _RightNodeType)
+        RETURNING TRUE INTO STRICT _OK;
+    END IF;
+
 
     IF _NodeSeverity IS NOT NULL
     AND _GrowIntoNodeTypeID IS NULL

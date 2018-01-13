@@ -1,4 +1,9 @@
 #!/bin/sh
-psql -q -X -c "SET search_path TO soft; TRUNCATE DOTIR CASCADE; SELECT Save_DOTIR(NodeID) FROM (SELECT NodeID FROM Programs WHERE DeathTime IS NOT NULL ORDER BY DeathTime DESC LIMIT 1) AS X"
+if [ $# -eq 0 ]
+then
+    psql -q -X -c "SET search_path TO soft; TRUNCATE DOTIR CASCADE; SELECT Save_DOTIR(NodeID) FROM (SELECT NodeID FROM Programs WHERE DeathTime IS NOT NULL ORDER BY DeathTime DESC LIMIT 1) AS X";
+else
+    psql -q -X -c "SET search_path TO soft; TRUNCATE DOTIR CASCADE; SELECT Save_DOTIR(NodeID) FROM (SELECT NodeID FROM Programs WHERE ProgramID = $1) AS X";
+fi
 ./export-dotir
 open dotir/*.pdf
