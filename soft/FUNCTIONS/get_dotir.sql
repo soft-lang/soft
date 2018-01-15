@@ -48,6 +48,7 @@ SELECT format(E'"%s.%s" [label="%s" %s];',
 )
 FROM Nodes
 WHERE Nodes.ProgramID = _ProgramID
+AND Nodes.DeathPhaseID IS NULL
 AND Nodes.NodeID = ANY(_FamilyNodeIDs)
 ORDER BY Nodes.NodeID;
 
@@ -62,6 +63,8 @@ FROM Nodes AS Parent
 INNER JOIN Edges          ON Edges.ParentNodeID = Parent.NodeID
 INNER JOIN Nodes AS Child ON Child.NodeID       = Edges.ChildNodeID
 WHERE Parent.ProgramID    = _ProgramID
+AND   Parent.DeathPhaseID IS NULL
+AND   Edges.DeathPhaseID  IS NULL
 AND   Edges.ParentNodeID = ANY(_FamilyNodeIDs)
 AND   Edges.ChildNodeID  = ANY(_FamilyNodeIDs)
 AND   Parent.EnvironmentID <> Child.EnvironmentID
@@ -78,6 +81,8 @@ FROM Nodes AS Child
 INNER JOIN Edges           ON Edges.ChildNodeID = Child.NodeID
 INNER JOIN Nodes AS Parent ON Parent.NodeID     = Edges.ParentNodeID
 WHERE Child.ProgramID = _ProgramID
+AND   Child.DeathPhaseID IS NULL
+AND   Edges.DeathPhaseID IS NULL
 AND   Edges.ParentNodeID = ANY(_FamilyNodeIDs)
 AND   Edges.ChildNodeID  = ANY(_FamilyNodeIDs)
 AND   Child.EnvironmentID <> Parent.EnvironmentID
@@ -97,6 +102,7 @@ SELECT format FROM (
     INNER JOIN Nodes AS Parent ON Parent.NodeID = Edges.ParentNodeID
     INNER JOIN Nodes AS Child  ON Child.NodeID  = Edges.ChildNodeID
     WHERE Edges.ProgramID = _ProgramID
+    AND Edges.DeathPhaseID IS NULL
     AND Parent.EnvironmentID = Child.EnvironmentID
     AND Edges.ParentNodeID = ANY(_FamilyNodeIDs)
     AND Edges.ChildNodeID  = ANY(_FamilyNodeIDs)
@@ -113,6 +119,7 @@ SELECT format FROM (
     INNER JOIN Nodes AS Parent ON Parent.NodeID = Edges.ParentNodeID
     INNER JOIN Nodes AS Child  ON Child.NodeID  = Edges.ChildNodeID
     WHERE Edges.ProgramID = _ProgramID
+    AND Edges.DeathPhaseID IS NULL
     AND Parent.EnvironmentID <> Child.EnvironmentID
     AND Edges.ParentNodeID = ANY(_FamilyNodeIDs)
     AND Edges.ChildNodeID  = ANY(_FamilyNodeIDs)
@@ -129,6 +136,7 @@ SELECT format FROM (
     INNER JOIN Nodes AS Parent ON Parent.NodeID = Edges.ParentNodeID
     INNER JOIN Nodes AS Child  ON Child.NodeID  = Edges.ChildNodeID
     WHERE Edges.ProgramID = _ProgramID
+    AND Edges.DeathPhaseID IS NULL
     AND Parent.EnvironmentID <> Child.EnvironmentID
     AND Edges.ParentNodeID = ANY(_FamilyNodeIDs)
     AND Edges.ChildNodeID  = ANY(_FamilyNodeIDs)

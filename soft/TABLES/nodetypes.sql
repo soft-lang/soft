@@ -21,7 +21,6 @@ UNIQUE (LanguageID, NodeTypeID),
 UNIQUE (LanguageID, NodeType),
 UNIQUE (LanguageID, Literal),
 UNIQUE (LanguageID, LiteralPattern),
-UNIQUE (LanguageID, NodePattern),
 CHECK ((Literal IS     NULL AND LiteralPattern IS     NULL AND NodePattern IS     NULL)
 OR     (Literal IS NOT NULL AND LiteralPattern IS     NULL AND NodePattern IS     NULL)
 OR     (Literal IS     NULL AND LiteralPattern IS NOT NULL AND NodePattern IS     NULL)
