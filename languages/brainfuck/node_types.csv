@@ -1,0 +1,17 @@
+nodetype,primitivetype,nodegroup,precedence,literal,literalpattern,nodepattern,prologue,epilogue,growfrom,growinto,nodeseverity
+DATA,,,,,,,,,,,
+INTEGER,integer,,,,,,,,,,
+SOURCE_CODE,text,,,,,,,,,,
+INC_DATA,,STATEMENT,,+,,,,,,,
+READ_STDIN,,STATEMENT,,",",,,,,,,
+DEC_DATA,,STATEMENT,,-,,,,,,,
+WRITE_STDOUT,,STATEMENT,,.,,,,,,,
+DEC_PTR,,STATEMENT,,<,,,,,,,
+INC_PTR,,STATEMENT,,>,,,,,,,
+JUMP_IF_DATA_ZERO,,,,[,,,,,,,
+JUMP_IF_DATA_NOT_ZERO,,,,],,,,,,,
+COMMENT,,STATEMENT,,,"([^\[\]<>,.+-]+)",,,,,,
+LOOP_BLOCK,,STATEMENT,,,,(JUMP_IF_DATA_ZERO (?#STATEMENT)+ JUMP_IF_DATA_NOT_ZERO),,,,,
+STATEMENTS,,,,,,^((?#STATEMENT)+)$,,,,,
+UNPARSEABLE,,,,,,(?!STATEMENTS | UNPARSEABLE | PROGRAM)([A-Z_]+),,,,,ERROR
+PROGRAM,,,,,,^((?:STATEMENTS | UNPARSEABLE)+)$,,,,,

@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION New_Node_Type(
 _Language       text,
 _NodeType       text,
-_PrimitiveType   regtype  DEFAULT NULL,
+_PrimitiveType  regtype  DEFAULT NULL,
 _NodeGroup      text     DEFAULT NULL,
 _Precedence     text     DEFAULT NULL,
 _Literal        text     DEFAULT NULL,

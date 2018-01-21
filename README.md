@@ -192,6 +192,12 @@ such as a function, array, or some other non-primitive value.
 The operator function can then do whatever it want with the passed
 `node` arguments, to decide what to return.
 
+## CONTEXTS
+
+```sql
+\ir soft/TABLES/contexts.sql
+```
+
 ## LANGUAGES
 
 ```sql
@@ -1428,6 +1434,10 @@ Helper-function to manually retry running the program upon errors.
 \ir soft/FUNCTIONS/set_node_name.sql
 ```
 
+```sql
+\ir soft/FUNCTIONS/heap_integer_array.sql
+```
+
 ## CLONING OF NODES
 
 To clone a node means creating new Nodes with the same `PrimitiveValue`s
@@ -1995,6 +2005,14 @@ depending on if the left argument was
 ```sql
 \ir EVAL/ADD.sql
 \ir EVAL/DIVIDE.sql
+\ir EVAL/ENTER_DEC_DATA.sql
+\ir EVAL/ENTER_DEC_PTR.sql
+\ir EVAL/ENTER_INC_DATA.sql
+\ir EVAL/ENTER_INC_PTR.sql
+\ir EVAL/ENTER_JUMP_IF_DATA_NOT_ZERO.sql
+\ir EVAL/ENTER_JUMP_IF_DATA_ZERO.sql
+\ir EVAL/ENTER_READ_STDIN.sql
+\ir EVAL/ENTER_WRITE_STDOUT.sql
 \ir EVAL/ENTER_RET.sql
 \ir EVAL/ENTER_PARAMETERS.sql
 \ir EVAL/ENTER_THIS.sql
@@ -2139,10 +2157,6 @@ ELSE
     RAISE NOTICE '%', Colorize('Installation failed.', 'RED');
 END IF;
 END$$;
-```
-
-```sql
-\ir soft/TABLES/contexts.sql
 ```
 
 ```sql
