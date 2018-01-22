@@ -3,37 +3,31 @@ RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_DataNodeID    integer;
-_ProgramID     integer;
-_LanguageID    integer;
-_IntegerNodeID integer;
-_OK            boolean;
+_DataNodeID     integer;
+_ArgumentNodeID integer;
+_Argument       integer;
+_ArrayNodeID    integer;
+_Array          integer[];
+_PtrNodeID      integer;
+_Ptr            integer;
+_Value          integer;
 BEGIN
 
-_DataNodeID := Heap_Integer_Array(_NodeID);
-
-SELECT
-    Nodes.ProgramID,
-    NodeTypes.LanguageID
-INTO STRICT
-    _ProgramID,
-    _LanguageID
-FROM Nodes
-INNER JOIN NodeTypes ON NodeTypes.NodeTypeID = Nodes.NodeTypeID
-WHERE Nodes.NodeID = _NodeID;
-
-_IntegerNodeID := Parent(Dereference(_DataNodeID), 'INTEGER');
-IF _IntegerNodeID IS NULL THEN
-    _IntegerNodeID := New_Node(
-        _ProgramID      := _ProgramID,
-        _NodeTypeID     := (SELECT NodeTypeID FROM NodeTypes WHERE LanguageID = _LanguageID AND NodeType = 'INTEGER'),
-        _PrimitiveType  := 'integer',
-        _PrimitiveValue := '0'
-    );
-    PERFORM New_Edge(_ParentNodeID := _IntegerNodeID, _ChildNodeID := Dereference(_DataNodeID));
+_DataNodeID     := Parent(_NodeID, 'DATA');
+_ArgumentNodeID := Parent(_NodeID, 'ARGUMENT');
+_ArrayNodeID    := Parent(_DataNodeID, 'ARRAY');
+_PtrNodeID      := Parent(_DataNodeID, 'PTR');
+_Array          := Primitive_Value(_ArrayNodeID)::integer[];
+_Ptr            := Primitive_Value(_PtrNodeID)::integer;
+_Argument       := COALESCE(Primitive_Value(_ArgumentNodeID)::integer, 1);
+_Ptr            := _Ptr - _Argument;
+IF _Ptr < 1 THEN
+    RAISE EXCEPTION 'Out of bounds error! Tried to decrement pointer before first cell. NodeID %', _NodeID;
 END IF;
+_Value := _Array[_Ptr];
 
-UPDATE Nodes SET ReferenceNodeID = _IntegerNodeID WHERE NodeID = _DataNodeID RETURNING TRUE INTO STRICT _OK;
+PERFORM Set_Node_Value(_PtrNodeID,  _Ptr);
+PERFORM Set_Node_Value(_DataNodeID, _Value);
 
 RETURN;
 END;

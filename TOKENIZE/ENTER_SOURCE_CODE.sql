@@ -182,7 +182,7 @@ LOOP
         _ChildNodeID  := _NodeID
     );
 
-    IF _NodeSeverity IS NOT NULL THEN
+    IF _NodeSeverity >= 'ERROR' THEN
         PERFORM Error(
             _NodeID    := _TokenNodeID,
             _ErrorType := _NodeType

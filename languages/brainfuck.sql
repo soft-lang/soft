@@ -25,22 +25,11 @@ SELECT New_Language(
 );
 
 SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE',      _StopSeverity := 'FATAL');
-SELECT New_Phase(_Language := :'language', _Phase := 'EXTRACT_TESTS', _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD',       _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'PARSE',         _StopSeverity := 'FATAL');
--- SELECT New_Phase(_Language := :'language', _Phase := 'PARSE_ERRORS');
-SELECT New_Phase(_Language := :'language', _Phase := 'VALIDATE',      _StopSeverity := 'FATAL');
-SELECT New_Phase(_Language := :'language', _Phase := 'REDUCE',        _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _StopSeverity := 'FATAL', _SaveDOTIR := TRUE);
-SELECT New_Phase(_Language := :'language', _Phase := 'SHORT_CIRCUIT', _SaveDOTIR := TRUE);
+SELECT New_Phase(_Language := :'language', _Phase := 'OPTIMIZE',      _StopSeverity := 'FATAL', _SaveDOTIR := TRUE);
 SELECT New_Phase(_Language := :'language', _Phase := 'EVAL',          _SaveDOTIR := TRUE);
-
-SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'len',   _ImplementationFunction := 'LENGTH');
-SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'first', _ImplementationFunction := 'FIRST');
-SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'rest',  _ImplementationFunction := 'REST');
-SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'push',  _ImplementationFunction := 'PUSH');
-SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'last',  _ImplementationFunction := 'LAST');
-SELECT New_Built_In_Function(_Language := :'language', _Identifier := 'puts',  _ImplementationFunction := 'PUTS');
 
 -- Import NodeTypes:
 

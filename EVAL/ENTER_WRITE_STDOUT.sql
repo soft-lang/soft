@@ -7,7 +7,7 @@ BEGIN
 PERFORM Log(
     _NodeID   := _NodeID,
     _Severity := 'STDOUT',
-    _Message  := Chr(Primitive_Value(Heap_Integer_Array(_NodeID))::integer)
+    _Message  := Chr(Primitive_Value(Parent(_NodeID, 'DATA'))::integer)
 );
 RETURN;
 END;

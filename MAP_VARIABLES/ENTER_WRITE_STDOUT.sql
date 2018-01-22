@@ -1,0 +1,10 @@
+CREATE OR REPLACE FUNCTION "MAP_VARIABLES"."ENTER_WRITE_STDOUT"(_NodeID integer)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+PERFORM New_Edge(_ParentNodeID := Data_Node(_NodeID), _ChildNodeID := _NodeID);
+RETURN;
+END;
+$$;

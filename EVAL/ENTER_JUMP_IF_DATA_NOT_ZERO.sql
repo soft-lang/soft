@@ -4,7 +4,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-IF Primitive_Value(Heap_Integer_Array(_NodeID)) <> '0' THEN
+IF Primitive_Value(Parent(_NodeID, 'DATA')) <> '0' THEN
     PERFORM Set_Program_Node(Child(_NodeID), 'ENTER');
 END IF;
 RETURN;

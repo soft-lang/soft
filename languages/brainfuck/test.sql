@@ -13,7 +13,7 @@ SELECT COUNT(*) FROM (
         _FileSuffix := '\.bf$'
     )
     WHERE TRUE
-    AND   FilePath ~ 'addtwonums'
+    AND   FilePath ~ 'movedata0'
 ) AS Tests;
 
 -- SELECT COUNT(*) FROM (
