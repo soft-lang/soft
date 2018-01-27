@@ -23,8 +23,11 @@ INNER JOIN Nodes  ON Nodes.NodeID   = Programs.NodeID
 WHERE Programs.ProgramID = _ProgramID
 FOR UPDATE OF Programs;
 
-IF _Direction IS DISTINCT FROM 'LEAVE' THEN
-    RAISE EXCEPTION 'Unexpected Direction %', _Direction;
+IF _Direction = 'ENTER' THEN
+    -- The Direction might be changed by a LEAVE_* function to ENTER,
+    -- in which case we don't want to go to the next node,
+    -- so instead return here.
+    RETURN TRUE;
 END IF;
 
 SELECT
