@@ -27,9 +27,10 @@ SELECT New_Language(
 SELECT New_Phase(_Language := :'language', _Phase := 'TOKENIZE',      _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'DISCARD',       _StopSeverity := 'FATAL');
 SELECT New_Phase(_Language := :'language', _Phase := 'PARSE',         _StopSeverity := 'FATAL');
-SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _StopSeverity := 'FATAL', _SaveDOTIR := TRUE);
+-- SELECT New_Phase(_Language := :'language', _Phase := 'MAP_VARIABLES', _StopSeverity := 'FATAL', _SaveDOTIR := TRUE);
 SELECT New_Phase(_Language := :'language', _Phase := 'OPTIMIZE',      _StopSeverity := 'FATAL', _SaveDOTIR := TRUE);
-SELECT New_Phase(_Language := :'language', _Phase := 'EVAL',          _SaveDOTIR := TRUE);
+--SELECT New_Phase(_Language := :'language', _Phase := 'EVAL',          _SaveDOTIR := TRUE);
+SELECT New_Phase(_Language := :'language', _Phase := 'LLVM_IR',          _SaveDOTIR := TRUE);
 
 -- Import NodeTypes:
 

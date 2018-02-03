@@ -44,7 +44,7 @@ UPDATE Nodes SET
 WHERE NodeID = _ArgumentNodeID
 RETURNING TRUE INTO STRICT _OK;
 
-PERFORM Next_Node(_ProgramID);
+PERFORM Next_Node(_NodeID);
 
 PERFORM Kill_Edge(EdgeID)
 FROM Edges

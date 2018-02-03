@@ -126,7 +126,7 @@ IF _VariableNodeID IS NULL THEN
 END IF;
 
 UPDATE Programs SET Direction = 'LEAVE' WHERE ProgramID = _ProgramID RETURNING TRUE INTO STRICT _OK;
-PERFORM Next_Node(_ProgramID);
+PERFORM Next_Node(_NodeID);
 
 SELECT Set_Edge_Parent(EdgeID, _ParentNodeID := _VariableNodeID), ChildNodeID INTO STRICT _OK, _ChildNodeID FROM Edges WHERE DeathPhaseID IS NULL AND ParentNodeID = _NodeID;
 PERFORM Kill_Node(_NodeID);

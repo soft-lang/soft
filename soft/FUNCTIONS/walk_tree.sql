@@ -116,7 +116,7 @@ ELSIF _NodeID <> (SELECT NodeID FROM Programs WHERE ProgramID = _ProgramID) THEN
     RETURN TRUE;
 END IF;
 
-RETURN Next_Node(_ProgramID);
+RETURN Next_Node(_NodeID);
 
 END;
 $$;

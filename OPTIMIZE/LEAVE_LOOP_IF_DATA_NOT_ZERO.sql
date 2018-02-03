@@ -14,6 +14,8 @@ BEGIN
 PERFORM Discard_Node(Parent(_NodeID, 'JUMP_IF_DATA_ZERO'));
 PERFORM Discard_Node(Parent(_NodeID, 'JUMP_IF_DATA_NOT_ZERO'));
 
+RETURN;
+
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT _ParentNodeIDs
 FROM Edges

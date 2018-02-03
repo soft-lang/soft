@@ -7,13 +7,13 @@ SELECT COUNT(*) FROM (
         _Language    := :'language',
         _Program     := FilePath,
         _SourceCode  := FileContent,
-        _LogSeverity := 'DEBUG5'
+        _LogSeverity := 'NOTICE'
     ) FROM Get_Files(
         _Path       := 'github.com/eliben/code-for-blog/2017/bfjit/tests/testcases',
         _FileSuffix := '\.bf$'
     )
     WHERE TRUE
-    AND   FilePath ~ 'helloworld'
+    AND   FilePath ~ 'factor'
 ) AS Tests;
 
 -- SELECT COUNT(*) FROM (

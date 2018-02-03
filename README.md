@@ -149,6 +149,9 @@ CREATE SCHEMA "EVAL";
 DROP SCHEMA IF EXISTS "OPTIMIZE" CASCADE;
 CREATE SCHEMA "OPTIMIZE";
 
+DROP SCHEMA IF EXISTS "LLVM_IR" CASCADE;
+CREATE SCHEMA "LLVM_IR";
+
 DROP SCHEMA IF EXISTS "BUILT_IN_FUNCTIONS" CASCADE;
 CREATE SCHEMA "BUILT_IN_FUNCTIONS";
 ```
@@ -1718,7 +1721,7 @@ or if there is no child, it will move on to the next `Phase`,
 or if there is no next `Phase`, the program has reached its final `Phase` and will therefore exit.
 
 ```sql
-SELECT Next_Node(_ProgramID := 1);
+SELECT Next_Node(_NodeID := 1);
 ```
 
 
@@ -1907,10 +1910,10 @@ next phase `DISCARD`.
 ### DISCARD
 
 ```sql
-\ir DISCARD/ENTER_WHITE_SPACE.sql
-\ir DISCARD/ENTER_COMMENT.sql
-\ir DISCARD/ENTER_TEST_EXPECTED_STDOUT.sql
-\ir DISCARD/ENTER_ILLEGAL.sql
+\ir DISCARD/LEAVE_WHITE_SPACE.sql
+\ir DISCARD/LEAVE_COMMENT.sql
+\ir DISCARD/LEAVE_TEST_EXPECTED_STDOUT.sql
+\ir DISCARD/LEAVE_ILLEGAL.sql
 ```
 
 The `DISCARD` phase eliminates `WHITE_SPACE` nodes.
@@ -2082,6 +2085,21 @@ for nodes when they are visited.
 \ir OPTIMIZE/LEAVE_INC_DATA.sql
 \ir OPTIMIZE/LEAVE_INC_PTR.sql
 \ir OPTIMIZE/LEAVE_LOOP_IF_DATA_NOT_ZERO.sql
+```
+
+### LLVM_IR
+
+```sql
+\ir LLVM_IR/ENTER_PROGRAM.sql
+\ir LLVM_IR/ENTER_DEC_DATA.sql
+\ir LLVM_IR/ENTER_DEC_PTR.sql
+\ir LLVM_IR/ENTER_INC_DATA.sql
+\ir LLVM_IR/ENTER_INC_PTR.sql
+\ir LLVM_IR/ENTER_LOOP_IF_DATA_NOT_ZERO.sql
+\ir LLVM_IR/LEAVE_LOOP_IF_DATA_NOT_ZERO.sql
+\ir LLVM_IR/ENTER_READ_STDIN.sql
+\ir LLVM_IR/ENTER_WRITE_STDOUT.sql
+\ir LLVM_IR/LEAVE_PROGRAM.sql
 ```
 
 ### BUILT_IN_FUNCTIONS

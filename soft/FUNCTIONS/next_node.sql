@@ -1,9 +1,9 @@
-CREATE OR REPLACE FUNCTION Next_Node(_ProgramID integer)
+CREATE OR REPLACE FUNCTION Next_Node(_NodeID integer)
 RETURNS boolean
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_NodeID          integer;
+_ProgramID       integer;
 _PhaseID         integer;
 _LanguageID      integer;
 _Direction       direction;
@@ -15,12 +15,12 @@ _RunUntilPhaseID integer;
 _OK              boolean;
 BEGIN
 
-SELECT       Programs.NodeID, Programs.PhaseID, Phases.LanguageID, Programs.Direction, Programs.RunUntilPhaseID
-INTO STRICT          _NodeID,         _PhaseID,       _LanguageID,         _Direction,         _RunUntilPhaseID
-FROM Programs
-INNER JOIN Phases ON Phases.PhaseID = Programs.PhaseID
-INNER JOIN Nodes  ON Nodes.NodeID   = Programs.NodeID
-WHERE Programs.ProgramID = _ProgramID
+SELECT       Programs.ProgramID, Programs.PhaseID, Phases.LanguageID, Programs.Direction, Programs.RunUntilPhaseID
+INTO STRICT          _ProgramID,         _PhaseID,       _LanguageID,         _Direction,         _RunUntilPhaseID
+FROM Nodes
+INNER JOIN Programs ON Programs.ProgramID = Nodes.ProgramID
+INNER JOIN Phases   ON Phases.PhaseID     = Programs.PhaseID
+WHERE Nodes.NodeID = _NodeID
 FOR UPDATE OF Programs;
 
 IF _Direction = 'ENTER' THEN
