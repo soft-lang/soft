@@ -1,6 +1,7 @@
 CREATE OR REPLACE FUNCTION Child(_NodeID integer, _NodeType text DEFAULT NULL)
 RETURNS integer
 LANGUAGE plpgsql
+STABLE
 AS $$
 DECLARE
 _ChildNodeID integer;

@@ -5,6 +5,7 @@ AS $$
 DECLARE
 _LeftNodeID integer;
 _Count       bigint;
+_ChildNodeID integer;
 BEGIN
 
 SELECT Edges.ParentNodeID

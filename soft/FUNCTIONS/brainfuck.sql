@@ -9,31 +9,43 @@ _DataPtr int;
 _ProgPtr int;
 _STDINPOS integer;
 _STDOUT text;
+_STDOUTBuffer int[];
+_STDOUTSize integer;
 BEGIN
 SELECT LLVMIR INTO STRICT _LLVMIR FROM LLVMIR;
 _Memory  := array_fill(0,array[30000]);
+_STDOUTBuffer := array_fill(0,array[30000]);
 _DataPtr := 0;
 _ProgPtr := 0;
 _STDINPOS := 0;
+_STDOUTSize := 0;
 _STDOUT := '';
 LOOP
     SELECT
         Memory,
         DataPtr,
-        ProgPtr
+        ProgPtr,
+        STDOUTBuffer,
+        STDOUTSize
     INTO
         _Memory,
         _DataPtr,
-        _ProgPtr
+        _ProgPtr,
+        _STDOUTBuffer,
+        _STDOUTSize
     FROM LLVMIR_Run(
-        _LLVMIR  := CASE WHEN _ProgPtr <> 0 THEN replace(_LLVMIR, ';ENTRY', 'br label %post_'||_ProgPtr::text) ELSE _LLVMIR END,
+        _LLVMIR  := CASE WHEN _ProgPtr <> 0 THEN replace(_LLVMIR, 'entry:', 'br label %post_'||_ProgPtr::text) ELSE _LLVMIR END,
         _Memory  := _Memory,
         _DataPtr := _DataPtr
     );
+--    RAISE NOTICE 'Memory % DataPtr % ProgPtr % STDOUTBuffer % STDOUTSize %', _Memory, _DataPtr, _ProgPtr, _STDOUTBuffer, _STDOUTSize;
+    IF _STDOUTSize > 0 THEN
+        FOR _i IN 1.._STDOUTSize LOOP
+            _STDOUT := _STDOUT || chr(_STDOUTBuffer[_i]);
+        END LOOP;
+    END IF;
     IF _ProgPtr = 0 THEN
         EXIT;
-    ELSIF Node_Type(_ProgPtr) = 'WRITE_STDOUT' THEN
-        _STDOUT := _STDOUT || chr(_Memory[_DataPtr + 1]);
     ELSIF Node_Type(_ProgPtr) = 'READ_STDIN' THEN
         _STDINPOS := _STDINPOS + 1;
         _Memory[_DataPtr + 1] := ascii(substr(_STDIN, _STDINPOS, 1));

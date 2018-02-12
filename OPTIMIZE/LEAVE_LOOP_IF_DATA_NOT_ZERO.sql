@@ -14,8 +14,6 @@ BEGIN
 PERFORM Discard_Node(Parent(_NodeID, 'JUMP_IF_DATA_ZERO'));
 PERFORM Discard_Node(Parent(_NodeID, 'JUMP_IF_DATA_NOT_ZERO'));
 
-RETURN;
-
 SELECT array_agg(ParentNodeID ORDER BY EdgeID)
 INTO STRICT _ParentNodeIDs
 FROM Edges
@@ -65,11 +63,13 @@ ELSIF _Count = 4 THEN
     AND Node_Type(_ParentNodeIDs[2]) = 'INC_PTR'
     AND Node_Type(_ParentNodeIDs[3]) = 'INC_DATA'
     AND Node_Type(_ParentNodeIDs[4]) = 'DEC_PTR'
+    AND COALESCE(Primitive_Value(Parent(_ParentNodeIDs[1], 'ARGUMENT'))::integer, 1) = 1
+    AND COALESCE(Primitive_Value(Parent(_ParentNodeIDs[3], 'ARGUMENT'))::integer, 1) = 1
     AND COALESCE(Primitive_Value(Parent(_ParentNodeIDs[2], 'ARGUMENT'))::integer, 1)
     =   COALESCE(Primitive_Value(Parent(_ParentNodeIDs[4], 'ARGUMENT'))::integer, 1)
     THEN
-        RAISE NOTICE 'Optimize ->+< NodeID %', _NodeID;
-        -- Detect patterns: ->+<
+        RAISE NOTICE 'Optimize [->+<] NodeID %', _NodeID;
+        -- Detect patterns: [->+<]
         PERFORM Change_Node_Type(_NodeID, 'LOOP_IF_DATA_NOT_ZERO', 'LOOP_MOVE_DATA');
         _Argument := COALESCE(Primitive_Value(Parent(_ParentNodeIDs[2], 'ARGUMENT'))::integer, 1);
 
@@ -77,11 +77,13 @@ ELSIF _Count = 4 THEN
     AND   Node_Type(_ParentNodeIDs[2]) = 'DEC_PTR'
     AND   Node_Type(_ParentNodeIDs[3]) = 'INC_DATA'
     AND   Node_Type(_ParentNodeIDs[4]) = 'INC_PTR'
+    AND   COALESCE(Primitive_Value(Parent(_ParentNodeIDs[1], 'ARGUMENT'))::integer, 1) = 1
+    AND   COALESCE(Primitive_Value(Parent(_ParentNodeIDs[3], 'ARGUMENT'))::integer, 1) = 1
     AND   COALESCE(Primitive_Value(Parent(_ParentNodeIDs[2], 'ARGUMENT'))::integer, 1)
     =     COALESCE(Primitive_Value(Parent(_ParentNodeIDs[4], 'ARGUMENT'))::integer, 1)
     THEN
-        RAISE NOTICE 'Optimize -<+> NodeID %', _NodeID;
-        -- Detect patterns: -<+>
+        RAISE NOTICE 'Optimize [-<+>] NodeID %', _NodeID;
+        -- Detect patterns: [-<+>]
         PERFORM Change_Node_Type(_NodeID, 'LOOP_IF_DATA_NOT_ZERO', 'LOOP_MOVE_DATA');
         _Argument := -COALESCE(Primitive_Value(Parent(_ParentNodeIDs[2], 'ARGUMENT'))::integer, 1);
 

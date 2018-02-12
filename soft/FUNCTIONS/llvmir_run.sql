@@ -4,7 +4,9 @@ _Memory int[],
 _DataPtr int,
 OUT Memory int[],
 OUT DataPtr int,
-OUT ProgPtr int
+OUT ProgPtr int,
+OUT STDOUTBuffer int[],
+OUT STDOUTSize int
 )
 RETURNS RECORD
 LANGUAGE plpython3u
@@ -26,11 +28,13 @@ if __name__ == "__main__":
     engine.finalize_object()
     func_ptr = engine.get_function_address("__llvmjit")
 
-    cfunc = CFUNCTYPE(c_int32, POINTER(c_int8), POINTER(c_int32))(func_ptr)
+    cfunc = CFUNCTYPE(c_int32, POINTER(c_int8), POINTER(c_int32), POINTER(c_int8), POINTER(c_int32))(func_ptr)
     CMemory = np.asarray(_memory, dtype=np.int8)
     CDataPtr = c_int32(_dataptr)
-    RetVal = cfunc(CMemory.ctypes.data_as(POINTER(c_int8)), byref(CDataPtr))
-    return (CMemory, CDataPtr.value, RetVal)
+    CSTDOUTBuffer = np.zeros((30000,), dtype=np.int8)
+    CSTDOUTSize = c_int32(0)
+    RetVal = cfunc(CMemory.ctypes.data_as(POINTER(c_int8)), byref(CDataPtr), CSTDOUTBuffer.ctypes.data_as(POINTER(c_int8)), byref(CSTDOUTSize))
+    return (CMemory, CDataPtr.value, RetVal, CSTDOUTBuffer, CSTDOUTSize.value)
 $$;
 
 /*

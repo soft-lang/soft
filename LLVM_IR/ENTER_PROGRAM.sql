@@ -6,9 +6,8 @@ DECLARE
 BEGIN
 PERFORM LLVMIR(_NodeID, format($IR$
 ; >ENTER_PROGRAM %1$s
-define i32 @__llvmjit(i8* %%memory, i32* %%dataptr_addr) {
+define i32 @__llvmjit(i8* %%memory, i32* %%dataptr_addr, i8* %%stdout_buffer, i32* %%stdout_size_addr) {
 entry:
-;ENTRY
 ; <ENTER_PROGRAM %1$s
 $IR$, _NodeID));
 RETURN;

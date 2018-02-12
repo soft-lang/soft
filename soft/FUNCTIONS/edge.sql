@@ -1,6 +1,7 @@
 CREATE OR REPLACE FUNCTION Edge(_ParentNodeID integer, _ChildNodeID integer)
 RETURNS integer
 LANGUAGE plpgsql
+STABLE
 AS $$
 DECLARE
 _EdgeID integer;
