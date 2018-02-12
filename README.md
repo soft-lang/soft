@@ -966,6 +966,14 @@ This allows us to carefully follow the different compilation
 phases and the program execution during eval
 at the desired log severity level.
 
+## LLVM IR
+
+```sql
+\ir soft/TABLES/llvmir.sql
+\ir soft/FUNCTIONS/llvmir.sql
+\ir soft/FUNCTIONS/llvmir_run.sql
+```
+
 ## DOTIR SERIALIZATION / DESERIALIZATION (FUNCTIONS)
 
 ```sql
