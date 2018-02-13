@@ -2,11 +2,12 @@ CREATE OR REPLACE FUNCTION LLVMIR_Run(
 _LLVMIR text,
 _Memory int[],
 _DataPtr int,
+_STDOUTBufferSize int,
 OUT Memory int[],
 OUT DataPtr int,
 OUT ProgPtr int,
 OUT STDOUTBuffer int[],
-OUT STDOUTSize int
+OUT STDOUTBufferSize int
 )
 RETURNS RECORD
 LANGUAGE plpython3u
@@ -31,10 +32,10 @@ if __name__ == "__main__":
     cfunc = CFUNCTYPE(c_int32, POINTER(c_int8), POINTER(c_int32), POINTER(c_int8), POINTER(c_int32))(func_ptr)
     CMemory = np.asarray(_memory, dtype=np.int8)
     CDataPtr = c_int32(_dataptr)
-    CSTDOUTBuffer = np.zeros((30000,), dtype=np.int8)
-    CSTDOUTSize = c_int32(0)
-    RetVal = cfunc(CMemory.ctypes.data_as(POINTER(c_int8)), byref(CDataPtr), CSTDOUTBuffer.ctypes.data_as(POINTER(c_int8)), byref(CSTDOUTSize))
-    return (CMemory, CDataPtr.value, RetVal, CSTDOUTBuffer, CSTDOUTSize.value)
+    CSTDOUTBuffer = np.zeros((_stdoutbuffersize,), dtype=np.int8)
+    CSTDOUTBufferSize = c_int32(_stdoutbuffersize)
+    RetVal = cfunc(CMemory.ctypes.data_as(POINTER(c_int8)), byref(CDataPtr), CSTDOUTBuffer.ctypes.data_as(POINTER(c_int8)), byref(CSTDOUTBufferSize))
+    return (CMemory, CDataPtr.value, RetVal, CSTDOUTBuffer, CSTDOUTBufferSize.value)
 $$;
 
 /*
