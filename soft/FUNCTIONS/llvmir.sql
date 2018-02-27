@@ -11,6 +11,12 @@ INTO STRICT _ProgramID
 FROM Nodes
 WHERE NodeID = _NodeID;
 
+_LLVMIR := regexp_replace(_LLVMIR, '^\s*', E'\n'||'; >'||Node_Type(_NodeID)||_NodeID||E'\n');
+_LLVMIR := regexp_replace(_LLVMIR, '(%\.\d+)', '\1.'||_NodeID, 'g');
+_LLVMIR := regexp_replace(_LLVMIR, '(\.\d+):', '\1.'||_NodeID||':', 'g');
+_LLVMIR := regexp_replace(_LLVMIR, '%NodeID', _NodeID::text, 'g');
+_LLVMIR := regexp_replace(_LLVMIR, '\s*$', E'\n'||'; <'||Node_Type(_NodeID)||_NodeID||E'\n');
+
 UPDATE LLVMIR
 SET LLVMIR = LLVMIR || _LLVMIR
 WHERE ProgramID = _ProgramID;

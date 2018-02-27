@@ -4,16 +4,14 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-PERFORM LLVMIR(_NodeID, format($IR$
-; >LEAVE_LOOP_IF_DATA_NOT_ZERO %1$s
-%%dataptr_leave_%1$s       = load i32, i32* %%dataptr_addr
-%%element_addr_leave_%1$s  = getelementptr inbounds i8, i8* %%memory, i32 %%dataptr_leave_%1$s
-%%element_leave_%1$s       = load i8, i8* %%element_addr_leave_%1$s
-%%compare_zero_leave_%1$s  = icmp ne i8 %%element_leave_%1$s, 0
-                             br i1 %%compare_zero_leave_%1$s, label %%loop_body_%1$s, label %%post_loop_%1$s
-post_loop_%1$s:
-; <LEAVE_LOOP_IF_DATA_NOT_ZERO %1$s
-$IR$, _NodeID));
+PERFORM LLVMIR(_NodeID, '
+%.6 = load i32, i32* %Ptr
+%.7 = getelementptr inbounds i8, i8* %Data, i32 %.6
+%.8 = load i8, i8* %.7
+%.9 = icmp ne i8 %.8, 0
+      br i1 %.9, label %.5, label %.10
+.10:
+');
 RETURN;
 END;
 $$;

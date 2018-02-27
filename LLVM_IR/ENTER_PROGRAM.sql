@@ -4,12 +4,10 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-PERFORM LLVMIR(_NodeID, format($IR$
-; >ENTER_PROGRAM %1$s
-define i32 @__llvmjit(i8* %%memory, i32* %%dataptr_addr, i8* %%stdout_buffer, i32* %%stdout_size_addr) {
+PERFORM LLVMIR(_NodeID, '
+define i32 @__llvmjit(i8* %Data, i32 %Size, i32* %Ptr, i8* %STDOUTBuffer, i32* %STDOUTRemaining) {
 entry:
-; <ENTER_PROGRAM %1$s
-$IR$, _NodeID));
+');
 RETURN;
 END;
 $$;

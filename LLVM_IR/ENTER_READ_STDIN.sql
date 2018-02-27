@@ -4,12 +4,10 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
 BEGIN
-PERFORM LLVMIR(_NodeID, format($IR$
-; >ENTER_READ_STDIN %1$s
-ret i32 %1$s
-post_%1$s:
-; <ENTER_READ_STDIN %1$s
-$IR$, _NodeID));
+PERFORM LLVMIR(_NodeID, '
+ret i32 %NodeID
+Node%NodeID:
+');
 RETURN;
 END;
 $$;

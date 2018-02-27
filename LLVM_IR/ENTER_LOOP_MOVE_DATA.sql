@@ -5,32 +5,42 @@ AS $$
 DECLARE
 _ArgumentNodeID integer;
 _Argument       integer;
+_Operator       text;
 BEGIN
 _ArgumentNodeID := Parent(_NodeID, 'ARGUMENT');
 _Argument       := COALESCE(Primitive_Value(_ArgumentNodeID)::integer, 1);
 
-PERFORM LLVMIR(_NodeID, format($IR$
-; >ENTER_LOOP_MOVE_DATA %1$s
-%%dataptr_%1$s          = load i32, i32* %%dataptr_addr
-%%element_addr_%1$s     = getelementptr inbounds i8, i8* %%memory, i32 %%dataptr_%1$s
-%%element_%1$s          = load i8, i8* %%element_addr_%1$s
-%%compare_zero_%1$s     = icmp eq i8 %%element_%1$s, 0
-                          br i1 %%compare_zero_%1$s, label %%post_loop_%1$s, label %%loop_body_%1$s
-loop_body_%1$s:
-%%new_dataptr_%1$s      = %3$s i32 %%dataptr_%1$s, %2$s
-%%new_element_addr_%1$s = getelementptr inbounds i8, i8* %%memory, i32 %%new_dataptr_%1$s
-%%new_element_%1$s      = load i8, i8* %%new_element_addr_%1$s
-%%add_element_%1$s      = add i8 %%new_element_%1$s, %%element_%1$s
-                          store i8 %%add_element_%1$s, i8* %%new_element_addr_%1$s
-                          store i8 0, i8* %%element_addr_%1$s
-                          br label %%post_loop_%1$s
-post_loop_%1$s:
-; <ENTER_LOOP_MOVE_DATA %1$s
-$IR$,
-    _NodeID,
-    ABS(_Argument),
-    CASE WHEN _Argument > 0 THEN 'add' WHEN _Argument < 0 THEN 'sub' END
-));
+IF _Argument > 0 THEN
+    _Operator := 'add';
+ELSIF _Argument < 0 THEN
+    _Operator := 'sub';
+ELSE
+    RAISE EXCEPTION 'Unexpected Argument %', _Argument;
+END IF;
+
+PERFORM LLVMIR(_NodeID, '
+br label %Node%NodeID
+Node%NodeID:
+%.1  = load i32, i32* %Ptr
+%.2  = getelementptr inbounds i8, i8* %Data, i32 %.1
+%.3  = load i8, i8* %.2
+%.4  = icmp eq i8 %.3, 0
+       br i1 %.4, label %.13, label %.5
+.5:
+%.6  = '||_Operator||' i32 %.1, '||ABS(_Argument)||'
+%.7  = icmp sge i32 %.6, %Size
+       br i1 %.7, label %.8, label %.9
+.8:
+       ret i32 %NodeID
+.9:
+%.10 = getelementptr inbounds i8, i8* %Data, i32 %.6
+%.11 = load i8, i8* %.10
+%.12 = add i8 %.11, %.3
+       store i8 %.12, i8* %.10
+       store i8 0, i8* %.2
+       br label %.13
+.13:
+');
 RETURN;
 END;
 $$;
