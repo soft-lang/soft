@@ -13,7 +13,7 @@ SELECT COUNT(*) FROM (
         _FileSuffix := '\.bf$'
     )
     WHERE TRUE
-    AND   FilePath ~ 'mandelbrot'
+    AND   FilePath ~ 'foobar'
 ) AS Tests;
 
 -- SELECT COUNT(*) FROM (

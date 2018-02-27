@@ -26,7 +26,7 @@ _Ret := 0;
 _STDINPOS := 0;
 _STDOUT := '';
 LOOP
---    RAISE NOTICE '=> Data % Size % Ptr % STDOUTRemaining %', _Data, _Size, _Ptr, _STDOUTBufferMax;
+    RAISE NOTICE '=> Data % Size % Ptr % STDOUTRemaining %', _Data, _Size, _Ptr, _STDOUTBufferMax;
     SELECT
         Data,
         Ptr,
@@ -46,7 +46,7 @@ LOOP
         _Ptr             := _Ptr,
         _STDOUTRemaining := _STDOUTBufferMax
     );
---    RAISE NOTICE '<= Data % Ptr % Ret % STDOUTBuffer % STDOUTRemaining %', _Data, _Ptr, _Ret, _STDOUTBuffer, _STDOUTRemaining;
+    RAISE NOTICE '<= Data % Ptr % Ret % STDOUTBuffer % STDOUTRemaining %', _Data, _Ptr, _Ret, _STDOUTBuffer, _STDOUTRemaining;
     IF _STDOUTRemaining < _STDOUTBufferMax THEN
         _Str := '';
         FOR _i IN REVERSE _STDOUTBufferMax..(_STDOUTRemaining+1) LOOP
@@ -62,6 +62,9 @@ LOOP
     ELSIF Node_Type(_Ret) IN ('INC_PTR', 'LOOP_MOVE_DATA', 'LOOP_MOVE_PTR') THEN
         _ArgumentNodeID := Parent(_Ret, 'ARGUMENT');
         _Argument := COALESCE(Primitive_Value(_ArgumentNodeID)::integer, 1);
+        IF _Argument < 0 THEN
+            RAISE EXCEPTION 'Tried to move data pointer before first cell';
+        END IF;
         _Grow := GREATEST(_Size, _Argument);
         RAISE NOTICE 'Growing memory with % to allow moving data pointer % forward', _Grow, _Argument;
         _Size := _Size + _Grow;
