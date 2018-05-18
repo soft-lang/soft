@@ -71,6 +71,9 @@ LOOP
         _Data  := _Data || array_fill(0,array[_Grow]);
     ELSIF Node_Type(_Ret) = 'READ_STDIN' THEN
         _STDINPOS := _STDINPOS + 1;
+        IF _STDINPOS > length(_STDIN) THEN
+            RAISE EXCEPTION 'Tried to read more data from STDIN than given as input';
+        END IF;
         _Data[_Ptr + 1] := ascii(substr(_STDIN, _STDINPOS, 1));
     ELSIF Node_Type(_Ret) = 'WRITE_STDOUT' THEN
         -- already handled
@@ -82,7 +85,7 @@ RETURN _STDOUT;
 END;
 $$;
 
-SELECT * FROM Brainfuck(E'12345678\n');
+SELECT * FROM Brainfuck(E'1000\n');
 
 /*
 

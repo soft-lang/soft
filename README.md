@@ -458,14 +458,14 @@ SELECT New_Node_Type(
     _Language       := 'TestLanguage',
     _NodeType       := 'INTEGER',
     _PrimitiveType  := 'integer'::regtype,
-    _NodeGroup      := 'VALUE',
+    _NodeGroup      := 'VALUES',
     _LiteralPattern := '([0-9]+)'
 );
 ```
 
 In our test language we only have support for integers,
 but if we would have support for e.g. boolean, text, numeric, etc,
-they would also get `NodeGroup := 'VALUE'`, to allow referring to them
+they would also get `NodeGroup := 'VALUES'`, to allow referring to them
 as a group in the grammar.
 
 ```sql
@@ -565,7 +565,7 @@ There might be multiple capture groups, but exactly one (or none) must match.
 If you need multiple parentheses, use `(?:)` to avoid capturing them.
 
 ```sql
-SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'VALUE', _NodePattern := '((?#VALUE))');
+SELECT New_Node_Type(_Language := 'TestLanguage', _NodeType := 'VALUE', _NodePattern := '(VALUES)');
 ```
 
 This will raise our `INTEGER` to a `VALUE`, which allows
@@ -574,13 +574,6 @@ instead of having to repeat our selves and define
 specific NodePatterns for all our NodeTypes, such as `INTEGER`, `NUMERIC`, `TEXT`, etc,
 if we would have had support for more types than just `INTEGER`.
 
-Normally in regex, `(?#)` means comment.
-We will hijack this syntax and use it to instead mean we want to
-expand the NodeGroup specified here.
-E.g.: `(?#VALUE)` -> `(<INTEGER\d+>|<NUMERIC\d+>|<TEXT\d+>)`
-That is, if we would have support for `NUMERIC` and `TEXT` as well,
-but since we don't `(?#VALUE)` is only expanded to `(INTEGER)`.
-
 The `(?:^| )` ensures we match either at the beginning of the
 sequence of tokens, or right after a previous token.
 
@@ -588,9 +581,9 @@ sequence of tokens, or right after a previous token.
 SELECT New_Node_Type(
     _Language    := 'TestLanguage',
     _NodeType    := 'SUB_EXPRESSION',
-    _NodePattern := '(LPAREN (?:(?:VALUE | (?#OPS)))+ RPAREN)',
+    _NodePattern := '(LPAREN (?:(?:VALUE | OPS))+ RPAREN)',
     _GrowFrom    := 'VALUE',
-    _NodeGroup   := 'VALUE'
+    _NodeGroup   := 'VALUES'
 );
 ```
 
@@ -614,7 +607,7 @@ not containing any sub expressions that have not already been parsed,
 thanks to `LPAREN` and `RPAREN` being neither a `VALUE` nor part of the `OPS` node group.
 We only want to match at the beginning or right after an operator token. i.e. part of the `OPS` node group.
 
-The sub expression is itself also part of the NodeGroup `VALUE`,
+The sub expression is itself also part of the NodeGroup `VALUES`,
 meaning it will also be raised to a `VALUE` in the next parsing iteration
 unless consumed by some other NodePattern with higher precedence.
 
@@ -622,7 +615,7 @@ unless consumed by some other NodePattern with higher precedence.
 SELECT New_Node_Type(
     _Language    := 'TestLanguage',
     _NodeType    := 'EXPRESSION',
-    _NodePattern := '((?:VALUE | (?#OPS))+)',
+    _NodePattern := '((?:VALUE | OPS)+)',
     _GrowFrom    := 'VALUE'
 );
 ```
@@ -650,7 +643,7 @@ SELECT New_Node_Type(
     _Language    := 'TestLanguage',
     _NodeType    := 'GROUP',
     _GrowInto    := 'VALUE',
-    _NodePattern := '(?:^ | (?#OPS)) (LPAREN VALUE RPAREN)'
+    _NodePattern := '(?:^ | OPS) (LPAREN VALUE RPAREN)'
 );
 ```
 

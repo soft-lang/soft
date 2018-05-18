@@ -185,7 +185,10 @@ LOOP
     IF _NodeSeverity >= 'ERROR' THEN
         PERFORM Error(
             _NodeID    := _TokenNodeID,
-            _ErrorType := _NodeType
+            _ErrorType := _NodeType,
+            _ErrorInfo := hstore(ARRAY[
+                ['Literal', _Literal]
+            ])
         );
     END IF;
 
