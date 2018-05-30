@@ -1,0 +1,85 @@
+digraph G {
+    compound=true;
+    subgraph cluster0 {
+        "Slash" [style="filled" fillcolor="/set312/1"];
+        "Backslash" [style="filled" fillcolor="/set312/1"];
+        "DoubleQuote" [style="filled" fillcolor="/set312/1"];
+        "UnicodeEscape" [style="filled" fillcolor="/set312/2"];
+        "EscapeSequence" [style="filled" fillcolor="/set312/2"];
+        "NormalCharacter" [style="filled" fillcolor="/set312/2"];
+        "ControlCharacter" [style="filled" fillcolor="/set312/2"];
+        "String" [style="filled" fillcolor="/set312/2"];
+        "ControlCharacter" -> "NormalCharacter";
+        "DoubleQuote" -> "NormalCharacter";
+        "Backslash" -> "NormalCharacter";
+        "Backslash" -> "EscapeSequence";
+        "DoubleQuote" -> "EscapeSequence";
+        "UnicodeEscape" -> "EscapeSequence";
+        "DoubleQuote" -> "String";
+        "NormalCharacter" -> "String";
+        "EscapeSequence" -> "String";
+        "Slash" -> "EscapeSequence";
+     }
+    subgraph cluster1 {
+        "IntegralPart" [style="filled" fillcolor="/set312/2"];
+        "FractionalPart" [style="filled" fillcolor="/set312/2"];
+        "ExponentPart" [style="filled" fillcolor="/set312/2"];
+        "Number" [style="filled" fillcolor="/set312/2"];
+        "Dot" [style="filled" fillcolor="/set312/1"];
+        "Minus" [style="filled" fillcolor="/set312/1"];
+        "Plus" [style="filled" fillcolor="/set312/1"];
+        "Dot" -> "FractionalPart";
+        "Minus" -> "ExponentPart";
+        "Plus" -> "ExponentPart";
+        "Minus" -> "Number";
+        "IntegralPart" -> "Number";
+        "FractionalPart" -> "Number";
+        "ExponentPart" -> "Number";
+    }
+    subgraph cluster2 {
+        "Key" [style="filled" fillcolor="/set312/3"];
+        "Member" [style="filled" fillcolor="/set312/3"];
+        "Object" [style="filled" fillcolor="/set312/3"];
+        "Array" [style="filled" fillcolor="/set312/3"];
+        "JSON" [style="filled" fillcolor="/set312/4"];
+        "WS" [style="filled" fillcolor="/set312/2"];
+        "Null" [style="filled" fillcolor="/set312/1"];
+        "True" [style="filled" fillcolor="/set312/1"];
+        "False" [style="filled" fillcolor="/set312/1"];
+        "LeftBracket" [style="filled" fillcolor="/set312/1"];
+        "RightBracket" [style="filled" fillcolor="/set312/1"];
+        "LeftBrace" [style="filled" fillcolor="/set312/1"];
+        "RightBrace" [style="filled" fillcolor="/set312/1"];
+        "Comma" [style="filled" fillcolor="/set312/1"];
+        "Colon" [style="filled" fillcolor="/set312/1"];
+        "String" -> "Key";
+        "WS" -> "Key";
+        "Colon" -> "Key";
+
+        "WS" -> "Member";
+        "Key" -> "Member";
+        "Colon" -> "Member";
+        "JSON" -> "Member";
+
+        "LeftBrace" -> "Object";
+        "Member" -> "Object";
+        "Comma" -> "Object";
+        "WS" -> "Object";
+        "RightBrace" -> "Object";
+
+        "LeftBracket" -> "Array";
+        "JSON" -> "Array";
+        "Comma" -> "Array";
+        "WS" -> "Array";
+        "RightBracket" -> "Array";
+
+        "WS" -> "JSON";
+        "Object" -> "JSON";
+        "Array" -> "JSON";
+        "String" -> "JSON";
+        "True" -> "JSON";
+        "False" -> "JSON";
+        "Null" -> "JSON";
+        "Number" -> "JSON";
+    }
+}
